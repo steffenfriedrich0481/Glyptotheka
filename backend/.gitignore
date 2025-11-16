@@ -1,0 +1,19 @@
+# Backend build artifacts
+target/
+*.db
+*.db-shm
+*.db-wal
+
+# Cache directory
+cache/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/

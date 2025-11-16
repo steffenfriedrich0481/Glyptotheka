@@ -1,0 +1,791 @@
+openapi: 3.0.3
+info:
+  title: 3D Print Model Library API
+  description: REST API for managing and browsing 3D print model collections
+  version: 1.0.0
+  contact:
+    name: Glyptotheka Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+tags:
+  - name: Config
+    description: Application configuration
+  - name: Scan
+    description: File system scanning operations
+  - name: Projects
+    description: Project navigation and management
+  - name: Search
+    description: Search functionality
+  - name: Tags
+    description: Tag management
+  - name: Files
+    description: File downloads and serving
+
+paths:
+  /config:
+    get:
+      summary: Get application configuration
+      tags: [Config]
+      responses:
+        '200':
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+    
+    post:
+      summary: Update application configuration
+      tags: [Config]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigUpdate'
+      responses:
+        '200':
+          description: Configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /scan:
+    post:
+      summary: Start file system scan
+      tags: [Scan]
+      description: Triggers a scan of the configured root path
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                force:
+                  type: boolean
+                  description: Force rescan even if recent scan exists
+      responses:
+        '202':
+          description: Scan started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Scan already in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /scan/status:
+    get:
+      summary: Get current scan status
+      tags: [Scan]
+      responses:
+        '200':
+          description: Scan status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanSession'
+        '404':
+          description: No scan in progress
+
+  /scan/history:
+    get:
+      summary: Get scan history
+      tags: [Scan]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Scan history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScanSession'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /projects:
+    get:
+      summary: List root-level projects
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: List of root projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectSummary'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /projects/{id}:
+    get:
+      summary: Get project details
+      tags: [Projects]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/children:
+    get:
+      summary: Get child projects
+      tags: [Projects]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: List of child projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectSummary'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /projects/{id}/breadcrumb:
+    get:
+      summary: Get breadcrumb trail for project
+      tags: [Projects]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Breadcrumb trail from root to project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BreadcrumbItem'
+
+  /projects/{id}/files:
+    get:
+      summary: Get project files (STL and images)
+      tags: [Projects]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, stl, images]
+            default: all
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Project files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      stlFiles:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/StlFile'
+                      images:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ImageFile'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /projects/{id}/download:
+    get:
+      summary: Download project as ZIP
+      tags: [Files]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: ZIP file stream
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /search:
+    get:
+      summary: Search projects
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          description: Search query (name)
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Comma-separated tag names
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectSummary'
+                  meta:
+                    $ref: '#/components/schemas/SearchMeta'
+
+  /tags:
+    get:
+      summary: List all tags
+      tags: [Tags]
+      parameters:
+        - name: q
+          in: query
+          description: Filter tags by name prefix (for autocomplete)
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [name, usage]
+            default: name
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+    
+    post:
+      summary: Create a new tag
+      tags: [Tags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTagRequest'
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Tag already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{id}/tags:
+    post:
+      summary: Add tag to project
+      tags: [Tags]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagProjectRequest'
+      responses:
+        '200':
+          description: Tag added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Remove tag from project
+      tags: [Tags]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: tagName
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tag removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /files/{id}:
+    get:
+      summary: Download individual file
+      tags: [Files]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [stl, image]
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /images/{hash}:
+    get:
+      summary: Serve cached image
+      tags: [Files]
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: size
+          in: query
+          schema:
+            type: string
+            enum: [thumb, full]
+            default: full
+      responses:
+        '200':
+          description: Image file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /previews/{hash}:
+    get:
+      summary: Serve STL preview image
+      tags: [Files]
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Preview image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Config:
+      type: object
+      properties:
+        rootPath:
+          type: string
+          nullable: true
+        lastScanAt:
+          type: integer
+          format: int64
+          nullable: true
+        stlThumbPath:
+          type: string
+          nullable: true
+        cacheMaxSizeMb:
+          type: integer
+          default: 5000
+        imagesPerPage:
+          type: integer
+          default: 20
+
+    ConfigUpdate:
+      type: object
+      properties:
+        rootPath:
+          type: string
+        stlThumbPath:
+          type: string
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        fullPath:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+        isLeaf:
+          type: boolean
+        childCount:
+          type: integer
+        stlCount:
+          type: integer
+        imageCount:
+          type: integer
+        thumbnailUrl:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+
+    ProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProjectSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+              nullable: true
+            stlFiles:
+              type: array
+              items:
+                $ref: '#/components/schemas/StlFile'
+            images:
+              type: array
+              items:
+                $ref: '#/components/schemas/ImageFile'
+
+    StlFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        projectId:
+          type: integer
+          format: int64
+        filename:
+          type: string
+        filePath:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        previewUrl:
+          type: string
+          nullable: true
+        downloadUrl:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+
+    ImageFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        projectId:
+          type: integer
+          format: int64
+        filename:
+          type: string
+        filePath:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        sourceType:
+          type: string
+          enum: [direct, inherited]
+        sourceProjectId:
+          type: integer
+          format: int64
+          nullable: true
+        displayOrder:
+          type: integer
+        imageUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        downloadUrl:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        color:
+          type: string
+          nullable: true
+        usageCount:
+          type: integer
+        createdAt:
+          type: integer
+          format: int64
+
+    CreateTagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+
+    TagProjectRequest:
+      type: object
+      required:
+        - tagName
+      properties:
+        tagName:
+          type: string
+
+    ScanSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        rootPath:
+          type: string
+        status:
+          type: string
+          enum: [running, completed, failed, cancelled]
+        startedAt:
+          type: integer
+          format: int64
+        completedAt:
+          type: integer
+          format: int64
+          nullable: true
+        projectsFound:
+          type: integer
+        filesProcessed:
+          type: integer
+        errorsCount:
+          type: integer
+        errorLog:
+          type: string
+          nullable: true
+
+    BreadcrumbItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        fullPath:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        perPage:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    SearchMeta:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            query:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PerPageParam:
+      name: perPage
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

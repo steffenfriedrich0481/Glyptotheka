@@ -1,0 +1,292 @@
+# Glyptotheka - 3D Print Model Library
+
+A web-based application for managing and browsing your 3D print model collection. Features hierarchical organization, STL preview generation, search & tagging, and easy file downloads.
+
+## Features
+
+- 📁 Hierarchical folder-based organization
+- 🖼️ STL preview image generation
+- 🔍 Full-text search with tag filtering
+- 🏷️ Custom tagging system
+- ⬇️ Individual file and ZIP archive downloads
+- 🔄 Rescan functionality to keep library up-to-date
+- 💾 Local-first architecture (SQLite database)
+
+## Tech Stack
+
+**Backend:**
+- Rust 1.75+ with Axum web framework
+- SQLite with rusqlite for local storage
+- tokio for async runtime
+- stl-thumb for STL preview generation
+
+**Frontend:**
+- React 18 with TypeScript
+- Vite for build tooling
+- React Router for navigation
+- Zustand for state management
+- Axios for HTTP client
+
+## Prerequisites
+
+### Required
+
+1. **Rust** 1.75 or later
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+2. **Node.js** 18.0 or later
+   ```bash
+   # Using nvm (recommended)
+   nvm install 18
+   nvm use 18
+   ```
+
+3. **stl-thumb** - STL preview generation tool
+   ```bash
+   git clone https://github.com/unlimitedbacon/stl-thumb.git
+   cd stl-thumb
+   cargo build --release
+   sudo cp target/release/stl-thumb /usr/local/bin/
+   
+   # Verify installation
+   stl-thumb --version
+   ```
+
+### Optional
+
+- **SQLite CLI** for database inspection (usually pre-installed on Linux/macOS)
+
+## Quick Start
+
+### 1. Clone and Setup
+
+```bash
+git clone <repository-url>
+cd Glyptotheka
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+
+# Build the project
+cargo build --release
+
+# Run migrations (creates database)
+cargo run --release
+
+# The backend will start on http://localhost:3000
+```
+
+### 3. Frontend Setup
+
+In a new terminal:
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# The frontend will start on http://localhost:5173
+```
+
+### 4. Configure Your Library
+
+1. Open your browser to http://localhost:5173
+2. Enter the path to your 3D print files (e.g., `/home/user/3d-prints`)
+3. Click "Start Scan" to index your collection
+4. Browse and enjoy!
+
+## Development
+
+### Project Structure
+
+```
+Glyptotheka/
+├── backend/               # Rust backend
+│   ├── src/
+│   │   ├── api/          # HTTP API handlers
+│   │   ├── db/           # Database layer
+│   │   ├── models/       # Data models
+│   │   ├── services/     # Business logic
+│   │   └── utils/        # Utilities
+│   ├── migrations/       # Database migrations
+│   └── tests/            # Integration tests
+│
+├── frontend/             # React frontend
+│   ├── src/
+│   │   ├── api/         # API client
+│   │   ├── components/  # React components
+│   │   ├── pages/       # Page components
+│   │   ├── hooks/       # Custom hooks
+│   │   ├── store/       # State management
+│   │   └── types/       # TypeScript types
+│   └── tests/           # Component tests
+│
+└── specs/               # Feature specifications
+    └── 001-3d-print-library/
+        ├── spec.md      # Feature specification
+        ├── plan.md      # Implementation plan
+        ├── data-model.md
+        ├── quickstart.md
+        ├── research.md
+        ├── tasks.md
+        └── contracts/   # API contracts
+```
+
+### Running Tests
+
+**Backend:**
+```bash
+cd backend
+cargo test
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm test
+```
+
+### Code Quality
+
+**Backend:**
+```bash
+cd backend
+cargo fmt        # Format code
+cargo clippy     # Linting
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run lint     # ESLint
+npm run format   # Prettier (if configured)
+```
+
+## Usage
+
+### Setting Up Your Library
+
+1. **Configure Root Path**: Specify the root folder containing your 3D print files
+2. **Initial Scan**: The system recursively scans for STL files and images
+3. **Preview Generation**: STL thumbnails are generated automatically (requires stl-thumb)
+
+### Browsing
+
+- Navigate through the hierarchical folder structure using tile-based interface
+- Click on folders to drill down, use breadcrumbs to navigate up
+- View project details, STL files, and associated images
+
+### Search & Filtering
+
+- Use the search bar to find projects by name
+- Filter by tags for cross-cutting organization
+- Combine text search with tag filters
+
+### Tagging
+
+- Add custom tags to projects from the project detail page
+- Tags autocomplete from existing tags
+- Use tags to create custom organization schemes
+
+### Downloading
+
+- Download individual STL or image files
+- Download entire project as ZIP archive
+- All downloads are streamed for efficient memory usage
+
+### Rescanning
+
+- Trigger a rescan to update the library when files change
+- New projects are added, deleted ones removed
+- Tags are preserved across rescans
+
+## Database
+
+The application uses SQLite with the following key tables:
+
+- `projects` - Hierarchical project structure
+- `stl_files` - STL file metadata
+- `image_files` - Associated images (direct and inherited)
+- `tags` - Custom tags
+- `project_tags` - Many-to-many relationship
+- `cached_files` - Image and preview cache tracking
+- `scan_sessions` - Scan history and debugging
+
+Database location: `backend/glyptotheka.db`
+
+## Caching
+
+Generated previews and cached images are stored in:
+- `backend/cache/previews/` - STL thumbnails
+- `backend/cache/images/` - Cached user images
+
+Cache is managed automatically with LRU eviction when size limits are reached.
+
+## Troubleshooting
+
+### stl-thumb not found
+
+If preview generation fails:
+1. Verify stl-thumb is installed: `which stl-thumb`
+2. Check it's in PATH or configure path in database config
+3. Fallback: System will use placeholder images
+
+### Database locked
+
+If you see "database is locked" errors:
+1. Ensure only one backend instance is running
+2. Check for stale WAL files
+3. Restart the backend
+
+### Scan hangs or fails
+
+1. Check file permissions on root path
+2. Review error log in scan session
+3. Look for corrupted STL files
+4. Check available disk space for cache
+
+## Performance
+
+Expected performance on modern hardware:
+- 100+ projects scanned per minute
+- Sub-second search for 10,000 projects
+- <2 second tile navigation load times
+- <10 second ZIP generation for 50-file projects
+
+## Contributing
+
+1. Check `specs/001-3d-print-library/` for feature specifications
+2. Follow the implementation plan in `tasks.md`
+3. Write tests for new features
+4. Ensure CI passes before submitting PR
+
+## License
+
+[Add license information]
+
+## Acknowledgments
+
+- [stl-thumb](https://github.com/unlimitedbacon/stl-thumb) for STL preview generation
+- Rust and React communities for excellent tooling
+
+## Support
+
+For issues and questions:
+- Check documentation in `specs/001-3d-print-library/`
+- Review troubleshooting section above
+- Open an issue on GitHub
+
+---
+
+**Status**: ✅ In Development - Phase 0 Complete
+
+See `specs/001-3d-print-library/tasks.md` for implementation progress.
