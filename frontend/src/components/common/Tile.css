@@ -1,0 +1,65 @@
+.tile {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tile.clickable {
+  cursor: pointer;
+}
+
+.tile.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tile.clickable:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.tile-image {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile-placeholder {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.tile-content {
+  padding: 1rem;
+}
+
+.tile-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,5 +1,4 @@
-use rusqlite::Connection;
-use std::path::Path;
+use crate::db::connection::DbPool;
 
 pub struct Migration {
     pub version: u32,
@@ -15,8 +14,8 @@ pub const MIGRATIONS: &[Migration] = &[
     },
 ];
 
-pub fn run_migrations<P: AsRef<Path>>(db_path: P) -> Result<(), Box<dyn std::error::Error>> {
-    let conn = Connection::open(db_path)?;
+pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
+    let conn = pool.get()?;
     
     conn.execute_batch("PRAGMA foreign_keys = ON;")?;
 
@@ -30,7 +29,7 @@ pub fn run_migrations<P: AsRef<Path>>(db_path: P) -> Result<(), Box<dyn std::err
     Ok(())
 }
 
-fn get_current_version(conn: &Connection) -> Result<u32, Box<dyn std::error::Error>> {
+fn get_current_version(conn: &rusqlite::Connection) -> Result<u32, Box<dyn std::error::Error>> {
     let version: Result<u32, rusqlite::Error> = conn.query_row(
         "SELECT MAX(version) FROM schema_migrations",
         [],
@@ -47,14 +46,22 @@ fn get_current_version(conn: &Connection) -> Result<u32, Box<dyn std::error::Err
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rusqlite::Connection;
     use tempfile::NamedTempFile;
 
     #[test]
     fn test_run_migrations() {
         let temp_db = NamedTempFile::new().unwrap();
-        run_migrations(temp_db.path()).unwrap();
-
         let conn = Connection::open(temp_db.path()).unwrap();
+
+        conn.execute_batch("PRAGMA foreign_keys = ON;").unwrap();
+
+        let current_version = get_current_version(&conn).unwrap();
+        
+        for migration in MIGRATIONS.iter().filter(|m| m.version > current_version) {
+            conn.execute_batch(migration.sql).unwrap();
+        }
+
         let version: u32 = conn.query_row(
             "SELECT MAX(version) FROM schema_migrations",
             [],

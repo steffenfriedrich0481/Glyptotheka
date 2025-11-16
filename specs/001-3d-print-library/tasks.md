@@ -44,33 +44,33 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Database & Backend Core
 
-- [ ] T007 Create SQLite schema migration in backend/src/db/migrations/001_initial.sql
-- [ ] T008 [P] Implement database connection pool in backend/src/db/connection.rs
-- [ ] T009 [P] Create base project model in backend/src/models/project.rs
-- [ ] T010 [P] Create STL file model in backend/src/models/stl_file.rs
-- [ ] T011 [P] Create image file model in backend/src/models/image_file.rs
-- [ ] T012 [P] Create tag model in backend/src/models/tag.rs
-- [ ] T013 [P] Create cached file model in backend/src/models/cached_file.rs
-- [ ] T014 Implement project repository with CRUD operations in backend/src/db/repositories/project_repo.rs
-- [ ] T015 [P] Implement file repository in backend/src/db/repositories/file_repo.rs
-- [ ] T016 [P] Implement tag repository in backend/src/db/repositories/tag_repo.rs
-- [ ] T017 Set up Axum server with basic routing in backend/src/main.rs
-- [ ] T018 [P] Implement CORS middleware in backend/src/api/middleware/cors.rs
-- [ ] T019 [P] Implement error handling middleware in backend/src/api/middleware/error.rs
-- [ ] T020 [P] Create common error types in backend/src/utils/error.rs
-- [ ] T021 [P] Create pagination utilities in backend/src/utils/pagination.rs
+- [X] T007 Create SQLite schema migration in backend/src/db/migrations/001_initial.sql
+- [X] T008 [P] Implement database connection pool in backend/src/db/connection.rs
+- [X] T009 [P] Create base project model in backend/src/models/project.rs
+- [X] T010 [P] Create STL file model in backend/src/models/stl_file.rs
+- [X] T011 [P] Create image file model in backend/src/models/image_file.rs
+- [X] T012 [P] Create tag model in backend/src/models/tag.rs
+- [X] T013 [P] Create cached file model in backend/src/models/cached_file.rs
+- [X] T014 Implement project repository with CRUD operations in backend/src/db/repositories/project_repo.rs
+- [X] T015 [P] Implement file repository in backend/src/db/repositories/file_repo.rs
+- [X] T016 [P] Implement tag repository in backend/src/db/repositories/tag_repo.rs
+- [X] T017 Set up Axum server with basic routing in backend/src/main.rs
+- [X] T018 [P] Implement CORS middleware in backend/src/api/middleware/cors.rs
+- [X] T019 [P] Implement error handling middleware in backend/src/api/middleware/error.rs
+- [X] T020 [P] Create common error types in backend/src/utils/error.rs
+- [X] T021 [P] Create pagination utilities in backend/src/utils/pagination.rs
 
 ### Frontend Core
 
-- [ ] T022 Set up React Router with base routes in frontend/src/App.tsx
-- [ ] T023 [P] Create API client configuration in frontend/src/api/client.ts
-- [ ] T024 [P] Create TypeScript types for all entities in frontend/src/types/project.ts
-- [ ] T025 [P] Create TypeScript types for API responses in frontend/src/types/api.ts
-- [ ] T026 [P] Create navigation context provider in frontend/src/store/navigationContext.tsx
-- [ ] T027 [P] Implement base Tile component in frontend/src/components/common/Tile.tsx
-- [ ] T028 [P] Implement Breadcrumb component in frontend/src/components/common/Breadcrumb.tsx
-- [ ] T029 [P] Implement LoadingSpinner component in frontend/src/components/common/LoadingSpinner.tsx
-- [ ] T030 [P] Implement Pagination component in frontend/src/components/common/Pagination.tsx
+- [X] T022 Set up React Router with base routes in frontend/src/App.tsx
+- [X] T023 [P] Create API client configuration in frontend/src/api/client.ts
+- [X] T024 [P] Create TypeScript types for all entities in frontend/src/types/project.ts
+- [X] T025 [P] Create TypeScript types for API responses in frontend/src/types/api.ts
+- [X] T026 [P] Create navigation context provider in frontend/src/store/navigationContext.tsx
+- [X] T027 [P] Implement base Tile component in frontend/src/components/common/Tile.tsx
+- [X] T028 [P] Implement Breadcrumb component in frontend/src/components/common/Breadcrumb.tsx
+- [X] T029 [P] Implement LoadingSpinner component in frontend/src/components/common/LoadingSpinner.tsx
+- [X] T030 [P] Implement Pagination component in frontend/src/components/common/Pagination.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

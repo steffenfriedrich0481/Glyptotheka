@@ -1,7 +1,7 @@
 use crate::db::connection::DbPool;
 use crate::models::project::{CreateProject, Project, ProjectWithRelations};
 use crate::utils::error::AppError;
-use rusqlite::params;
+use rusqlite::{params, OptionalExtension};
 
 pub struct ProjectRepository {
     pool: DbPool,
