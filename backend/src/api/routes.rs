@@ -14,6 +14,7 @@ use crate::services::image_cache::ImageCacheService;
 use crate::services::scanner::ScannerService;
 use crate::services::rescan::RescanService;
 use crate::services::search::SearchService;
+use crate::services::stl_preview::StlPreviewService;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -30,11 +31,30 @@ pub struct AppState {
     pub image_cache_service: Arc<ImageCacheService>,
     pub search_service: Arc<SearchService>,
     pub download_service: Arc<DownloadService>,
+    pub stl_preview_service: Arc<StlPreviewService>,
     pub scan_state: Arc<Mutex<ScanState>>,
 }
 
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir, pool.clone()));
+    
+    // Get stl_thumb_path from config
+    let stl_thumb_path = {
+        let conn = pool.get().ok();
+        conn.and_then(|c| {
+            c.query_row(
+                "SELECT stl_thumb_path FROM config WHERE id = 1",
+                [],
+                |row| row.get::<_, Option<String>>(0)
+            ).ok().flatten()
+        }).map(PathBuf::from)
+    };
+    
+    let stl_preview = Arc::new(StlPreviewService::new(
+        stl_thumb_path,
+        (*image_cache).clone(),
+        pool.clone(),
+    ));
     
     let state = AppState {
         pool: pool.clone(),
@@ -50,6 +70,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         image_cache_service: image_cache,
         search_service: Arc::new(SearchService::new(pool.clone())),
         download_service: Arc::new(DownloadService::new(pool.clone())),
+        stl_preview_service: stl_preview,
         scan_state: Arc::new(Mutex::new(ScanState {
             is_scanning: false,
             result: None,
@@ -71,6 +92,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/projects/:id/download", get(files::download_project_zip))
         // File/Image routes
         .route("/api/images/:hash", get(files::serve_image))
+        .route("/api/previews/:hash", get(files::serve_preview))
         .route("/api/files/:id", get(files::download_file))
         // Search routes
         .route("/api/search", get(search::search_projects))

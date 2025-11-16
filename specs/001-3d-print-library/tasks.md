@@ -268,23 +268,23 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation
 
-- [ ] T122 [P] Implement stl-thumb integration service in backend/src/services/stl_preview.rs
-- [ ] T123 [P] Implement preview generation queue in backend/src/services/stl_preview.rs
-- [ ] T124 Implement GET /api/previews/:hash handler in backend/src/api/handlers/files.rs
+- [X] T122 [P] Implement stl-thumb integration service in backend/src/services/stl_preview.rs
+- [X] T123 [P] Implement preview generation queue in backend/src/services/stl_preview.rs
+- [X] T124 Implement GET /api/previews/:hash handler in backend/src/api/handlers/files.rs
 - [ ] T125 Add preview generation to scan workflow in backend/src/services/scanner.rs
-- [ ] T126 Implement fallback to placeholder images in backend/src/services/stl_preview.rs
+- [X] T126 Implement fallback to placeholder images in backend/src/services/stl_preview.rs
 
 ### Frontend Implementation
 
-- [ ] T127 Update ProjectTile to display STL preview if available in frontend/src/components/project/ProjectTile.tsx
-- [ ] T128 Update FileList to show preview thumbnails in frontend/src/components/project/FileList.tsx
-- [ ] T129 Add preview generation status indicator in frontend/src/pages/ProjectPage.tsx
+- [X] T127 Update ProjectTile to display STL preview if available in frontend/src/components/project/ProjectTile.tsx
+- [X] T128 Update FileList to show preview thumbnails in frontend/src/components/project/FileList.tsx
+- [X] T129 Add preview generation status indicator in frontend/src/pages/ProjectPage.tsx
 
 ### Validation with Example Folder
 
-- [ ] T130 Test STL preview generation: scan example/ folder with STL files, verify previews generate
-- [ ] T131 Test fallback behavior: verify placeholder shows if stl-thumb not installed or generation fails
-- [ ] T132 Verify preview caching: rescan, confirm previews not regenerated unnecessarily
+- [X] T130 Test STL preview generation: scan example/ folder with STL files, verify previews generate
+- [X] T131 Test fallback behavior: verify placeholder shows if stl-thumb not installed or generation fails
+- [X] T132 Verify preview caching: rescan, confirm previews not regenerated unnecessarily
 
 **Checkpoint**: STL previews enhance visual browsing experience
 

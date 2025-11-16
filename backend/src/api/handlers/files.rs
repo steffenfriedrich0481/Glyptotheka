@@ -43,6 +43,59 @@ pub async fn serve_image(
         .unwrap())
 }
 
+pub async fn serve_preview(
+    State(state): State<AppState>,
+    AxumPath(hash): AxumPath<String>,
+) -> Result<impl IntoResponse, AppError> {
+    // Find the STL file by hash (hash is based on file path)
+    let conn = state.pool.get()?;
+    let stl_path: Option<String> = conn
+        .query_row(
+            "SELECT file_path FROM stl_files WHERE preview_path IN (
+                SELECT cache_path FROM cached_files WHERE checksum = ?1
+            )",
+            [&hash],
+            |row| row.get(0),
+        )
+        .ok();
+
+    if let Some(path) = stl_path {
+        // Try to get or generate the preview
+        let preview_path = match state.stl_preview_service.get_preview(&path)? {
+            Some(p) => p,
+            None => {
+                // Generate preview if not cached
+                state.stl_preview_service.generate_preview(&path).await?
+            }
+        };
+
+        let file = File::open(&preview_path).await?;
+        let stream = ReaderStream::new(file);
+        let body = Body::from_stream(stream);
+
+        return Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, "image/png")
+            .body(body)
+            .unwrap());
+    }
+
+    // Fallback: try to find by hash directly in cached_files
+    let cache_path = state.image_cache_service
+        .get_image_by_hash(&hash)?
+        .ok_or_else(|| AppError::NotFound(format!("Preview not found: {}", hash)))?;
+
+    let file = File::open(&cache_path).await?;
+    let stream = ReaderStream::new(file);
+    let body = Body::from_stream(stream);
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "image/png")
+        .body(body)
+        .unwrap())
+}
+
 pub async fn download_file(
     State(state): State<AppState>,
     AxumPath(id): AxumPath<i64>,

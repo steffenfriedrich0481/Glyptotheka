@@ -44,4 +44,8 @@ export const projectsAPI = {
   getImageUrl: (hash: string): string => {
     return `${axios.defaults.baseURL}/api/images/${hash}`;
   },
+
+  getPreviewUrl: (hash: string): string => {
+    return `${axios.defaults.baseURL}/api/previews/${hash}`;
+  },
 };
