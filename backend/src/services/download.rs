@@ -22,58 +22,62 @@ impl DownloadService {
         project_id: i64,
         output_path: &std::path::Path,
     ) -> Result<(), AppError> {
-        let conn = self.pool.get()?;
+        let stl_files = {
+            let conn = self.pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT id, project_id, filename, file_path, file_size, preview_path, preview_generated_at, created_at, updated_at
+                 FROM stl_files
+                 WHERE project_id = ?1
+                 ORDER BY filename",
+            )?;
 
-        // Get all STL files for the project
-        let mut stmt = conn.prepare(
-            "SELECT id, project_id, filename, file_path, file_size, preview_path, preview_generated_at, created_at, updated_at
-             FROM stl_files
-             WHERE project_id = ?1
-             ORDER BY filename",
-        )?;
+            let files: Result<Vec<StlFile>, rusqlite::Error> = stmt
+                .query_map([project_id], |row| {
+                    Ok(StlFile {
+                        id: row.get(0)?,
+                        project_id: row.get(1)?,
+                        filename: row.get(2)?,
+                        file_path: row.get(3)?,
+                        file_size: row.get(4)?,
+                        preview_path: row.get(5)?,
+                        preview_generated_at: row.get(6)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
+                    })
+                })?
+                .collect();
+            
+            files?
+        };
 
-        let stl_files = stmt
-            .query_map([project_id], |row| {
-                Ok(StlFile {
-                    id: row.get(0)?,
-                    project_id: row.get(1)?,
-                    filename: row.get(2)?,
-                    file_path: row.get(3)?,
-                    file_size: row.get(4)?,
-                    preview_path: row.get(5)?,
-                    preview_generated_at: row.get(6)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
-                })
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
+        let image_files = {
+            let conn = self.pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT id, project_id, filename, file_path, file_size, source_type, source_project_id, display_order, created_at, updated_at
+                 FROM image_files
+                 WHERE project_id = ?1
+                 ORDER BY filename",
+            )?;
 
-        // Get all image files for the project
-        let mut stmt2 = conn.prepare(
-            "SELECT id, project_id, filename, file_path, file_size, source_type, source_project_id, display_order, created_at, updated_at
-             FROM image_files
-             WHERE project_id = ?1
-             ORDER BY filename",
-        )?;
-
-        let image_files = stmt2
-            .query_map([project_id], |row| {
-                Ok(ImageFile {
-                    id: row.get(0)?,
-                    project_id: row.get(1)?,
-                    filename: row.get(2)?,
-                    file_path: row.get(3)?,
-                    file_size: row.get(4)?,
-                    source_type: row.get(5)?,
-                    source_project_id: row.get(6)?,
-                    display_order: row.get(7)?,
-                    created_at: row.get(8)?,
-                    updated_at: row.get(9)?,
-                })
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
-
-        // conn will be dropped here automatically
+            let files: Result<Vec<ImageFile>, rusqlite::Error> = stmt
+                .query_map([project_id], |row| {
+                    Ok(ImageFile {
+                        id: row.get(0)?,
+                        project_id: row.get(1)?,
+                        filename: row.get(2)?,
+                        file_path: row.get(3)?,
+                        file_size: row.get(4)?,
+                        source_type: row.get(5)?,
+                        source_project_id: row.get(6)?,
+                        display_order: row.get(7)?,
+                        created_at: row.get(8)?,
+                        updated_at: row.get(9)?,
+                    })
+                })?
+                .collect();
+            
+            files?
+        };
 
         // Create ZIP file in blocking task to avoid blocking async runtime
         let output_path = output_path.to_path_buf();

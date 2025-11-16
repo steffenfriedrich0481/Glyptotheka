@@ -5,7 +5,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
-use std::path::PathBuf;
 use crate::api::routes::AppState;
 use crate::utils::error::AppError;
 use tokio::fs::File;
@@ -108,32 +107,25 @@ pub async fn download_project_zip(
     AxumPath(project_id): AxumPath<i64>,
 ) -> Result<impl IntoResponse, AppError> {
     let conn = state.pool.get()?;
-
-    // Get project name
     let project_name: String = conn.query_row(
         "SELECT name FROM projects WHERE id = ?1",
         [project_id],
         |row| row.get(0),
     )?;
-
     drop(conn);
 
-    // Create temporary ZIP file
     let temp_dir = std::env::temp_dir();
     let zip_filename = format!("{}.zip", project_name.replace("/", "_"));
     let zip_path = temp_dir.join(&zip_filename);
 
-    // Create ZIP
     state.download_service
         .create_project_zip(project_id, &zip_path)
         .await?;
 
-    // Stream the ZIP file
     let file = File::open(&zip_path).await?;
     let stream = ReaderStream::new(file);
     let body = Body::from_stream(stream);
 
-    // Clean up temp file after streaming (in a separate task)
     let zip_path_clone = zip_path.clone();
     tokio::spawn(async move {
         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
@@ -150,3 +142,4 @@ pub async fn download_project_zip(
         .body(body)
         .unwrap())
 }
+

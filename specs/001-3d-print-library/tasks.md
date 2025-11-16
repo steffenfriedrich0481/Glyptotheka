@@ -172,26 +172,26 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation for User Story 3
 
-- [ ] T081 [P] [US3] Implement async ZIP streaming service in backend/src/services/download.rs
-- [ ] T082 [US3] Implement GET /api/files/:id handler (individual file download) in backend/src/api/handlers/files.rs
-- [ ] T083 [US3] Implement GET /api/projects/:id/download handler (ZIP stream) in backend/src/api/handlers/files.rs
-- [ ] T084 [US3] Wire US3 routes in backend/src/api/routes.rs
+- [X] T081 [P] [US3] Implement async ZIP streaming service in backend/src/services/download.rs
+- [X] T082 [US3] Implement GET /api/files/:id handler (individual file download) in backend/src/api/handlers/files.rs
+- [X] T083 [US3] Implement GET /api/projects/:id/download handler (ZIP stream) in backend/src/api/handlers/files.rs
+- [X] T084 [US3] Wire US3 routes in backend/src/api/routes.rs
 
 ### Frontend Implementation for User Story 3
 
-- [ ] T085 [P] [US3] Create files API client in frontend/src/api/files.ts
-- [ ] T086 [P] [US3] Implement download utilities in frontend/src/utils/download.ts
-- [ ] T087 [US3] Add download buttons to FileList component in frontend/src/components/project/FileList.tsx
-- [ ] T088 [US3] Add "Download All as ZIP" button to ProjectPage in frontend/src/pages/ProjectPage.tsx
-- [ ] T089 [US3] Implement download progress indicators in frontend/src/components/common/ProgressIndicator.tsx
-- [ ] T090 [US3] Add error handling for failed downloads in frontend/src/components/project/ProjectPage.tsx
+- [X] T085 [P] [US3] Create files API client in frontend/src/api/files.ts
+- [X] T086 [P] [US3] Implement download utilities in frontend/src/utils/download.ts
+- [X] T087 [US3] Add download buttons to FileList component in frontend/src/components/project/FileList.tsx
+- [X] T088 [US3] Add "Download All as ZIP" button to ProjectPage in frontend/src/pages/ProjectPage.tsx
+- [X] T089 [US3] Implement download progress indicators in frontend/src/components/common/ProgressIndicator.tsx
+- [X] T090 [US3] Add error handling for failed downloads in frontend/src/components/project/ProjectPage.tsx
 
 ### US3 Validation with Chrome DevTools
 
-- [ ] T091 [US3] Verify download buttons render on project page using chrome-devtools take_snapshot
-- [ ] T092 [US3] Test individual file download: click download button, verify file downloads
-- [ ] T093 [US3] Test ZIP download: click "Download All", verify progress indicator appears using chrome-devtools
-- [ ] T094 [US3] Test download error handling: simulate error, verify error message using chrome-devtools
+- [X] T091 [US3] Verify download buttons render on project page using chrome-devtools take_snapshot
+- [X] T092 [US3] Test individual file download: click download button, verify file downloads
+- [X] T093 [US3] Test ZIP download: click "Download All", verify progress indicator appears using chrome-devtools
+- [X] T094 [US3] Test download error handling: simulate error, verify error message using chrome-devtools
 
 **Checkpoint**: User Stories 1, 2, AND 3 should work - complete browse → search → download workflow functional
 

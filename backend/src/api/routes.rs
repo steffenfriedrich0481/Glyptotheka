@@ -60,8 +60,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/projects/:id", get(projects::get_project))
         .route("/api/projects/:id/children", get(projects::get_project_children))
         .route("/api/projects/:id/files", get(projects::get_project_files))
-        // TODO: Fix download_project_zip handler - Axum Handler trait issue
-        // .route("/api/projects/:id/download", get(files::download_project_zip))
+        .route("/api/projects/:id/download", get(files::download_project_zip))
         // File/Image routes
         .route("/api/images/:hash", get(files::serve_image))
         .route("/api/files/:id", get(files::download_file))
