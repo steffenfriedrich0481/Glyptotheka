@@ -5,7 +5,7 @@ use crate::utils::error::AppError;
 use rusqlite::params;
 
 pub struct FileRepository {
-    pool: DbPool,
+    pub(crate) pool: DbPool,
 }
 
 impl FileRepository {
@@ -166,5 +166,17 @@ impl FileRepository {
             |row| row.get(0),
         )?;
         Ok(count)
+    }
+
+    pub fn delete_stl_file(&self, id: i64) -> Result<(), AppError> {
+        let conn = self.pool.get()?;
+        conn.execute("DELETE FROM stl_files WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+
+    pub fn delete_image_file(&self, id: i64) -> Result<(), AppError> {
+        let conn = self.pool.get()?;
+        conn.execute("DELETE FROM image_files WHERE id = ?1", params![id])?;
+        Ok(())
     }
 }

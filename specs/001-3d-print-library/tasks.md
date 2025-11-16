@@ -238,25 +238,25 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation for User Story 5
 
-- [ ] T109 [P] [US5] Implement rescan logic with tag preservation in backend/src/services/rescan.rs
-- [ ] T110 [P] [US5] Implement cache cleanup for orphaned files in backend/src/services/image_cache.rs
-- [ ] T111 [US5] Implement project removal for deleted files in backend/src/services/rescan.rs
-- [ ] T112 [US5] Update POST /api/scan handler to support force rescan in backend/src/api/handlers/scan.rs
-- [ ] T113 [US5] Add rescan progress reporting to GET /api/scan/status in backend/src/api/handlers/scan.rs
+- [X] T109 [P] [US5] Implement rescan logic with tag preservation in backend/src/services/rescan.rs
+- [X] T110 [P] [US5] Implement cache cleanup for orphaned files in backend/src/services/image_cache.rs
+- [X] T111 [US5] Implement project removal for deleted files in backend/src/services/rescan.rs
+- [X] T112 [US5] Update POST /api/scan handler to support force rescan in backend/src/api/handlers/scan.rs
+- [X] T113 [US5] Add rescan progress reporting to GET /api/scan/status in backend/src/api/handlers/scan.rs
 
 ### Frontend Implementation for User Story 5
 
-- [ ] T114 [P] [US5] Add "Rescan" button to HomePage in frontend/src/pages/HomePage.tsx
-- [ ] T115 [P] [US5] Implement rescan progress display in frontend/src/components/common/ScanProgress.tsx
-- [ ] T116 [US5] Add rescan confirmation dialog in frontend/src/components/common/ConfirmDialog.tsx
-- [ ] T117 [US5] Display scan error summary in frontend/src/pages/HomePage.tsx
+- [X] T114 [P] [US5] Add "Rescan" button to HomePage in frontend/src/pages/HomePage.tsx
+- [X] T115 [P] [US5] Implement rescan progress display in frontend/src/components/common/ScanProgress.tsx
+- [X] T116 [US5] Add rescan confirmation dialog in frontend/src/components/common/ConfirmDialog.tsx
+- [X] T117 [US5] Display scan error summary in frontend/src/pages/HomePage.tsx
 
 ### US5 Validation with Chrome DevTools
 
-- [ ] T118 [US5] Test rescan with new files: add files to example/, click rescan, verify new projects appear using chrome-devtools
-- [ ] T119 [US5] Test rescan with deleted files: remove files from example/, rescan, verify projects removed using chrome-devtools
-- [ ] T120 [US5] Test tag preservation: tag project, rescan, verify tags persist using chrome-devtools
-- [ ] T121 [US5] Test rescan progress display using chrome-devtools take_snapshot during scan
+- [X] T118 [US5] Test rescan with new files: add files to example/, click rescan, verify new projects appear using chrome-devtools
+- [X] T119 [US5] Test rescan with deleted files: remove files from example/, rescan, verify projects removed using chrome-devtools
+- [X] T120 [US5] Test tag preservation: tag project, rescan, verify tags persist using chrome-devtools
+- [X] T121 [US5] Test rescan progress display using chrome-devtools take_snapshot during scan
 
 **Checkpoint**: All 5 user stories complete - full library management functionality
 

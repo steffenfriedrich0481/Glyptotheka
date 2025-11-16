@@ -5,6 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use sha2::{Digest, Sha256};
 
+#[derive(Clone)]
 pub struct ImageCacheService {
     cache_dir: PathBuf,
     pool: DbPool,
@@ -169,5 +170,36 @@ impl ImageCacheService {
             }
             _ => Ok(None),
         }
+    }
+
+    /// Clean up orphaned cache entries where original files no longer exist
+    pub fn cleanup_orphaned(&self) -> Result<usize, AppError> {
+        let conn = self.pool.get()?;
+        let mut stmt = conn.prepare("SELECT id, original_path, cache_path FROM cached_files")?;
+        
+        let entries: Vec<(i64, String, String)> = stmt
+            .query_map([], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        
+        let mut removed = 0;
+        
+        for (id, original_path, cache_path) in entries {
+            // Check if original file still exists
+            if !Path::new(&original_path).exists() {
+                // Remove cache file
+                let cache_file = Path::new(&cache_path);
+                if cache_file.exists() {
+                    let _ = fs::remove_file(cache_file);
+                }
+                
+                // Remove database entry
+                conn.execute("DELETE FROM cached_files WHERE id = ?1", params![id])?;
+                removed += 1;
+            }
+        }
+        
+        Ok(removed)
     }
 }

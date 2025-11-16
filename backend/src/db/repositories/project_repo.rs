@@ -5,7 +5,7 @@ use crate::utils::error::AppError;
 use rusqlite::{params, OptionalExtension};
 
 pub struct ProjectRepository {
-    pool: DbPool,
+    pub(crate) pool: DbPool,
 }
 
 impl ProjectRepository {

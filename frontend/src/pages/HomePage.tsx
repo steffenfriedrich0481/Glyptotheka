@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { configAPI, UpdateConfigRequest } from '../api/config';
 import { scanAPI } from '../api/scan';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ScanProgress from '../components/common/ScanProgress';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const HomePage: React.FC = () => {
   const [rootPath, setRootPath] = useState('');
@@ -9,6 +11,8 @@ const HomePage: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanStatus, setScanStatus] = useState<any>(null);
+  const [showRescanConfirm, setShowRescanConfirm] = useState(false);
+  const [hasBeenScanned, setHasBeenScanned] = useState(false);
 
   useEffect(() => {
     loadConfig();
@@ -34,6 +38,9 @@ const HomePage: React.FC = () => {
       if (config.root_path) {
         setRootPath(config.root_path);
       }
+      if (config.last_scan_at) {
+        setHasBeenScanned(true);
+      }
     } catch (err) {
       console.error('Failed to load config:', err);
     }
@@ -53,17 +60,28 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleStartScan = async () => {
+  const handleStartScan = async (force: boolean = false) => {
     setLoading(true);
     setError(null);
+    setScanStatus(null);
     try {
-      await scanAPI.startScan();
+      await scanAPI.startScan(force);
       setScanning(true);
+      setHasBeenScanned(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to start scan');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRescanClick = () => {
+    setShowRescanConfirm(true);
+  };
+
+  const handleConfirmRescan = () => {
+    setShowRescanConfirm(false);
+    handleStartScan(false); // Incremental rescan
   };
 
   return (
@@ -96,27 +114,30 @@ const HomePage: React.FC = () => {
           >
             Save Configuration
           </button>
-          <button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            onClick={handleStartScan}
-            disabled={loading || scanning || !rootPath}
-          >
-            {scanning ? 'Scanning...' : 'Start Scan'}
-          </button>
+          
+          <div className="space-x-2">
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              onClick={() => handleStartScan(false)}
+              disabled={loading || scanning || !rootPath}
+            >
+              {scanning ? 'Scanning...' : hasBeenScanned ? 'Scan' : 'Initial Scan'}
+            </button>
+            
+            {hasBeenScanned && (
+              <button
+                className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={handleRescanClick}
+                disabled={loading || scanning || !rootPath}
+              >
+                Rescan Library
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {scanning && scanStatus && (
-        <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
-          <p className="font-bold">Scan in progress...</p>
-          {scanStatus.projects_found !== undefined && (
-            <p>Projects found: {scanStatus.projects_found}</p>
-          )}
-          {scanStatus.files_processed !== undefined && (
-            <p>Files processed: {scanStatus.files_processed}</p>
-          )}
-        </div>
-      )}
+      {scanStatus && <ScanProgress status={scanStatus} />}
 
       {loading && <LoadingSpinner />}
 
@@ -128,6 +149,16 @@ const HomePage: React.FC = () => {
           Browse Projects →
         </a>
       </div>
+
+      <ConfirmDialog
+        isOpen={showRescanConfirm}
+        title="Rescan Library"
+        message="This will check for new, modified, and deleted files. Existing tags will be preserved. Continue?"
+        confirmLabel="Rescan"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmRescan}
+        onCancel={() => setShowRescanConfirm(false)}
+      />
     </div>
   );
 };

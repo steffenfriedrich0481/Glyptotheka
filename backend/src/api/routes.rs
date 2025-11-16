@@ -12,6 +12,7 @@ use crate::db::repositories::tag_repo::TagRepository;
 use crate::services::download::DownloadService;
 use crate::services::image_cache::ImageCacheService;
 use crate::services::scanner::ScannerService;
+use crate::services::rescan::RescanService;
 use crate::services::search::SearchService;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -25,6 +26,7 @@ pub struct AppState {
     pub tag_repo: Arc<TagRepository>,
     pub config_service: Arc<ConfigService>,
     pub scanner_service: Arc<ScannerService>,
+    pub rescan_service: Arc<RescanService>,
     pub image_cache_service: Arc<ImageCacheService>,
     pub search_service: Arc<SearchService>,
     pub download_service: Arc<DownloadService>,
@@ -32,6 +34,8 @@ pub struct AppState {
 }
 
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
+    let image_cache = Arc::new(ImageCacheService::new(cache_dir, pool.clone()));
+    
     let state = AppState {
         pool: pool.clone(),
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
@@ -39,7 +43,11 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         tag_repo: Arc::new(TagRepository::new(pool.clone())),
         config_service: Arc::new(ConfigService::new(pool.clone())),
         scanner_service: Arc::new(ScannerService::new(pool.clone())),
-        image_cache_service: Arc::new(ImageCacheService::new(cache_dir, pool.clone())),
+        rescan_service: Arc::new(RescanService::with_cache(
+            pool.clone(),
+            (*image_cache).clone(),
+        )),
+        image_cache_service: image_cache,
         search_service: Arc::new(SearchService::new(pool.clone())),
         download_service: Arc::new(DownloadService::new(pool.clone())),
         scan_state: Arc::new(Mutex::new(ScanState {
