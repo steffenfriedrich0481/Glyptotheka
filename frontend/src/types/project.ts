@@ -16,6 +16,12 @@ export interface ProjectWithChildren extends Project {
   imageCount: number;
 }
 
+export interface ProjectWithRelations extends Project {
+  children: Project[];
+  stl_count: number;
+  image_count: number;
+}
+
 // File types
 export interface StlFile {
   id: number;

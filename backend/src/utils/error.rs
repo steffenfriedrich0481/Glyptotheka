@@ -11,6 +11,7 @@ pub enum AppError {
     Database(String),
     NotFound(String),
     BadRequest(String),
+    ValidationError(String),
     InternalServer(String),
     IoError(String),
 }
@@ -21,6 +22,7 @@ impl fmt::Display for AppError {
             AppError::Database(msg) => write!(f, "Database error: {}", msg),
             AppError::NotFound(msg) => write!(f, "Not found: {}", msg),
             AppError::BadRequest(msg) => write!(f, "Bad request: {}", msg),
+            AppError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
             AppError::InternalServer(msg) => write!(f, "Internal server error: {}", msg),
             AppError::IoError(msg) => write!(f, "IO error: {}", msg),
         }
@@ -51,6 +53,11 @@ impl IntoResponse for AppError {
             AppError::BadRequest(msg) => (
                 StatusCode::BAD_REQUEST,
                 "bad_request",
+                msg,
+            ),
+            AppError::ValidationError(msg) => (
+                StatusCode::BAD_REQUEST,
+                "validation_error",
                 msg,
             ),
             AppError::InternalServer(msg) => (

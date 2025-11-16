@@ -84,45 +84,45 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation for User Story 1
 
-- [ ] T031 [P] [US1] Implement config service in backend/src/services/config.rs
-- [ ] T032 [P] [US1] Implement file system scanner service in backend/src/services/scanner.rs
-- [ ] T033 [US1] Implement project hierarchy builder in backend/src/services/scanner.rs
-- [ ] T034 [P] [US1] Implement image caching service in backend/src/services/image_cache.rs
-- [ ] T035 [US1] Implement GET /api/config handler in backend/src/api/handlers/config.rs
-- [ ] T036 [US1] Implement POST /api/config handler in backend/src/api/handlers/config.rs
-- [ ] T037 [US1] Implement POST /api/scan handler in backend/src/api/handlers/scan.rs
-- [ ] T038 [US1] Implement GET /api/scan/status handler in backend/src/api/handlers/scan.rs
-- [ ] T039 [US1] Implement GET /api/projects (list root) handler in backend/src/api/handlers/projects.rs
-- [ ] T040 [US1] Implement GET /api/projects/:id handler in backend/src/api/handlers/projects.rs
-- [ ] T041 [US1] Implement GET /api/projects/:id/children handler in backend/src/api/handlers/projects.rs
-- [ ] T042 [US1] Implement GET /api/projects/:id/files handler with pagination in backend/src/api/handlers/projects.rs
-- [ ] T043 [US1] Implement GET /api/images/:hash handler in backend/src/api/handlers/files.rs
-- [ ] T044 [US1] Wire all US1 routes in backend/src/api/routes.rs
+- [X] T031 [P] [US1] Implement config service in backend/src/services/config.rs
+- [X] T032 [P] [US1] Implement file system scanner service in backend/src/services/scanner.rs
+- [X] T033 [US1] Implement project hierarchy builder in backend/src/services/scanner.rs
+- [X] T034 [P] [US1] Implement image caching service in backend/src/services/image_cache.rs
+- [X] T035 [US1] Implement GET /api/config handler in backend/src/api/handlers/config.rs
+- [X] T036 [US1] Implement POST /api/config handler in backend/src/api/handlers/config.rs
+- [X] T037 [US1] Implement POST /api/scan handler in backend/src/api/handlers/scan.rs
+- [X] T038 [US1] Implement GET /api/scan/status handler in backend/src/api/handlers/scan.rs
+- [X] T039 [US1] Implement GET /api/projects (list root) handler in backend/src/api/handlers/projects.rs
+- [X] T040 [US1] Implement GET /api/projects/:id handler in backend/src/api/handlers/projects.rs
+- [X] T041 [US1] Implement GET /api/projects/:id/children handler in backend/src/api/handlers/projects.rs
+- [X] T042 [US1] Implement GET /api/projects/:id/files handler with pagination in backend/src/api/handlers/projects.rs
+- [X] T043 [US1] Implement GET /api/images/:hash handler in backend/src/api/handlers/files.rs
+- [X] T044 [US1] Wire all US1 routes in backend/src/api/routes.rs
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T045 [P] [US1] Create config API client in frontend/src/api/config.ts
-- [ ] T046 [P] [US1] Create scan API client in frontend/src/api/scan.ts
-- [ ] T047 [P] [US1] Create projects API client in frontend/src/api/projects.ts
-- [ ] T048 [P] [US1] Implement HomePage component with config form in frontend/src/pages/HomePage.tsx
-- [ ] T049 [P] [US1] Implement BrowsePage component with project grid in frontend/src/pages/BrowsePage.tsx
-- [ ] T050 [P] [US1] Implement ProjectPage component with detail view in frontend/src/pages/ProjectPage.tsx
-- [ ] T051 [P] [US1] Implement ProjectGrid component in frontend/src/components/project/ProjectGrid.tsx
-- [ ] T052 [P] [US1] Implement ProjectTile component in frontend/src/components/project/ProjectTile.tsx
-- [ ] T053 [P] [US1] Implement ImageGallery component with pagination in frontend/src/components/project/ImageGallery.tsx
-- [ ] T054 [P] [US1] Implement FileList component in frontend/src/components/project/FileList.tsx
-- [ ] T055 [US1] Create useProjects hook in frontend/src/hooks/useProjects.ts
-- [ ] T056 [US1] Create useNavigation hook in frontend/src/hooks/useNavigation.ts
+- [X] T045 [P] [US1] Create config API client in frontend/src/api/config.ts
+- [X] T046 [P] [US1] Create scan API client in frontend/src/api/scan.ts
+- [X] T047 [P] [US1] Create projects API client in frontend/src/api/projects.ts
+- [X] T048 [P] [US1] Implement HomePage component with config form in frontend/src/pages/HomePage.tsx
+- [X] T049 [P] [US1] Implement BrowsePage component with project grid in frontend/src/pages/BrowsePage.tsx
+- [X] T050 [P] [US1] Implement ProjectPage component with detail view in frontend/src/pages/ProjectPage.tsx
+- [X] T051 [P] [US1] Implement ProjectGrid component in frontend/src/components/project/ProjectGrid.tsx
+- [X] T052 [P] [US1] Implement ProjectTile component in frontend/src/components/project/ProjectTile.tsx
+- [X] T053 [P] [US1] Implement ImageGallery component with pagination in frontend/src/components/project/ImageGallery.tsx
+- [X] T054 [P] [US1] Implement FileList component in frontend/src/components/project/FileList.tsx
+- [X] T055 [US1] Create useProjects hook in frontend/src/hooks/useProjects.ts
+- [X] T056 [US1] Create useNavigation hook in frontend/src/hooks/useNavigation.ts
 
 ### US1 Validation with Chrome DevTools
 
-- [ ] T057 [US1] Verify HomePage renders config form correctly using chrome-devtools take_snapshot
-- [ ] T058 [US1] Test scan functionality: fill example/ path, click scan, verify success using chrome-devtools
-- [ ] T059 [US1] Verify tile-based navigation displays projects using chrome-devtools take_snapshot
-- [ ] T060 [US1] Test clicking on project tile navigates correctly using chrome-devtools click
-- [ ] T061 [US1] Verify breadcrumb navigation shows correct path using chrome-devtools take_snapshot
-- [ ] T062 [US1] Test project detail page displays images with pagination using chrome-devtools
-- [ ] T063 [US1] Verify image pagination (20 per page) works using chrome-devtools click on pagination controls
+- [X] T057 [US1] Verify HomePage renders config form correctly using chrome-devtools take_snapshot
+- [X] T058 [US1] Test scan functionality: fill example/ path, click scan, verify success using chrome-devtools
+- [X] T059 [US1] Verify tile-based navigation displays projects using chrome-devtools take_snapshot
+- [X] T060 [US1] Test clicking on project tile navigates correctly using chrome-devtools click
+- [X] T061 [US1] Verify breadcrumb navigation shows correct path using chrome-devtools take_snapshot
+- [X] T062 [US1] Test project detail page displays images with pagination using chrome-devtools
+- [X] T063 [US1] Verify image pagination (20 per page) works using chrome-devtools click on pagination controls
 
 **Checkpoint**: User Story 1 should be fully functional - users can scan example/ folder and browse projects with images
 

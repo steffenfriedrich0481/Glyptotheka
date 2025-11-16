@@ -4,6 +4,7 @@ use axum::{
     Router,
 };
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use tracing_subscriber;
 
 mod config;
@@ -35,9 +36,21 @@ async fn main() {
     
     tracing::info!("Migrations completed");
 
-    // Build application with middleware
+    // Initialize cache directory
+    let cache_dir = std::env::var("CACHE_DIR")
+        .unwrap_or_else(|_| "cache".to_string());
+    let cache_path = PathBuf::from(&cache_dir);
+    std::fs::create_dir_all(&cache_path)
+        .expect("Failed to create cache directory");
+    
+    tracing::info!("Cache directory initialized at {}", cache_dir);
+
+    // Build application with routes and middleware
+    let api_routes = api::routes::create_router(pool, cache_path);
+    
     let app = Router::new()
         .route("/health", get(|| async { "OK" }))
+        .merge(api_routes)
         .layer(middleware::from_fn(cors_middleware))
         .layer(middleware::from_fn(error_middleware));
 
@@ -47,3 +60,4 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
+

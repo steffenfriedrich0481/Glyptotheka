@@ -118,4 +118,53 @@ impl FileRepository {
 
         Ok(files)
     }
+
+    // Helper methods for scanner
+    pub fn add_stl_file(
+        &self,
+        project_id: i64,
+        filename: &str,
+        file_path: &str,
+        file_size: i64,
+    ) -> Result<i64, AppError> {
+        let file = CreateStlFile {
+            project_id,
+            filename: filename.to_string(),
+            file_path: file_path.to_string(),
+            file_size,
+        };
+        self.create_stl_file(&file)
+    }
+
+    pub fn add_image_file(
+        &self,
+        project_id: i64,
+        filename: &str,
+        file_path: &str,
+        file_size: i64,
+        source_type: &str,
+        source_project_id: Option<i64>,
+        display_order: i32,
+    ) -> Result<i64, AppError> {
+        let file = CreateImageFile {
+            project_id,
+            filename: filename.to_string(),
+            file_path: file_path.to_string(),
+            file_size,
+            source_type: source_type.to_string(),
+            source_project_id,
+            display_order,
+        };
+        self.create_image_file(&file)
+    }
+
+    pub fn count_images_by_project(&self, project_id: i64) -> Result<i64, AppError> {
+        let conn = self.pool.get()?;
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM image_files WHERE project_id = ?1",
+            params![project_id],
+            |row| row.get(0),
+        )?;
+        Ok(count)
+    }
 }
