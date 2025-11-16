@@ -1,5 +1,6 @@
 use crate::db::connection::DbPool;
 use crate::models::project::{CreateProject, Project, ProjectWithRelations};
+use crate::models::tag::Tag;
 use crate::utils::error::AppError;
 use rusqlite::{params, OptionalExtension};
 
@@ -155,11 +156,33 @@ impl ProjectRepository {
             |row| row.get(0),
         )?;
 
+        // Get tags for this project
+        let mut stmt = conn.prepare(
+            "SELECT t.id, t.name, t.color, t.created_at, t.usage_count 
+             FROM tags t
+             INNER JOIN project_tags pt ON t.id = pt.tag_id
+             WHERE pt.project_id = ?1
+             ORDER BY t.name",
+        )?;
+
+        let tags = stmt
+            .query_map(params![id], |row| {
+                Ok(Tag {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    color: row.get(2)?,
+                    created_at: row.get(3)?,
+                    usage_count: row.get(4)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
         Ok(Some(ProjectWithRelations {
             project,
             children,
             stl_count,
             image_count,
+            tags,
         }))
     }
 

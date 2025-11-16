@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, post},
     Router,
 };
 use crate::api::handlers::{config, files, projects, scan, search, tags};
@@ -68,6 +68,9 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/search", get(search::search_projects))
         // Tags routes
         .route("/api/tags", get(tags::list_tags))
+        .route("/api/tags", post(tags::create_tag))
         .route("/api/tags/autocomplete", get(tags::autocomplete_tags))
+        .route("/api/projects/:id/tags", post(tags::add_tag_to_project))
+        .route("/api/projects/:id/tags", delete(tags::remove_tag_from_project))
         .with_state(state)
 }

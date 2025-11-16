@@ -14,12 +14,14 @@ export interface ProjectWithChildren extends Project {
   children: Project[];
   stl_count: number;
   image_count: number;
+  tags: Tag[];
 }
 
 export interface ProjectWithRelations extends Project {
   children: Project[];
   stl_count: number;
   image_count: number;
+  tags: Tag[];
 }
 
 // File types
@@ -50,6 +52,7 @@ export interface Tag {
   name: string;
   color: string | null;
   usage_count: number;
+  created_at: number;
 }
 
 // Scan types

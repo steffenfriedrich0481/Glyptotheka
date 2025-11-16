@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::models::tag::Tag;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
@@ -19,6 +20,7 @@ pub struct ProjectWithRelations {
     pub children: Vec<Project>,
     pub stl_count: usize,
     pub image_count: usize,
+    pub tags: Vec<Tag>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

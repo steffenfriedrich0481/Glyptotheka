@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { projectsAPI } from '../api/projects';
 import { downloadAPI } from '../api/download';
 import { downloadUtils } from '../utils/download';
-import { ProjectWithRelations } from '../types/project';
+import { ProjectWithRelations, Tag } from '../types/project';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import FileList from '../components/project/FileList';
 import ImageGallery from '../components/project/ImageGallery';
+import { TagManager } from '../components/project/TagManager';
 
 const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +37,12 @@ const ProjectPage: React.FC = () => {
       console.error('Failed to load project:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTagsChange = (tags: Tag[]) => {
+    if (project) {
+      setProject({ ...project, tags });
     }
   };
 
@@ -121,6 +128,14 @@ const ProjectPage: React.FC = () => {
           <p className="text-sm text-gray-600 mt-1">{downloadProgress}% complete</p>
         </div>
       )}
+
+      <div className="mb-8">
+        <TagManager 
+          projectId={project.id} 
+          initialTags={project.tags || []}
+          onTagsChange={handleTagsChange}
+        />
+      </div>
 
       {project.children.length > 0 && (
         <div className="mb-8">

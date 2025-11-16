@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { searchApi } from '../api/search';
-import { tagsApi, type Tag } from '../api/tags';
+import { tagsApi } from '../api/tags';
 import { SearchBar } from '../components/common/SearchBar';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Pagination } from '../components/common/Pagination';
-import type { Project } from '../types/project';
+import type { Project, Tag } from '../types/project';
 import './SearchPage.css';
 
 export const SearchPage: React.FC = () => {

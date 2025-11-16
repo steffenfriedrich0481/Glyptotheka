@@ -205,26 +205,26 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation for User Story 4
 
-- [ ] T095 [P] [US4] Implement POST /api/projects/:id/tags handler (add tag) in backend/src/api/handlers/tags.rs
-- [ ] T096 [P] [US4] Implement DELETE /api/projects/:id/tags/:tag_id handler (remove tag) in backend/src/api/handlers/tags.rs
-- [ ] T097 [P] [US4] Implement POST /api/tags handler (create new tag) in backend/src/api/handlers/tags.rs
-- [ ] T098 [US4] Wire US4 routes in backend/src/api/routes.rs
+- [X] T095 [P] [US4] Implement POST /api/projects/:id/tags handler (add tag) in backend/src/api/handlers/tags.rs
+- [X] T096 [P] [US4] Implement DELETE /api/projects/:id/tags/:tag_id handler (remove tag) in backend/src/api/handlers/tags.rs
+- [X] T097 [P] [US4] Implement POST /api/tags handler (create new tag) in backend/src/api/handlers/tags.rs
+- [X] T098 [US4] Wire US4 routes in backend/src/api/routes.rs
 
 ### Frontend Implementation for User Story 4
 
-- [ ] T099 [P] [US4] Implement TagInput component with autocomplete in frontend/src/components/common/TagInput.tsx
-- [ ] T100 [P] [US4] Implement TagManager component in frontend/src/components/project/TagManager.tsx
-- [ ] T101 [US4] Integrate TagManager into ProjectPage in frontend/src/pages/ProjectPage.tsx
-- [ ] T102 [US4] Create useTags hook in frontend/src/hooks/useTags.ts
-- [ ] T103 [US4] Add tag filtering to SearchPage in frontend/src/pages/SearchPage.tsx
+- [X] T099 [P] [US4] Implement TagInput component with autocomplete in frontend/src/components/common/TagInput.tsx
+- [X] T100 [P] [US4] Implement TagManager component in frontend/src/components/project/TagManager.tsx
+- [X] T101 [US4] Integrate TagManager into ProjectPage in frontend/src/pages/ProjectPage.tsx
+- [X] T102 [US4] Create useTags hook in frontend/src/hooks/useTags.ts
+- [X] T103 [US4] Add tag filtering to SearchPage in frontend/src/pages/SearchPage.tsx
 
 ### US4 Validation with Chrome DevTools
 
-- [ ] T104 [US4] Verify tag input component renders on project page using chrome-devtools take_snapshot
-- [ ] T105 [US4] Test adding tag: type tag name, verify autocomplete suggestions using chrome-devtools
-- [ ] T106 [US4] Test tag persistence: add tag, refresh page, verify tag still present using chrome-devtools
-- [ ] T107 [US4] Test removing tag: click remove button, verify tag deleted using chrome-devtools
-- [ ] T108 [US4] Test tag-based search integration: search by tag, verify correct results using chrome-devtools
+- [X] T104 [US4] Verify tag input component renders on project page using chrome-devtools take_snapshot
+- [X] T105 [US4] Test adding tag: type tag name, verify autocomplete suggestions using chrome-devtools
+- [X] T106 [US4] Test tag persistence: add tag, refresh page, verify tag still present using chrome-devtools
+- [X] T107 [US4] Test removing tag: click remove button, verify tag deleted using chrome-devtools
+- [X] T108 [US4] Test tag-based search integration: search by tag, verify correct results using chrome-devtools
 
 **Checkpoint**: User Stories 1-4 complete - full browsing, searching, downloading, and tagging functionality
 
