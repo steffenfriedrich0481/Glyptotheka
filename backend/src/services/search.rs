@@ -1,1 +1,314 @@
-// Search service - to be implemented
+use crate::db::connection::DbPool;
+use crate::models::project::Project;
+use crate::utils::error::AppError;
+
+pub struct SearchService {
+    pool: DbPool,
+}
+
+#[derive(Debug, Clone)]
+pub struct SearchParams {
+    pub query: Option<String>,
+    pub tags: Vec<String>,
+    pub page: usize,
+    pub per_page: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct SearchResult {
+    pub projects: Vec<Project>,
+    pub total: usize,
+    pub page: usize,
+    pub per_page: usize,
+    pub total_pages: usize,
+}
+
+impl SearchService {
+    pub fn new(pool: DbPool) -> Self {
+        Self { pool }
+    }
+
+    pub fn search(&self, params: &SearchParams) -> Result<SearchResult, AppError> {
+        let conn = self.pool.get()?;
+        let offset = (params.page.saturating_sub(1)) * params.per_page;
+
+        // Build query based on search parameters
+        let (projects, total) = if params.query.is_some() && !params.tags.is_empty() {
+            // Search by both name and tags
+            self.search_combined(&conn, params, offset)?
+        } else if params.query.is_some() {
+            // Search by name only using FTS5
+            self.search_fts(&conn, params, offset)?
+        } else if !params.tags.is_empty() {
+            // Filter by tags only
+            self.search_by_tags(&conn, params, offset)?
+        } else {
+            // No filters - return all leaf projects
+            self.search_all(&conn, params, offset)?
+        };
+
+        let total_pages = if total > 0 {
+            (total + params.per_page - 1) / params.per_page
+        } else {
+            0
+        };
+
+        Ok(SearchResult {
+            projects,
+            total,
+            page: params.page,
+            per_page: params.per_page,
+            total_pages,
+        })
+    }
+
+    fn search_fts(
+        &self,
+        conn: &rusqlite::Connection,
+        params: &SearchParams,
+        offset: usize,
+    ) -> Result<(Vec<Project>, usize), AppError> {
+        let search_query = params.query.as_ref().unwrap();
+        // Add wildcard for partial matching
+        let fts_query = format!("{}*", search_query);
+        
+        // Get total count
+        let total: usize = conn.query_row(
+            "SELECT COUNT(DISTINCT p.id)
+             FROM projects p
+             INNER JOIN projects_fts fts ON p.id = fts.project_id
+             WHERE projects_fts MATCH ?1",
+            [&fts_query],
+            |row| row.get(0),
+        )?;
+
+        // Get projects
+        let per_page_i64 = params.per_page as i64;
+        let offset_i64 = offset as i64;
+        
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at
+             FROM projects p
+             INNER JOIN projects_fts fts ON p.id = fts.project_id
+             WHERE projects_fts MATCH ?1
+             ORDER BY p.name
+             LIMIT ?2 OFFSET ?3",
+        )?;
+
+        let projects = stmt
+            .query_map(rusqlite::params![&fts_query, per_page_i64, offset_i64], |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok((projects, total))
+    }
+
+    fn search_by_tags(
+        &self,
+        conn: &rusqlite::Connection,
+        params: &SearchParams,
+        offset: usize,
+    ) -> Result<(Vec<Project>, usize), AppError> {
+        // For simplicity with multiple tags, we'll filter projects that have ALL specified tags
+        let placeholders = params.tags.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+        
+        let count_query = format!(
+            "SELECT COUNT(*)
+             FROM (
+                 SELECT p.id
+                 FROM projects p
+                 INNER JOIN project_tags pt ON p.id = pt.project_id
+                 INNER JOIN tags t ON pt.tag_id = t.id
+                 WHERE t.name IN ({})
+                 GROUP BY p.id
+                 HAVING COUNT(DISTINCT t.id) = ?
+             )",
+            placeholders
+        );
+
+        let query = format!(
+            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at
+             FROM projects p
+             INNER JOIN project_tags pt ON p.id = pt.project_id
+             INNER JOIN tags t ON pt.tag_id = t.id
+             WHERE t.name IN ({})
+             GROUP BY p.id
+             HAVING COUNT(DISTINCT t.id) = ?
+             ORDER BY p.name
+             LIMIT ? OFFSET ?",
+            placeholders
+        );
+
+        // Build params for count
+        let tag_count = params.tags.len() as i64;
+        let mut count_params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+        for tag in &params.tags {
+            count_params.push(tag);
+        }
+        count_params.push(&tag_count);
+
+        let mut stmt = conn.prepare(&count_query)?;
+        let total: usize = stmt.query_row(rusqlite::params_from_iter(count_params.iter()), |row| row.get(0))?;
+
+        // Build params for query
+        let per_page_i64 = params.per_page as i64;
+        let offset_i64 = offset as i64;
+        let mut query_params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+        for tag in &params.tags {
+            query_params.push(tag);
+        }
+        query_params.push(&tag_count);
+        query_params.push(&per_page_i64);
+        query_params.push(&offset_i64);
+
+        let mut stmt = conn.prepare(&query)?;
+        let projects = stmt
+            .query_map(rusqlite::params_from_iter(query_params.iter()), |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok((projects, total))
+    }
+
+    fn search_combined(
+        &self,
+        conn: &rusqlite::Connection,
+        params: &SearchParams,
+        offset: usize,
+    ) -> Result<(Vec<Project>, usize), AppError> {
+        let search_query = params.query.as_ref().unwrap();
+        let placeholders = params.tags.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+        
+        let count_query = format!(
+            "SELECT COUNT(*)
+             FROM (
+                 SELECT p.id
+                 FROM projects p
+                 INNER JOIN projects_fts fts ON p.id = fts.project_id
+                 INNER JOIN project_tags pt ON p.id = pt.project_id
+                 INNER JOIN tags t ON pt.tag_id = t.id
+                 WHERE projects_fts MATCH ?
+                 AND t.name IN ({})
+                 GROUP BY p.id
+                 HAVING COUNT(DISTINCT t.id) = ?
+             )",
+            placeholders
+        );
+
+        let query = format!(
+            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at
+             FROM projects p
+             INNER JOIN projects_fts fts ON p.id = fts.project_id
+             INNER JOIN project_tags pt ON p.id = pt.project_id
+             INNER JOIN tags t ON pt.tag_id = t.id
+             WHERE projects_fts MATCH ?
+             AND t.name IN ({})
+             GROUP BY p.id
+             HAVING COUNT(DISTINCT t.id) = ?
+             ORDER BY p.name
+             LIMIT ? OFFSET ?",
+            placeholders
+        );
+
+        // Build params for count
+        let tag_count = params.tags.len() as i64;
+        let mut count_params: Vec<&dyn rusqlite::ToSql> = vec![search_query];
+        for tag in &params.tags {
+            count_params.push(tag);
+        }
+        count_params.push(&tag_count);
+
+        let mut stmt = conn.prepare(&count_query)?;
+        let total: usize = stmt.query_row(rusqlite::params_from_iter(count_params.iter()), |row| row.get(0))?;
+
+        // Build params for query
+        let per_page_i64 = params.per_page as i64;
+        let offset_i64 = offset as i64;
+        let mut query_params: Vec<&dyn rusqlite::ToSql> = vec![search_query];
+        for tag in &params.tags {
+            query_params.push(tag);
+        }
+        query_params.push(&tag_count);
+        query_params.push(&per_page_i64);
+        query_params.push(&offset_i64);
+
+        let mut stmt = conn.prepare(&query)?;
+        let projects = stmt
+            .query_map(rusqlite::params_from_iter(query_params.iter()), |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok((projects, total))
+    }
+
+    fn search_all(
+        &self,
+        conn: &rusqlite::Connection,
+        params: &SearchParams,
+        offset: usize,
+    ) -> Result<(Vec<Project>, usize), AppError> {
+        let total: usize = conn.query_row(
+            "SELECT COUNT(*) FROM projects WHERE is_leaf = 1",
+            [],
+            |row| row.get(0),
+        )?;
+
+        let mut stmt = conn.prepare(
+            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+             FROM projects
+             WHERE is_leaf = 1
+             ORDER BY name
+             LIMIT ?1 OFFSET ?2",
+        )?;
+
+        let per_page_i64 = params.per_page as i64;
+        let offset_i64 = offset as i64;
+
+        let projects = stmt
+            .query_map([per_page_i64, offset_i64], |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok((projects, total))
+    }
+}

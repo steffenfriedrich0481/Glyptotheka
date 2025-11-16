@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { projectsAPI } from '../api/projects';
 import { Project, ProjectWithRelations } from '../types/project';
 

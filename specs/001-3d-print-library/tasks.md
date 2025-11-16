@@ -136,21 +136,21 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### Backend Implementation for User Story 2
 
-- [ ] T064 [P] [US2] Implement FTS5 search service in backend/src/services/search.rs
-- [ ] T065 [US2] Implement GET /api/search handler with name and tag filters in backend/src/api/handlers/search.rs
-- [ ] T066 [US2] Implement GET /api/tags handler (list all tags) in backend/src/api/handlers/tags.rs
-- [ ] T067 [US2] Implement GET /api/tags/autocomplete handler in backend/src/api/handlers/tags.rs
-- [ ] T068 [US2] Wire US2 routes in backend/src/api/routes.rs
+- [X] T064 [P] [US2] Implement FTS5 search service in backend/src/services/search.rs
+- [X] T065 [US2] Implement GET /api/search handler with name and tag filters in backend/src/api/handlers/search.rs
+- [X] T066 [US2] Implement GET /api/tags handler (list all tags) in backend/src/api/handlers/tags.rs
+- [X] T067 [US2] Implement GET /api/tags/autocomplete handler in backend/src/api/handlers/tags.rs
+- [X] T068 [US2] Wire US2 routes in backend/src/api/routes.rs
 
 ### Frontend Implementation for User Story 2
 
-- [ ] T069 [P] [US2] Create search API client in frontend/src/api/search.ts
-- [ ] T070 [P] [US2] Create tags API client in frontend/src/api/tags.ts
-- [ ] T071 [P] [US2] Implement SearchBar component with debouncing in frontend/src/components/common/SearchBar.tsx
-- [ ] T072 [P] [US2] Implement SearchPage component with results grid in frontend/src/pages/SearchPage.tsx
-- [ ] T073 [US2] Create useSearch hook in frontend/src/hooks/useSearch.ts
-- [ ] T074 [US2] Create searchContext for state management in frontend/src/store/searchContext.tsx
-- [ ] T075 [US2] Integrate SearchBar into main layout in frontend/src/App.tsx
+- [X] T069 [P] [US2] Create search API client in frontend/src/api/search.ts
+- [X] T070 [P] [US2] Create tags API client in frontend/src/api/tags.ts
+- [X] T071 [P] [US2] Implement SearchBar component with debouncing in frontend/src/components/common/SearchBar.tsx
+- [X] T072 [P] [US2] Implement SearchPage component with results grid in frontend/src/pages/SearchPage.tsx
+- [X] T073 [US2] Create useSearch hook in frontend/src/hooks/useSearch.ts
+- [X] T074 [US2] Create searchContext for state management in frontend/src/store/searchContext.tsx
+- [X] T075 [US2] Integrate SearchBar into main layout in frontend/src/App.tsx
 
 ### US2 Validation with Chrome DevTools
 

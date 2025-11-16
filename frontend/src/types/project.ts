@@ -2,18 +2,18 @@
 export interface Project {
   id: number;
   name: string;
-  fullPath: string;
-  parentId: number | null;
-  isLeaf: boolean;
+  full_path: string;
+  parent_id: number | null;
+  is_leaf: boolean;
   description: string | null;
-  createdAt: number;
-  updatedAt: number;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface ProjectWithChildren extends Project {
   children: Project[];
-  stlCount: number;
-  imageCount: number;
+  stl_count: number;
+  image_count: number;
 }
 
 export interface ProjectWithRelations extends Project {
@@ -25,23 +25,23 @@ export interface ProjectWithRelations extends Project {
 // File types
 export interface StlFile {
   id: number;
-  projectId: number;
+  project_id: number;
   filename: string;
-  filePath: string;
-  fileSize: number;
-  previewPath: string | null;
-  previewGeneratedAt: number | null;
+  file_path: string;
+  file_size: number;
+  preview_path: string | null;
+  preview_generated_at: number | null;
 }
 
 export interface ImageFile {
   id: number;
-  projectId: number;
+  project_id: number;
   filename: string;
-  filePath: string;
-  fileSize: number;
-  sourceType: 'direct' | 'inherited';
-  sourceProjectId: number | null;
-  displayOrder: number;
+  file_path: string;
+  file_size: number;
+  source_type: 'direct' | 'inherited';
+  source_project_id: number | null;
+  display_order: number;
 }
 
 // Tag types
@@ -49,17 +49,17 @@ export interface Tag {
   id: number;
   name: string;
   color: string | null;
-  usageCount: number;
+  usage_count: number;
 }
 
 // Scan types
 export interface ScanSession {
   id: number;
-  rootPath: string;
+  root_path: string;
   status: 'running' | 'completed' | 'failed' | 'cancelled';
-  startedAt: number;
-  completedAt: number | null;
-  projectsFound: number;
-  filesProcessed: number;
-  errorsCount: number;
+  started_at: number;
+  completed_at: number | null;
+  projects_found: number;
+  files_processed: number;
+  errors_count: number;
 }

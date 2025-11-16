@@ -2,14 +2,16 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use crate::api::handlers::{config, files, projects, scan};
+use crate::api::handlers::{config, files, projects, scan, search, tags};
 use crate::api::handlers::scan::ScanState;
 use crate::config::ConfigService;
 use crate::db::connection::DbPool;
 use crate::db::repositories::file_repo::FileRepository;
 use crate::db::repositories::project_repo::ProjectRepository;
+use crate::db::repositories::tag_repo::TagRepository;
 use crate::services::image_cache::ImageCacheService;
 use crate::services::scanner::ScannerService;
+use crate::services::search::SearchService;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -18,9 +20,11 @@ use tokio::sync::Mutex;
 pub struct AppState {
     pub project_repo: Arc<ProjectRepository>,
     pub file_repo: Arc<FileRepository>,
+    pub tag_repo: Arc<TagRepository>,
     pub config_service: Arc<ConfigService>,
     pub scanner_service: Arc<ScannerService>,
     pub image_cache_service: Arc<ImageCacheService>,
+    pub search_service: Arc<SearchService>,
     pub scan_state: Arc<Mutex<ScanState>>,
 }
 
@@ -28,9 +32,11 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let state = AppState {
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
         file_repo: Arc::new(FileRepository::new(pool.clone())),
+        tag_repo: Arc::new(TagRepository::new(pool.clone())),
         config_service: Arc::new(ConfigService::new(pool.clone())),
         scanner_service: Arc::new(ScannerService::new(pool.clone())),
         image_cache_service: Arc::new(ImageCacheService::new(cache_dir, pool.clone())),
+        search_service: Arc::new(SearchService::new(pool.clone())),
         scan_state: Arc::new(Mutex::new(ScanState {
             is_scanning: false,
             result: None,
@@ -51,5 +57,10 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/projects/:id/files", get(projects::get_project_files))
         // File/Image routes
         .route("/api/images/:hash", get(files::serve_image))
+        // Search routes
+        .route("/api/search", get(search::search_projects))
+        // Tags routes
+        .route("/api/tags", get(tags::list_tags))
+        .route("/api/tags/autocomplete", get(tags::autocomplete_tags))
         .with_state(state)
 }
