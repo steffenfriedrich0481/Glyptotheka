@@ -154,11 +154,11 @@ This is a web application with separate backend (Rust) and frontend (React):
 
 ### US2 Validation with Chrome DevTools
 
-- [ ] T076 [US2] Verify SearchBar renders correctly using chrome-devtools take_snapshot
-- [ ] T077 [US2] Test search by name: enter project name, verify results using chrome-devtools
-- [ ] T078 [US2] Test search by tag: select tag filter, verify filtered results using chrome-devtools
-- [ ] T079 [US2] Test search with no results displays message using chrome-devtools take_snapshot
-- [ ] T080 [US2] Test clicking on search result navigates to project using chrome-devtools click
+- [X] T076 [US2] Verify SearchBar renders correctly using chrome-devtools take_snapshot
+- [X] T077 [US2] Test search by name: enter project name, verify results using chrome-devtools
+- [X] T078 [US2] Test search by tag: select tag filter, verify filtered results using chrome-devtools
+- [X] T079 [US2] Test search with no results displays message using chrome-devtools take_snapshot
+- [X] T080 [US2] Test clicking on search result navigates to project using chrome-devtools click
 
 **Checkpoint**: User Stories 1 AND 2 should both work - users can browse OR search to find projects
 

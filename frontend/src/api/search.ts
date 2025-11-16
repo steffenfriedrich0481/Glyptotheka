@@ -40,7 +40,7 @@ export const searchApi = {
       queryParams.append('per_page', params.per_page.toString());
     }
     
-    const response = await apiClient.get(`/search?${queryParams.toString()}`);
+    const response = await apiClient.get(`/api/search?${queryParams.toString()}`);
     return response.data;
   },
 };

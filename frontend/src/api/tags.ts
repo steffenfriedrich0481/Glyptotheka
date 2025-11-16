@@ -24,13 +24,13 @@ export const tagsApi = {
       queryParams.append('sortBy', params.sortBy);
     }
     
-    const response = await apiClient.get<TagsResponse>(`/tags?${queryParams.toString()}`);
+    const response = await apiClient.get<TagsResponse>(`/api/tags?${queryParams.toString()}`);
     return response.data.data;
   },
 
   async autocomplete(query: string): Promise<Tag[]> {
     const queryParams = new URLSearchParams({ q: query });
-    const response = await apiClient.get<TagsResponse>(`/tags/autocomplete?${queryParams.toString()}`);
+    const response = await apiClient.get<TagsResponse>(`/api/tags/autocomplete?${queryParams.toString()}`);
     return response.data.data;
   },
 };

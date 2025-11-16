@@ -9,6 +9,7 @@ use crate::db::connection::DbPool;
 use crate::db::repositories::file_repo::FileRepository;
 use crate::db::repositories::project_repo::ProjectRepository;
 use crate::db::repositories::tag_repo::TagRepository;
+use crate::services::download::DownloadService;
 use crate::services::image_cache::ImageCacheService;
 use crate::services::scanner::ScannerService;
 use crate::services::search::SearchService;
@@ -18,6 +19,7 @@ use tokio::sync::Mutex;
 
 #[derive(Clone)]
 pub struct AppState {
+    pub pool: DbPool,
     pub project_repo: Arc<ProjectRepository>,
     pub file_repo: Arc<FileRepository>,
     pub tag_repo: Arc<TagRepository>,
@@ -25,11 +27,13 @@ pub struct AppState {
     pub scanner_service: Arc<ScannerService>,
     pub image_cache_service: Arc<ImageCacheService>,
     pub search_service: Arc<SearchService>,
+    pub download_service: Arc<DownloadService>,
     pub scan_state: Arc<Mutex<ScanState>>,
 }
 
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let state = AppState {
+        pool: pool.clone(),
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
         file_repo: Arc::new(FileRepository::new(pool.clone())),
         tag_repo: Arc::new(TagRepository::new(pool.clone())),
@@ -37,6 +41,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         scanner_service: Arc::new(ScannerService::new(pool.clone())),
         image_cache_service: Arc::new(ImageCacheService::new(cache_dir, pool.clone())),
         search_service: Arc::new(SearchService::new(pool.clone())),
+        download_service: Arc::new(DownloadService::new(pool.clone())),
         scan_state: Arc::new(Mutex::new(ScanState {
             is_scanning: false,
             result: None,
@@ -55,8 +60,11 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/projects/:id", get(projects::get_project))
         .route("/api/projects/:id/children", get(projects::get_project_children))
         .route("/api/projects/:id/files", get(projects::get_project_files))
+        // TODO: Fix download_project_zip handler - Axum Handler trait issue
+        // .route("/api/projects/:id/download", get(files::download_project_zip))
         // File/Image routes
         .route("/api/images/:hash", get(files::serve_image))
+        .route("/api/files/:id", get(files::download_file))
         // Search routes
         .route("/api/search", get(search::search_projects))
         // Tags routes
