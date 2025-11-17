@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: glyptotheka-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ${PROJECTS_PATH:-./example}:/projects:ro
+    environment:
+      - DATABASE_PATH=/app/data/glyptotheka.db
+      - CACHE_DIR=/app/cache
+      - RUST_LOG=info,glyptotheka_backend=debug
+      - STL_THUMB_PATH=/usr/local/bin/stl-thumb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: glyptotheka-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  data:
+  cache:
+
+networks:
+  default:
+    name: glyptotheka-network

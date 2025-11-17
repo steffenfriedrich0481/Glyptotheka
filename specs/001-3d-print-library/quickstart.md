@@ -472,4 +472,139 @@ A: Yes, copy `glyptotheka.db` and `cache/` directory. Restore by copying back.
 
 ---
 
+## Validation Checklist
+
+Use this checklist to verify your installation is working correctly:
+
+### ✅ Backend Validation
+
+- [ ] Backend starts without errors: `cargo run --release`
+- [ ] Database file created: `ls backend/glyptotheka.db`
+- [ ] Cache directories created: `ls backend/cache/images backend/cache/previews`
+- [ ] Migrations applied: Check logs for "Migrations completed successfully"
+- [ ] Health endpoint works: `curl http://localhost:3000/health` returns "OK"
+- [ ] Config endpoint works: `curl http://localhost:3000/api/config` returns JSON
+
+### ✅ Frontend Validation
+
+- [ ] Frontend starts without errors: `npm run dev`
+- [ ] Opens in browser at http://localhost:5173
+- [ ] No console errors in browser developer tools
+- [ ] Navigation header displays correctly
+- [ ] Search bar is visible and functional
+- [ ] Responsive design works (test at different screen sizes)
+
+### ✅ Configuration
+
+- [ ] Can set root path to example/ folder
+- [ ] Config saves successfully (no errors)
+- [ ] Config persists after page refresh
+- [ ] Invalid paths show appropriate error messages
+
+### ✅ Scanning
+
+- [ ] Can trigger initial scan
+- [ ] Progress indicator shows during scan
+- [ ] Scan completes successfully
+- [ ] Scan statistics displayed (projects found, files processed)
+- [ ] Error log available if issues occur
+
+### ✅ Browsing
+
+- [ ] Root projects display as tiles after scan
+- [ ] Can click on folders to navigate deeper
+- [ ] Breadcrumbs show current location
+- [ ] Breadcrumbs allow navigation back
+- [ ] Project details page loads for leaf projects
+- [ ] STL files list displays correctly
+- [ ] Image gallery shows with pagination
+
+### ✅ Previews
+
+- [ ] STL preview images generate (if stl-thumb installed)
+- [ ] Preview placeholders show if generation fails
+- [ ] Cached previews load quickly on subsequent views
+- [ ] Image lazy loading works (images load as you scroll)
+
+### ✅ Search & Filtering
+
+- [ ] Search bar accepts input
+- [ ] Search returns results for matching projects
+- [ ] Empty search shows appropriate message
+- [ ] Tag filtering works
+- [ ] Combined text + tag filtering works
+
+### ✅ Tagging
+
+- [ ] Can add tags to projects
+- [ ] Tags autocomplete from existing tags
+- [ ] Can remove tags from projects
+- [ ] Tags persist after page refresh
+- [ ] Tag usage counts update correctly
+
+### ✅ Downloads
+
+- [ ] Can download individual STL files
+- [ ] Can download individual images
+- [ ] Can download entire project as ZIP
+- [ ] ZIP files contain all project files
+- [ ] Large file downloads work without timeout
+
+### ✅ Rescan
+
+- [ ] Can trigger rescan
+- [ ] Added projects are discovered
+- [ ] Removed projects are deleted from database
+- [ ] Tags are preserved across rescans
+- [ ] File updates are reflected
+
+### ✅ Performance
+
+- [ ] Initial scan of 10+ projects completes in reasonable time
+- [ ] Search results return in < 2 seconds
+- [ ] Navigation between pages is smooth
+- [ ] Image gallery loads progressively
+- [ ] No memory leaks during extended use
+
+### ✅ Error Handling
+
+- [ ] Invalid paths show user-friendly errors
+- [ ] Network errors display toast notifications
+- [ ] Missing stl-thumb shows fallback images
+- [ ] Database errors are logged appropriately
+- [ ] UI remains responsive during errors
+
+### ✅ Accessibility
+
+- [ ] Keyboard navigation works (Tab, Arrow keys, Enter)
+- [ ] Focus indicators are visible
+- [ ] ARIA labels present on interactive elements
+- [ ] Screen reader compatible (basic testing)
+
+### ✅ Production Build
+
+- [ ] Backend builds in release mode: `cargo build --release`
+- [ ] Frontend builds optimized bundle: `npm run build`
+- [ ] Production build runs without errors
+- [ ] Bundle sizes are reasonable (< 1MB total)
+
+### ✅ Docker (Optional)
+
+- [ ] Docker images build successfully: `docker-compose build`
+- [ ] Containers start and run: `docker-compose up`
+- [ ] Application accessible at http://localhost:8080
+- [ ] Volumes persist data across container restarts
+
+### 🎉 Success Criteria
+
+Your installation is validated if:
+
+- ✅ All Backend, Frontend, and Configuration checks pass
+- ✅ At least one complete workflow succeeds:
+  - Example: Config → Scan → Browse → View Project → Download
+- ✅ No critical errors in browser console or backend logs
+- ✅ Application is responsive and performant for your use case
+
+---
+
 **Happy Browsing!** 🎨🖨️

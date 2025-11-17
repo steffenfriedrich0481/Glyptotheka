@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-11-16
 
 ## Active Technologies
+- SQLite (rusqlite with bundled feature) (001-integrate-stl-thumb)
 
 - Rust 1.75+ (backend), TypeScript 5.0+ (frontend) (001-3d-print-library)
 
@@ -22,6 +23,7 @@ cargo test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECH
 Rust 1.75+ (backend), TypeScript 5.0+ (frontend): Follow standard conventions
 
 ## Recent Changes
+- 001-integrate-stl-thumb: Added Rust 1.75+
 
 - 001-3d-print-library: Added Rust 1.75+ (backend), TypeScript 5.0+ (frontend)
 

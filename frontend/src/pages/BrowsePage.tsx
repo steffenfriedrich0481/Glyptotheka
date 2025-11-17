@@ -37,7 +37,7 @@ const BrowsePage: React.FC = () => {
             onClick={() => navigate(`/project/${project.id}`)}
           >
             <h3 className="font-bold text-lg">{project.name}</h3>
-            <p className="text-sm text-gray-600">{project.isLeaf ? 'Project' : 'Folder'}</p>
+            <p className="text-sm text-gray-600">{project.is_leaf ? 'Project' : 'Folder'}</p>
           </div>
         ))}
       </div>

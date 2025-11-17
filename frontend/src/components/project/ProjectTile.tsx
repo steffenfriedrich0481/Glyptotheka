@@ -18,7 +18,7 @@ const ProjectTile: React.FC<Props> = ({ project, onClick }) => {
         </div>
         <h3 className="text-lg font-semibold text-center">{project.name}</h3>
         <p className="text-sm text-gray-500 mt-1">
-          {project.isLeaf ? 'Project' : 'Folder'}
+          {project.is_leaf ? 'Project' : 'Folder'}
         </p>
       </div>
     </div>

@@ -262,6 +262,175 @@ Expected performance on modern hardware:
 - <2 second tile navigation load times
 - <10 second ZIP generation for 50-file projects
 
+## Production Deployment
+
+### Environment Variables
+
+Create a `.env` file in the backend directory:
+
+```bash
+# Database configuration
+DATABASE_PATH=./glyptotheka.db
+
+# Cache directory
+CACHE_DIR=./cache
+
+# Optional: stl-thumb path (if not in PATH)
+STL_THUMB_PATH=/usr/local/bin/stl-thumb
+
+# Logging level
+RUST_LOG=info,glyptotheka_backend=debug
+```
+
+### Docker Deployment (Recommended)
+
+The easiest way to deploy is using Docker:
+
+```bash
+# Build and run with docker-compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+The application will be available at:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000
+
+### Manual Production Build
+
+**Backend:**
+```bash
+cd backend
+cargo build --release
+
+# The binary will be at target/release/glyptotheka-backend
+./target/release/glyptotheka-backend
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run build
+
+# Serve the dist/ folder with any static file server
+# Or use a reverse proxy like nginx
+```
+
+### System Service (Linux)
+
+Create a systemd service file `/etc/systemd/system/glyptotheka.service`:
+
+```ini
+[Unit]
+Description=Glyptotheka 3D Print Library
+After=network.target
+
+[Service]
+Type=simple
+User=glyptotheka
+WorkingDirectory=/opt/glyptotheka/backend
+Environment="DATABASE_PATH=/var/lib/glyptotheka/glyptotheka.db"
+Environment="CACHE_DIR=/var/lib/glyptotheka/cache"
+Environment="RUST_LOG=info"
+ExecStart=/opt/glyptotheka/backend/target/release/glyptotheka-backend
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+```bash
+sudo systemctl enable glyptotheka
+sudo systemctl start glyptotheka
+sudo systemctl status glyptotheka
+```
+
+### Nginx Reverse Proxy
+
+Example nginx configuration:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    # Frontend
+    location / {
+        root /opt/glyptotheka/frontend/dist;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API
+    location /api {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://localhost:3000;
+    }
+}
+```
+
+### Performance Tuning
+
+For production workloads:
+
+1. **Database**: Use WAL mode (enabled by default)
+   ```sql
+   PRAGMA journal_mode=WAL;
+   PRAGMA synchronous=NORMAL;
+   ```
+
+2. **Cache Size**: Adjust in database config
+   ```sql
+   UPDATE config SET cache_max_size_mb = 10000;
+   ```
+
+3. **Connection Pool**: Set environment variable
+   ```bash
+   export DB_POOL_SIZE=10
+   ```
+
+4. **Frontend**: Enable gzip compression in nginx/caddy
+
+### Backup & Restore
+
+**Backup:**
+```bash
+# Database backup
+sqlite3 glyptotheka.db ".backup glyptotheka-backup.db"
+
+# Or use cp while backend is stopped
+cp glyptotheka.db glyptotheka-backup.db
+
+# Backup cache (optional)
+tar -czf cache-backup.tar.gz cache/
+```
+
+**Restore:**
+```bash
+# Stop backend
+systemctl stop glyptotheka
+
+# Restore database
+cp glyptotheka-backup.db glyptotheka.db
+
+# Restart
+systemctl start glyptotheka
+```
+
 ## Contributing
 
 1. Check `specs/001-3d-print-library/` for feature specifications
@@ -287,6 +456,6 @@ For issues and questions:
 
 ---
 
-**Status**: ✅ In Development - Phase 0 Complete
+**Status**: 🚀 Phase 9 - Polish & Testing
 
 See `specs/001-3d-print-library/tasks.md` for implementation progress.
