@@ -1,6 +1,6 @@
 use crate::db::connection::DbPool;
-use crate::models::stl_file::{CreateStlFile, StlFile};
 use crate::models::image_file::{CreateImageFile, ImageFile};
+use crate::models::stl_file::{CreateStlFile, StlFile};
 use crate::utils::error::AppError;
 use rusqlite::params;
 
@@ -136,6 +136,7 @@ impl FileRepository {
         self.create_stl_file(&file)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_image_file(
         &self,
         project_id: i64,

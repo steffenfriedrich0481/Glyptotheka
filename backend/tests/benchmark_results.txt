@@ -1,0 +1,25 @@
+Benchmark Results
+=================
+Date: Monday 17 November 2025 11:44:17 AM CET
+Files tested: 20
+
+1. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/Pre-Supported/STL/STL_Treasure C - Gold Coins_Supported.stl - 9.72MB
+2. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/Pre-Supported/STL/STL_Treasure B - Potions_Supported.stl - 6.51MB
+3. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/Pre-Supported/STL/STL_Glander, Dwarven Trader_Supported.stl - 20.27MB
+4. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/Pre-Supported/STL/Hollowed_Gemtreasure Chest_Supported.stl - 11.10MB
+5. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/Pre-Supported/STL/STL_Treasure A - Trinkets_Supported.stl - 5.39MB
+6. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/STL/Treasure B - Potions.stl - 5.73MB
+7. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/STL/Glander, Dwarven Trader.stl - 18.31MB
+8. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/STL/Treasure A - Trinkets.stl - 4.70MB
+9. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/STL/Treasure C - Gold Coins.stl - 8.74MB
+10. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Cast'N'Play/[CNP] 24_04 - Dwarven Legacy/819_Dwarf Gemtreasure Trader/STL/Gemtreasure Chest.stl - 8.33MB
+11. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bust Prince Voriel Bust/PRESUPPORTED_STL/Bust_Base_Supported.stl - 36.79MB
+12. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bust Prince Voriel Bust/PRESUPPORTED_STL/BUST_Prince_Viorel_V2_Supported.stl - 103.18MB
+13. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bust Prince Voriel Bust/UNSUPPORTED_STL/Bust_Base.stl - 23.84MB
+14. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bust Prince Voriel Bust/UNSUPPORTED_STL/BUST_Prince_Viorel_V2.stl - 54.82MB
+15. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Upper_Right_Wing.stl - 95.37MB
+16. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Tail_1.stl - 71.51MB
+17. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Lower_Right_Wing.stl - 59.59MB
+18. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Bahamut.stl - 95.60MB
+19. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Upper_Left_Wing.stl - 95.33MB
+20. /home/stefffri/Workspace/Glyptotheka/example/Miniaturen/Mammoth Factory/Bahamut/Unsupported/Bahamut_Base.stl - 59.61MB

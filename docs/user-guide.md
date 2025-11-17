@@ -79,7 +79,7 @@ For STL preview generation:
 - Identifies folders containing `.stl` files
 - Creates hierarchical project structure
 - Discovers and indexes image files (`.jpg`, `.png`, `.gif`, `.webp`)
-- Generates STL preview thumbnails (if stl-thumb available)
+- Generates STL preview thumbnails automatically
 
 **Scan statistics:**
 - Projects found
@@ -374,15 +374,15 @@ Organize by:
 ### Preview Issues
 
 **Problem: STL previews not generating**
-- Verify stl-thumb is installed: `which stl-thumb`
-- Check stl-thumb path in config
-- Look at browser console for errors
-- Fallback: system shows placeholder icons
+- Check OpenGL libraries are installed (see README.md)
+- On headless servers, ensure Mesa is available
+- Look at backend logs for rendering errors
+- Verify STL files are valid format
 
-**Problem: Preview images broken**
-- Check cache directory has write permissions
-- Verify sufficient disk space
-- Try regenerating by rescanning
+**Problem: OpenGL errors in logs**
+- Install OpenGL libraries: `sudo apt-get install -y libgl1-mesa-glx libglu1-mesa`
+- On headless servers, Mesa provides software rendering
+- Check disk space for cache directory
 
 ### Performance Issues
 

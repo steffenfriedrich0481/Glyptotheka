@@ -1,9 +1,5 @@
-use axum::{
-    routing::{delete, get, post},
-    Router,
-};
-use crate::api::handlers::{config, files, projects, scan, search, tags};
 use crate::api::handlers::scan::ScanState;
+use crate::api::handlers::{config, files, projects, scan, search, tags};
 use crate::config::ConfigService;
 use crate::db::connection::DbPool;
 use crate::db::repositories::file_repo::FileRepository;
@@ -11,10 +7,14 @@ use crate::db::repositories::project_repo::ProjectRepository;
 use crate::db::repositories::tag_repo::TagRepository;
 use crate::services::download::DownloadService;
 use crate::services::image_cache::ImageCacheService;
-use crate::services::scanner::ScannerService;
 use crate::services::rescan::RescanService;
+use crate::services::scanner::ScannerService;
 use crate::services::search::SearchService;
 use crate::services::stl_preview::StlPreviewService;
+use axum::{
+    routing::{delete, get, post},
+    Router,
+};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -37,12 +37,9 @@ pub struct AppState {
 
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir, pool.clone()));
-    
-    let stl_preview = Arc::new(StlPreviewService::new(
-        (*image_cache).clone(),
-        pool.clone(),
-    ));
-    
+
+    let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
+
     let state = AppState {
         pool: pool.clone(),
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
@@ -74,9 +71,15 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         // Project routes
         .route("/api/projects", get(projects::list_root_projects))
         .route("/api/projects/:id", get(projects::get_project))
-        .route("/api/projects/:id/children", get(projects::get_project_children))
+        .route(
+            "/api/projects/:id/children",
+            get(projects::get_project_children),
+        )
         .route("/api/projects/:id/files", get(projects::get_project_files))
-        .route("/api/projects/:id/download", get(files::download_project_zip))
+        .route(
+            "/api/projects/:id/download",
+            get(files::download_project_zip),
+        )
         // File/Image routes
         .route("/api/images/:hash", get(files::serve_image))
         .route("/api/previews/:hash", get(files::serve_preview))
@@ -88,6 +91,9 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         .route("/api/tags", post(tags::create_tag))
         .route("/api/tags/autocomplete", get(tags::autocomplete_tags))
         .route("/api/projects/:id/tags", post(tags::add_tag_to_project))
-        .route("/api/projects/:id/tags", delete(tags::remove_tag_from_project))
+        .route(
+            "/api/projects/:id/tags",
+            delete(tags::remove_tag_from_project),
+        )
         .with_state(state)
 }

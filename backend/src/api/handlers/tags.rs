@@ -95,20 +95,26 @@ pub async fn add_tag_to_project(
     })?;
 
     // Get or create tag
-    let tag_id = state.tag_repo.get_or_create(&payload.tag_name, payload.color).map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": e.to_string() })),
-        )
-    })?;
+    let tag_id = state
+        .tag_repo
+        .get_or_create(&payload.tag_name, payload.color)
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": e.to_string() })),
+            )
+        })?;
 
     // Add tag to project
-    state.tag_repo.add_to_project(project_id, tag_id).map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": e.to_string() })),
-        )
-    })?;
+    state
+        .tag_repo
+        .add_to_project(project_id, tag_id)
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": e.to_string() })),
+            )
+        })?;
 
     // Return updated project with tags
     let tags = state.tag_repo.get_project_tags(project_id).map_err(|e| {
@@ -157,12 +163,15 @@ pub async fn remove_tag_from_project(
         })?;
 
     // Remove tag from project
-    state.tag_repo.remove_from_project(project_id, tag_id).map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": e.to_string() })),
-        )
-    })?;
+    state
+        .tag_repo
+        .remove_from_project(project_id, tag_id)
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": e.to_string() })),
+            )
+        })?;
 
     // Return updated project with tags
     let tags = state.tag_repo.get_project_tags(project_id).map_err(|e| {

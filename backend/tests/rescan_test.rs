@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod rescan_tests {
-    use glyptotheka_backend::services::rescan::RescanService;
     use glyptotheka_backend::db::connection::create_pool;
+    use glyptotheka_backend::services::rescan::RescanService;
     use std::fs;
     use std::path::Path;
     use tempfile::TempDir;
@@ -29,7 +29,7 @@ mod rescan_tests {
         create_test_stl(&project1, "model1.stl");
 
         // Initial scan would happen here (not implemented in test)
-        
+
         // Add new file
         create_test_stl(&project1, "model2.stl");
 
@@ -50,7 +50,7 @@ mod rescan_tests {
         let project1 = Path::new(&test_root).join("project1");
         fs::create_dir_all(&project1).unwrap();
         create_test_stl(&project1, "model1.stl");
-        
+
         // Simulate that it was scanned before
         // Then delete it
         fs::remove_dir_all(&project1).unwrap();
@@ -74,7 +74,7 @@ mod rescan_tests {
         // First scan
         let result = rescan_service.rescan(&test_root);
         assert!(result.is_ok());
-        
+
         // Verify projects are found
         let scan_result = result.unwrap();
         assert!(scan_result.projects_found > 0);

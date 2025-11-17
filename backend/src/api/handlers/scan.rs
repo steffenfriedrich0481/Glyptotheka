@@ -1,6 +1,6 @@
-use axum::{extract::State, Json};
 use crate::api::routes::AppState;
 use crate::utils::error::AppError;
+use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +38,7 @@ pub async fn start_scan(
     Json(req): Json<ScanRequest>,
 ) -> Result<Json<ScanStatus>, AppError> {
     let mut scan_state = state.scan_state.lock().await;
-    
+
     if scan_state.is_scanning {
         return Ok(Json(ScanStatus {
             is_scanning: true,
@@ -55,9 +55,9 @@ pub async fn start_scan(
     }
 
     let config = state.config_service.get_config()?;
-    let root_path = config.root_path.ok_or_else(|| {
-        AppError::ValidationError("Root path not configured".to_string())
-    })?;
+    let root_path = config
+        .root_path
+        .ok_or_else(|| AppError::ValidationError("Root path not configured".to_string()))?;
 
     let force = req.force.unwrap_or(false);
     let has_been_scanned = config.last_scan_at.is_some();
@@ -70,7 +70,7 @@ pub async fn start_scan(
     let rescan_service = state.rescan_service.clone();
     let scan_state_arc = state.scan_state.clone();
     let config_service = state.config_service.clone();
-    
+
     tokio::spawn(async move {
         let result = if force || !has_been_scanned {
             // Initial scan or forced full rescan
@@ -79,14 +79,14 @@ pub async fn start_scan(
             // Incremental rescan
             rescan_service.rescan(&root_path).map(ScanResult::Rescan)
         };
-        
+
         let mut state = scan_state_arc.lock().await;
         state.is_scanning = false;
-        
+
         if result.is_ok() {
             let _ = config_service.update_last_scan();
         }
-        
+
         state.result = result.ok();
     });
 
@@ -104,11 +104,9 @@ pub async fn start_scan(
     }))
 }
 
-pub async fn get_scan_status(
-    State(state): State<AppState>,
-) -> Result<Json<ScanStatus>, AppError> {
+pub async fn get_scan_status(State(state): State<AppState>) -> Result<Json<ScanStatus>, AppError> {
     let scan_state = state.scan_state.lock().await;
-    
+
     let status = if let Some(ref result) = scan_state.result {
         match result {
             ScanResult::Initial(r) => ScanStatus {

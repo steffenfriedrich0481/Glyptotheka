@@ -48,7 +48,7 @@ impl SearchService {
         };
 
         let total_pages = if total > 0 {
-            (total + params.per_page - 1) / params.per_page
+            total.div_ceil(params.per_page)
         } else {
             0
         };
@@ -71,7 +71,7 @@ impl SearchService {
         let search_query = params.query.as_ref().unwrap();
         // Add wildcard for partial matching
         let fts_query = format!("{}*", search_query);
-        
+
         // Get total count
         let total: usize = conn.query_row(
             "SELECT COUNT(DISTINCT p.id)
@@ -85,7 +85,7 @@ impl SearchService {
         // Get projects
         let per_page_i64 = params.per_page as i64;
         let offset_i64 = offset as i64;
-        
+
         let mut stmt = conn.prepare(
             "SELECT DISTINCT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at
              FROM projects p
@@ -96,18 +96,21 @@ impl SearchService {
         )?;
 
         let projects = stmt
-            .query_map(rusqlite::params![&fts_query, per_page_i64, offset_i64], |row| {
-                Ok(Project {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    full_path: row.get(2)?,
-                    parent_id: row.get(3)?,
-                    is_leaf: row.get(4)?,
-                    description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
-                })
-            })?
+            .query_map(
+                rusqlite::params![&fts_query, per_page_i64, offset_i64],
+                |row| {
+                    Ok(Project {
+                        id: row.get(0)?,
+                        name: row.get(1)?,
+                        full_path: row.get(2)?,
+                        parent_id: row.get(3)?,
+                        is_leaf: row.get(4)?,
+                        description: row.get(5)?,
+                        created_at: row.get(6)?,
+                        updated_at: row.get(7)?,
+                    })
+                },
+            )?
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok((projects, total))
@@ -120,8 +123,13 @@ impl SearchService {
         offset: usize,
     ) -> Result<(Vec<Project>, usize), AppError> {
         // For simplicity with multiple tags, we'll filter projects that have ALL specified tags
-        let placeholders = params.tags.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
-        
+        let placeholders = params
+            .tags
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let count_query = format!(
             "SELECT COUNT(*)
              FROM (
@@ -158,7 +166,10 @@ impl SearchService {
         count_params.push(&tag_count);
 
         let mut stmt = conn.prepare(&count_query)?;
-        let total: usize = stmt.query_row(rusqlite::params_from_iter(count_params.iter()), |row| row.get(0))?;
+        let total: usize = stmt
+            .query_row(rusqlite::params_from_iter(count_params.iter()), |row| {
+                row.get(0)
+            })?;
 
         // Build params for query
         let per_page_i64 = params.per_page as i64;
@@ -197,8 +208,13 @@ impl SearchService {
         offset: usize,
     ) -> Result<(Vec<Project>, usize), AppError> {
         let search_query = params.query.as_ref().unwrap();
-        let placeholders = params.tags.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
-        
+        let placeholders = params
+            .tags
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let count_query = format!(
             "SELECT COUNT(*)
              FROM (
@@ -239,7 +255,10 @@ impl SearchService {
         count_params.push(&tag_count);
 
         let mut stmt = conn.prepare(&count_query)?;
-        let total: usize = stmt.query_row(rusqlite::params_from_iter(count_params.iter()), |row| row.get(0))?;
+        let total: usize = stmt
+            .query_row(rusqlite::params_from_iter(count_params.iter()), |row| {
+                row.get(0)
+            })?;
 
         // Build params for query
         let per_page_i64 = params.per_page as i64;

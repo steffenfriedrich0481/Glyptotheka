@@ -3,10 +3,10 @@ use crate::services::image_cache::ImageCacheService;
 use crate::utils::error::AppError;
 use rusqlite::params;
 use std::path::{Path, PathBuf};
+use stl_thumb::config::Config as StlConfig;
 use tokio::sync::mpsc;
 use tokio::task;
 use tracing::{info, warn};
-use stl_thumb::config::Config as StlConfig;
 
 #[derive(Clone)]
 pub struct StlPreviewService {
@@ -16,10 +16,7 @@ pub struct StlPreviewService {
 
 impl StlPreviewService {
     pub fn new(image_cache: ImageCacheService, pool: DbPool) -> Self {
-        Self {
-            image_cache,
-            pool,
-        }
+        Self { image_cache, pool }
     }
 
     /// Generate a preview for an STL file
@@ -32,7 +29,10 @@ impl StlPreviewService {
 
         let stl_path_buf = PathBuf::from(stl_path);
         if !stl_path_buf.exists() {
-            return Err(AppError::NotFound(format!("STL file not found: {}", stl_path)));
+            return Err(AppError::NotFound(format!(
+                "STL file not found: {}",
+                stl_path
+            )));
         }
 
         // Generate preview using stl-thumb library
@@ -66,7 +66,7 @@ impl StlPreviewService {
                 img_filename: output_path.to_string_lossy().to_string(),
                 width: 512,
                 height: 512,
-                visible: false,  // Headless rendering
+                visible: false, // Headless rendering
                 verbosity: 0,
                 ..Default::default()
             };
@@ -86,7 +86,7 @@ impl StlPreviewService {
         })
         .await
         .map_err(|e| AppError::InternalServer(format!("Task join error: {}", e)))?
-        .map_err(|e| AppError::InternalServer(e))
+        .map_err(AppError::InternalServer)
     }
 
     /// Update STL file record with preview information
@@ -129,7 +129,11 @@ impl PreviewQueue {
             while let Some(stl_path) = receiver.recv().await {
                 match preview_service.generate_preview(&stl_path).await {
                     Ok(preview_path) => {
-                        info!("Generated preview: {} -> {}", stl_path, preview_path.display());
+                        info!(
+                            "Generated preview: {} -> {}",
+                            stl_path,
+                            preview_path.display()
+                        );
                     }
                     Err(e) => {
                         warn!("Failed to generate preview for {}: {}", stl_path, e);

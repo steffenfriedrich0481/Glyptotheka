@@ -6,7 +6,7 @@ use crate::utils::error::AppError;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{error, warn, info};
+use tracing::{error, info, warn};
 use walkdir::WalkDir;
 
 #[derive(Debug, Clone)]
@@ -31,9 +31,9 @@ impl ScannerService {
 
     pub fn scan(&self, root_path: &str) -> Result<ScanResult, AppError> {
         let root = Path::new(root_path);
-        
+
         info!("Starting scan of directory: {}", root_path);
-        
+
         if !root.exists() {
             error!("Scan failed: Root path does not exist: {}", root_path);
             return Err(AppError::ValidationError(format!(
@@ -56,7 +56,7 @@ impl ScannerService {
 
         // Find all folders containing STL files
         let mut project_folders = HashMap::new();
-        
+
         for entry in WalkDir::new(root).follow_links(false) {
             match entry {
                 Ok(e) => {
@@ -81,7 +81,10 @@ impl ScannerService {
             }
         }
 
-        info!("Directory walk complete. Found {} project folders", project_folders.len());
+        info!(
+            "Directory walk complete. Found {} project folders",
+            project_folders.len()
+        );
 
         // Build project hierarchy
         let mut path_to_id = HashMap::new();
@@ -89,23 +92,23 @@ impl ScannerService {
 
         // Process each project folder
         for (folder, stl_files) in project_folders.iter() {
-            match self.create_project_hierarchy(folder, root, &mut path_to_id, &mut processed_paths) {
+            match self.create_project_hierarchy(folder, root, &mut path_to_id, &mut processed_paths)
+            {
                 Ok(project_id) => {
                     projects_found += 1;
-                    
+
                     // Add STL files
                     for stl_file in stl_files {
                         match self.file_repo.add_stl_file(
                             project_id,
                             stl_file.file_name().unwrap().to_str().unwrap(),
                             stl_file.to_str().unwrap(),
-                            fs::metadata(stl_file)
-                                .map(|m| m.len() as i64)
-                                .unwrap_or(0),
+                            fs::metadata(stl_file).map(|m| m.len() as i64).unwrap_or(0),
                         ) {
                             Ok(_) => files_processed += 1,
                             Err(e) => {
-                                let error_msg = format!("Error adding STL file {}: {}", stl_file.display(), e);
+                                let error_msg =
+                                    format!("Error adding STL file {}: {}", stl_file.display(), e);
                                 error!("{}", error_msg);
                                 errors.push(error_msg);
                             }
@@ -114,22 +117,31 @@ impl ScannerService {
 
                     // Find and add images
                     if let Err(e) = self.add_images_for_project(project_id, folder) {
-                        let error_msg = format!("Error adding images for project {}: {}", folder.display(), e);
+                        let error_msg = format!(
+                            "Error adding images for project {}: {}",
+                            folder.display(),
+                            e
+                        );
                         warn!("{}", error_msg);
                         errors.push(error_msg);
                     }
                 }
                 Err(e) => {
-                    let error_msg = format!("Error creating project for {}: {}", folder.display(), e);
+                    let error_msg =
+                        format!("Error creating project for {}: {}", folder.display(), e);
                     error!("{}", error_msg);
                     errors.push(error_msg);
                 }
             }
         }
 
-        info!("Scan complete: {} projects found, {} files processed, {} errors", 
-              projects_found, files_processed, errors.len());
-        
+        info!(
+            "Scan complete: {} projects found, {} files processed, {} errors",
+            projects_found,
+            files_processed,
+            errors.len()
+        );
+
         if !errors.is_empty() {
             warn!("Scan completed with {} errors", errors.len());
         }
@@ -153,7 +165,7 @@ impl ScannerService {
         }
 
         let full_path = folder.to_str().unwrap().to_string();
-        
+
         if processed_paths.contains(folder) {
             if let Some(project) = self.project_repo.get_by_path(&full_path)? {
                 path_to_id.insert(folder.to_path_buf(), project.id);
@@ -166,7 +178,12 @@ impl ScannerService {
         let parent_id = if folder != root {
             if let Some(parent) = folder.parent() {
                 if parent >= root {
-                    Some(self.create_project_hierarchy(parent, root, path_to_id, processed_paths)?)
+                    Some(self.create_project_hierarchy(
+                        parent,
+                        root,
+                        path_to_id,
+                        processed_paths,
+                    )?)
                 } else {
                     None
                 }
@@ -218,13 +235,7 @@ impl ScannerService {
                                     .unwrap_or(0);
 
                                 self.file_repo.add_image_file(
-                                    project_id,
-                                    &filename,
-                                    &file_path,
-                                    file_size,
-                                    "direct",
-                                    None,
-                                    0,
+                                    project_id, &filename, &file_path, file_size, "direct", None, 0,
                                 )?;
                             }
                         }

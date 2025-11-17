@@ -1,5 +1,5 @@
 # Backend Dockerfile
-FROM rust:1.75 as builder
+FROM rust:1.83 as builder
 
 WORKDIR /app
 
@@ -23,7 +23,8 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
-    apt-get install -y libsqlite3-0 ca-certificates && \
+    apt-get install -y libsqlite3-0 ca-certificates \
+        libgl1-mesa-glx libglu1-mesa && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

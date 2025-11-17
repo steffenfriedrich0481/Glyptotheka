@@ -28,7 +28,7 @@ impl TagRepository {
 
     pub fn get_or_create(&self, name: &str, color: Option<String>) -> Result<i64, AppError> {
         let conn = self.pool.get()?;
-        
+
         let existing: Result<i64, _> = conn.query_row(
             "SELECT id FROM tags WHERE name = ?1 COLLATE NOCASE",
             params![name],
@@ -37,7 +37,10 @@ impl TagRepository {
 
         match existing {
             Ok(id) => Ok(id),
-            Err(_) => self.create(&CreateTag { name: name.to_string(), color }),
+            Err(_) => self.create(&CreateTag {
+                name: name.to_string(),
+                color,
+            }),
         }
     }
 

@@ -40,36 +40,16 @@ struct ErrorResponse {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, error_type, message) = match self {
-            AppError::Database(msg) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "database_error",
-                msg,
-            ),
-            AppError::NotFound(msg) => (
-                StatusCode::NOT_FOUND,
-                "not_found",
-                msg,
-            ),
-            AppError::BadRequest(msg) => (
-                StatusCode::BAD_REQUEST,
-                "bad_request",
-                msg,
-            ),
-            AppError::ValidationError(msg) => (
-                StatusCode::BAD_REQUEST,
-                "validation_error",
-                msg,
-            ),
+            AppError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, "database_error", msg),
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, "not_found", msg),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "bad_request", msg),
+            AppError::ValidationError(msg) => (StatusCode::BAD_REQUEST, "validation_error", msg),
             AppError::InternalServer(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "internal_server_error",
                 msg,
             ),
-            AppError::IoError(msg) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "io_error",
-                msg,
-            ),
+            AppError::IoError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, "io_error", msg),
         };
 
         let body = Json(ErrorResponse {

@@ -26,13 +26,17 @@ pub const MIGRATIONS: &[Migration] = &[
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
     let conn = pool.get()?;
-    
+
     conn.execute_batch("PRAGMA foreign_keys = ON;")?;
 
     let current_version = get_current_version(&conn)?;
 
     for migration in MIGRATIONS.iter().filter(|m| m.version > current_version) {
-        tracing::info!("Applying migration {}: {}", migration.version, migration.description);
+        tracing::info!(
+            "Applying migration {}: {}",
+            migration.version,
+            migration.description
+        );
         conn.execute_batch(migration.sql)?;
     }
 
@@ -40,11 +44,10 @@ pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn get_current_version(conn: &rusqlite::Connection) -> Result<u32, Box<dyn std::error::Error>> {
-    let version: Result<u32, rusqlite::Error> = conn.query_row(
-        "SELECT MAX(version) FROM schema_migrations",
-        [],
-        |row| row.get(0)
-    );
+    let version: Result<u32, rusqlite::Error> =
+        conn.query_row("SELECT MAX(version) FROM schema_migrations", [], |row| {
+            row.get(0)
+        });
 
     match version {
         Ok(v) => Ok(v),
@@ -67,24 +70,26 @@ mod tests {
         conn.execute_batch("PRAGMA foreign_keys = ON;").unwrap();
 
         let current_version = get_current_version(&conn).unwrap();
-        
+
         for migration in MIGRATIONS.iter().filter(|m| m.version > current_version) {
             conn.execute_batch(migration.sql).unwrap();
         }
 
-        let version: u32 = conn.query_row(
-            "SELECT MAX(version) FROM schema_migrations",
-            [],
-            |row| row.get(0)
-        ).unwrap();
+        let version: u32 = conn
+            .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
 
         assert_eq!(version, 1);
 
-        let table_exists: bool = conn.query_row(
-            "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='projects'",
-            [],
-            |row| row.get(0)
-        ).unwrap();
+        let table_exists: bool = conn
+            .query_row(
+                "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='projects'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
 
         assert!(table_exists);
     }

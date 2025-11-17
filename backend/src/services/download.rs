@@ -46,7 +46,7 @@ impl DownloadService {
                     })
                 })?
                 .collect();
-            
+
             files?
         };
 
@@ -75,35 +75,46 @@ impl DownloadService {
                     })
                 })?
                 .collect();
-            
+
             files?
         };
 
         // Create ZIP file in blocking task to avoid blocking async runtime
         let output_path = output_path.to_path_buf();
         tokio::task::spawn_blocking(move || {
-            let file = File::create(&output_path)
-                .map_err(|e| AppError::InternalServer(format!("Failed to create ZIP file: {}", e)))?;
+            let file = File::create(&output_path).map_err(|e| {
+                AppError::InternalServer(format!("Failed to create ZIP file: {}", e))
+            })?;
             let mut zip = ZipWriter::new(file);
 
-            let options = FileOptions::default()
-                .compression_method(CompressionMethod::Deflated);
+            let options = FileOptions::default().compression_method(CompressionMethod::Deflated);
 
             // Add STL files
             for stl_file in stl_files {
-                Self::add_file_to_zip_sync(&mut zip, &stl_file.file_path, &stl_file.filename, options)?;
+                Self::add_file_to_zip_sync(
+                    &mut zip,
+                    &stl_file.file_path,
+                    &stl_file.filename,
+                    options,
+                )?;
             }
 
             // Add image files
             for image_file in image_files {
-                Self::add_file_to_zip_sync(&mut zip, &image_file.file_path, &image_file.filename, options)?;
+                Self::add_file_to_zip_sync(
+                    &mut zip,
+                    &image_file.file_path,
+                    &image_file.filename,
+                    options,
+                )?;
             }
 
             zip.finish()
                 .map_err(|e| AppError::InternalServer(format!("Failed to finish ZIP: {}", e)))?;
 
             Ok::<(), AppError>(())
-        }).await
+        })
+        .await
         .map_err(|e| AppError::InternalServer(format!("ZIP task failed: {}", e)))??;
 
         Ok(())
@@ -115,15 +126,17 @@ impl DownloadService {
         filename: &str,
         options: FileOptions<()>,
     ) -> Result<(), AppError> {
-        let mut file = File::open(file_path)
-            .map_err(|e| AppError::InternalServer(format!("Failed to open file {}: {}", file_path, e)))?;
+        let mut file = File::open(file_path).map_err(|e| {
+            AppError::InternalServer(format!("Failed to open file {}: {}", file_path, e))
+        })?;
 
         zip.start_file(filename, options)
             .map_err(|e| AppError::InternalServer(format!("Failed to start ZIP entry: {}", e)))?;
 
         let mut buffer = vec![0u8; 8192];
         loop {
-            let n = file.read(&mut buffer)
+            let n = file
+                .read(&mut buffer)
                 .map_err(|e| AppError::InternalServer(format!("Failed to read file: {}", e)))?;
             if n == 0 {
                 break;
@@ -135,4 +148,3 @@ impl DownloadService {
         Ok(())
     }
 }
-

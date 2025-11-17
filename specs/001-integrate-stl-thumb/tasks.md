@@ -80,14 +80,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Create benchmark script to test 20 diverse STL files in backend/tests/
-- [ ] T030 [P] [US2] Generate baseline previews for comparison (if not already available)
-- [ ] T031 [US2] Run benchmark and compare preview generation times (target: within 10% of baseline)
-- [ ] T032 [US2] Validate PNG format and dimensions (512x512) for all generated previews
-- [ ] T033 [US2] Visual comparison of generated previews against baseline (spot check 5-10 files)
-- [ ] T034 [US2] Test error handling for invalid STL files
-- [ ] T035 [US2] Test error handling for missing STL files
-- [ ] T036 [US2] Verify error messages are clear and actionable
+- [X] T029 [P] [US2] Create benchmark script to test 20 diverse STL files in backend/tests/
+- [X] T030 [P] [US2] Generate baseline previews for comparison (if not already available)
+- [X] T031 [US2] Run benchmark and compare preview generation times (target: within 10% of baseline)
+- [X] T032 [US2] Validate PNG format and dimensions (512x512) for all generated previews
+- [X] T033 [US2] Visual comparison of generated previews against baseline (spot check 5-10 files)
+- [X] T034 [US2] Test error handling for invalid STL files
+- [X] T035 [US2] Test error handling for missing STL files
+- [X] T036 [US2] Verify error messages are clear and actionable
 
 **Checkpoint**: Preview quality matches or exceeds previous implementation
 
@@ -101,18 +101,18 @@
 
 ### Implementation for User Story 3
 
-- [ ] T037 [P] [US3] Remove STL_THUMB_PATH from .env.example
-- [ ] T038 [P] [US3] Remove STL_THUMB_PATH from docker-compose.yml environment section
-- [ ] T039 [P] [US3] Update backend/Dockerfile to add OpenGL runtime libraries (libgl1-mesa-glx libglu1-mesa)
-- [ ] T040 [P] [US3] Remove any stl-thumb binary installation steps from backend/Dockerfile (if present)
-- [ ] T041 [US3] Update README.md installation section to remove stl-thumb installation instructions
-- [ ] T042 [US3] Update README.md prerequisites section to add OpenGL libraries requirement
-- [ ] T043 [US3] Update docs/quickstart.md to remove external tool installation steps (replace with content from specs/001-integrate-stl-thumb/quickstart.md)
-- [ ] T044 [US3] Update systemd service example to remove STL_THUMB_PATH environment variable (if documented)
-- [ ] T045 [US3] Test Docker build completes successfully
-- [ ] T046 [US3] Test Docker container starts and generates previews
-- [ ] T047 [US3] Verify Docker build time improvement (measure and document)
-- [ ] T048 [US3] Test deployment on clean system without stl-thumb binary
+- [X] T037 [P] [US3] Remove STL_THUMB_PATH from .env.example
+- [X] T038 [P] [US3] Remove STL_THUMB_PATH from docker-compose.yml environment section
+- [X] T039 [P] [US3] Update backend/Dockerfile to add OpenGL runtime libraries (libgl1-mesa-glx libglu1-mesa)
+- [X] T040 [P] [US3] Remove any stl-thumb binary installation steps from backend/Dockerfile (if present)
+- [X] T041 [US3] Update README.md installation section to remove stl-thumb installation instructions
+- [X] T042 [US3] Update README.md prerequisites section to add OpenGL libraries requirement
+- [X] T043 [US3] Update docs/quickstart.md to remove external tool installation steps (replace with content from specs/001-integrate-stl-thumb/quickstart.md)
+- [X] T044 [US3] Update systemd service example to remove STL_THUMB_PATH environment variable (if documented)
+- [X] T045 [US3] Test Docker build completes successfully
+- [X] T046 [US3] Test Docker container starts and generates previews
+- [X] T047 [US3] Verify Docker build time improvement (measure and document)
+- [X] T048 [US3] Test deployment on clean system without stl-thumb binary
 
 **Checkpoint**: All configuration and deployment documentation updated and tested
 
@@ -126,12 +126,12 @@
 
 **Note**: These tasks are only needed if frontend has configuration UI for stl_thumb_path
 
-- [ ] T049 [P] [US3] Remove stl_thumb_path field from AppConfig interface in frontend/src/types/config.ts
-- [ ] T050 [P] [US3] Remove stl_thumb_path field from UpdateConfigRequest interface in frontend/src/types/config.ts
-- [ ] T051 [P] [US3] Remove stl_thumb_path input field from configuration form component
-- [ ] T052 [P] [US3] Remove stl_thumb_path validation from configuration schema
-- [ ] T053 [US3] Test configuration page displays correctly without stl_thumb_path field
-- [ ] T054 [US3] Test configuration update API calls work without stl_thumb_path
+- [X] T049 [P] [US3] Remove stl_thumb_path field from AppConfig interface in frontend/src/types/config.ts
+- [X] T050 [P] [US3] Remove stl_thumb_path field from UpdateConfigRequest interface in frontend/src/types/config.ts
+- [X] T051 [P] [US3] Remove stl_thumb_path input field from configuration form component
+- [X] T052 [P] [US3] Remove stl_thumb_path validation from configuration schema
+- [X] T053 [US3] Test configuration page displays correctly without stl_thumb_path field
+- [X] T054 [US3] Test configuration update API calls work without stl_thumb_path
 
 ---
 
@@ -139,14 +139,14 @@
 
 **Purpose**: End-to-end testing across all user stories
 
-- [ ] T055 [P] Integration test: Deploy via Docker and test complete workflow (scan → upload → preview)
-- [ ] T056 [P] Integration test: Deploy natively and test complete workflow
-- [ ] T057 [P] Integration test: Test concurrent preview generation (multiple files)
-- [ ] T058 Performance test: Benchmark preview generation time across 50 diverse STL files
-- [ ] T059 Performance test: Verify no regression in API response times
-- [ ] T060 Compatibility test: Verify existing database migrates successfully
-- [ ] T061 Compatibility test: Verify existing cached previews remain valid
-- [ ] T062 Error handling test: Test all error scenarios document improved error messages
+- [X] T055 [P] Integration test: Deploy via Docker and test complete workflow (scan → upload → preview)
+- [X] T056 [P] Integration test: Deploy natively and test complete workflow
+- [X] T057 [P] Integration test: Test concurrent preview generation (multiple files)
+- [X] T058 Performance test: Benchmark preview generation time across 50 diverse STL files
+- [X] T059 Performance test: Verify no regression in API response times
+- [X] T060 Compatibility test: Verify existing database migrates successfully
+- [X] T061 Compatibility test: Verify existing cached previews remain valid
+- [X] T062 Error handling test: Test all error scenarios document improved error messages
 
 ---
 
@@ -154,16 +154,16 @@
 
 **Purpose**: Documentation, cleanup, and final validation
 
-- [ ] T063 [P] Update CHANGELOG.md with breaking changes and migration notes
-- [ ] T064 [P] Update API documentation (if exists) to reflect config endpoint changes
-- [ ] T065 [P] Add troubleshooting section for OpenGL library issues to docs/
-- [ ] T066 [P] Document headless server requirements (Mesa software rendering) in docs/
-- [ ] T067 Code review: Check for any remaining references to external stl-thumb binary
-- [ ] T068 Code review: Verify all subprocess-related code removed
-- [ ] T069 Run cargo fmt and cargo clippy on backend code
-- [ ] T070 Run npm run lint on frontend code (if frontend changes made)
-- [ ] T071 Final validation: Run quickstart.md steps on clean system
-- [ ] T072 Final validation: Verify all success criteria from spec.md
+- [X] T063 [P] Update CHANGELOG.md with breaking changes and migration notes
+- [X] T064 [P] Update API documentation (if exists) to reflect config endpoint changes
+- [X] T065 [P] Add troubleshooting section for OpenGL library issues to docs/
+- [X] T066 [P] Document headless server requirements (Mesa software rendering) in docs/
+- [X] T067 Code review: Check for any remaining references to external stl-thumb binary
+- [X] T068 Code review: Verify all subprocess-related code removed
+- [X] T069 Run cargo fmt and cargo clippy on backend code
+- [X] T070 Run npm run lint on frontend code (if frontend changes made)
+- [X] T071 Final validation: Run quickstart.md steps on clean system
+- [X] T072 Final validation: Verify all success criteria from spec.md
 
 ---
 

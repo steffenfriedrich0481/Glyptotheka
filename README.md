@@ -18,7 +18,7 @@ A web-based application for managing and browsing your 3D print model collection
 - Rust 1.75+ with Axum web framework
 - SQLite with rusqlite for local storage
 - tokio for async runtime
-- stl-thumb for STL preview generation
+- stl-thumb library (integrated) for STL preview generation
 
 **Frontend:**
 - React 18 with TypeScript
@@ -43,16 +43,19 @@ A web-based application for managing and browsing your 3D print model collection
    nvm use 18
    ```
 
-3. **stl-thumb** - STL preview generation tool
+3. **OpenGL Libraries** (Linux) - For STL preview rendering
    ```bash
-   git clone https://github.com/unlimitedbacon/stl-thumb.git
-   cd stl-thumb
-   cargo build --release
-   sudo cp target/release/stl-thumb /usr/local/bin/
+   # Debian/Ubuntu
+   sudo apt-get install -y libgl1-mesa-glx libglu1-mesa
    
-   # Verify installation
-   stl-thumb --version
+   # Fedora/RHEL
+   sudo dnf install -y mesa-libGL mesa-libGLU
+   
+   # Arch Linux
+   sudo pacman -S mesa
    ```
+   
+   **Note**: Most Linux systems already have these libraries installed.
 
 ### Optional
 
@@ -72,10 +75,10 @@ cd Glyptotheka
 ```bash
 cd backend
 
-# Build the project
+# Build the project (includes stl-thumb library)
 cargo build --release
 
-# Run migrations (creates database)
+# Run the application (migrations run automatically)
 cargo run --release
 
 # The backend will start on http://localhost:3000
@@ -177,7 +180,7 @@ npm run format   # Prettier (if configured)
 
 1. **Configure Root Path**: Specify the root folder containing your 3D print files
 2. **Initial Scan**: The system recursively scans for STL files and images
-3. **Preview Generation**: STL thumbnails are generated automatically (requires stl-thumb)
+3. **Preview Generation**: STL thumbnails are generated automatically using integrated library
 
 ### Browsing
 
@@ -233,12 +236,18 @@ Cache is managed automatically with LRU eviction when size limits are reached.
 
 ## Troubleshooting
 
-### stl-thumb not found
+### OpenGL Libraries Not Found
 
-If preview generation fails:
-1. Verify stl-thumb is installed: `which stl-thumb`
-2. Check it's in PATH or configure path in database config
-3. Fallback: System will use placeholder images
+If preview generation fails with OpenGL errors:
+```bash
+# Debian/Ubuntu
+sudo apt-get install -y libgl1-mesa-glx libglu1-mesa
+
+# Fedora/RHEL
+sudo dnf install -y mesa-libGL mesa-libGLU
+```
+
+On headless servers, Mesa provides software rendering (llvmpipe) that works without GPU.
 
 ### Database locked
 
@@ -274,9 +283,6 @@ DATABASE_PATH=./glyptotheka.db
 
 # Cache directory
 CACHE_DIR=./cache
-
-# Optional: stl-thumb path (if not in PATH)
-STL_THUMB_PATH=/usr/local/bin/stl-thumb
 
 # Logging level
 RUST_LOG=info,glyptotheka_backend=debug

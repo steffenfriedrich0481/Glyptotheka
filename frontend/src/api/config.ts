@@ -4,7 +4,6 @@ export interface AppConfig {
   id: number;
   root_path: string | null;
   last_scan_at: number | null;
-  stl_thumb_path: string | null;
   cache_max_size_mb: number;
   images_per_page: number;
   created_at: number;
@@ -13,7 +12,6 @@ export interface AppConfig {
 
 export interface UpdateConfigRequest {
   root_path?: string;
-  stl_thumb_path?: string;
   cache_max_size_mb?: number;
   images_per_page?: number;
 }

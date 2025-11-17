@@ -8,10 +8,8 @@ pub type DbPool = Pool<SqliteConnectionManager>;
 pub fn create_pool<P: AsRef<Path>>(database_path: P) -> Result<DbPool, Box<dyn std::error::Error>> {
     let manager = SqliteConnectionManager::file(database_path)
         .with_flags(OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE);
-    
-    let pool = Pool::builder()
-        .max_size(16)
-        .build(manager)?;
+
+    let pool = Pool::builder().max_size(16).build(manager)?;
 
     {
         let conn = pool.get()?;
@@ -20,7 +18,7 @@ pub fn create_pool<P: AsRef<Path>>(database_path: P) -> Result<DbPool, Box<dyn s
              PRAGMA synchronous = NORMAL;
              PRAGMA foreign_keys = ON;
              PRAGMA cache_size = -64000;
-             PRAGMA mmap_size = 30000000000;"
+             PRAGMA mmap_size = 30000000000;",
         )?;
     }
 
@@ -36,7 +34,7 @@ mod tests {
     fn test_create_pool() {
         let temp_db = NamedTempFile::new().unwrap();
         let pool = create_pool(temp_db.path()).unwrap();
-        
+
         let conn = pool.get().unwrap();
         let result: i64 = conn.query_row("SELECT 1", [], |row| row.get(0)).unwrap();
         assert_eq!(result, 1);

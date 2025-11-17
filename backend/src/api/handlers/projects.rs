@@ -1,12 +1,12 @@
+use crate::api::routes::AppState;
+use crate::models::image_file::ImageFile;
+use crate::models::project::{Project, ProjectWithRelations};
+use crate::models::stl_file::StlFile;
+use crate::utils::error::AppError;
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use crate::api::routes::AppState;
-use crate::models::project::{Project, ProjectWithRelations};
-use crate::models::stl_file::StlFile;
-use crate::models::image_file::ImageFile;
-use crate::utils::error::AppError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -40,7 +40,8 @@ pub async fn get_project(
     State(state): State<AppState>,
     Path(id): Path<i64>,
 ) -> Result<Json<ProjectWithRelations>, AppError> {
-    let project = state.project_repo
+    let project = state
+        .project_repo
         .get_with_relations(id)?
         .ok_or_else(|| AppError::NotFound(format!("Project {} not found", id)))?;
     Ok(Json(project))
@@ -60,7 +61,8 @@ pub async fn get_project_files(
     Query(pagination): Query<FilesPaginationParams>,
 ) -> Result<Json<FilesResponse>, AppError> {
     // Verify project exists
-    state.project_repo
+    state
+        .project_repo
         .get_by_id(id)?
         .ok_or_else(|| AppError::NotFound(format!("Project {} not found", id)))?;
 
@@ -69,7 +71,9 @@ pub async fn get_project_files(
     let offset = (page - 1) * per_page;
 
     let stl_files = state.file_repo.get_stl_files_by_project(id)?;
-    let images = state.file_repo.get_image_files_by_project(id, per_page, offset)?;
+    let images = state
+        .file_repo
+        .get_image_files_by_project(id, per_page, offset)?;
     let total_images = state.file_repo.count_images_by_project(id)?;
 
     Ok(Json(FilesResponse {
@@ -80,7 +84,3 @@ pub async fn get_project_files(
         per_page,
     }))
 }
-
-
-
-

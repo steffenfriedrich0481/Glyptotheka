@@ -61,14 +61,12 @@ pub async fn search_projects(
         per_page: query.per_page.min(100),
     };
 
-    let result = state.search_service
-        .search(&params)
-        .map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": e.to_string() })),
-            )
-        })?;
+    let result = state.search_service.search(&params).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e.to_string() })),
+        )
+    })?;
 
     let data: Vec<serde_json::Value> = result
         .projects

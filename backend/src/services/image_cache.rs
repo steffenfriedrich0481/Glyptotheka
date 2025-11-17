@@ -1,9 +1,9 @@
 use crate::db::connection::DbPool;
 use crate::utils::error::AppError;
 use rusqlite::params;
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
-use sha2::{Digest, Sha256};
 
 #[derive(Clone)]
 pub struct ImageCacheService {
@@ -17,14 +17,14 @@ impl ImageCacheService {
         let _ = fs::create_dir_all(&cache_dir);
         let _ = fs::create_dir_all(cache_dir.join("images"));
         let _ = fs::create_dir_all(cache_dir.join("previews"));
-        
+
         Self { cache_dir, pool }
     }
 
     pub fn get_cached_image(&self, original_path: &str) -> Result<Option<PathBuf>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT cache_path FROM cached_files WHERE original_path = ? AND file_type = 'image'"
+            "SELECT cache_path FROM cached_files WHERE original_path = ? AND file_type = 'image'",
         )?;
 
         let result = stmt.query_row(params![original_path], |row| {
@@ -48,11 +48,17 @@ impl ImageCacheService {
 
         let original = Path::new(original_path);
         if !original.exists() {
-            return Err(AppError::NotFound(format!("Image not found: {}", original_path)));
+            return Err(AppError::NotFound(format!(
+                "Image not found: {}",
+                original_path
+            )));
         }
 
         let hash = self.hash_path(original_path);
-        let ext = original.extension().and_then(|e| e.to_str()).unwrap_or("jpg");
+        let ext = original
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("jpg");
         let cache_filename = format!("{}.{}", hash, ext);
         let cache_path = self.cache_dir.join("images").join(cache_filename);
 
@@ -84,7 +90,7 @@ impl ImageCacheService {
     pub fn get_cached_preview(&self, stl_path: &str) -> Result<Option<PathBuf>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT cache_path FROM cached_files WHERE original_path = ? AND file_type = 'preview'"
+            "SELECT cache_path FROM cached_files WHERE original_path = ? AND file_type = 'preview'",
         )?;
 
         let result = stmt.query_row(params![stl_path], |row| {
@@ -154,7 +160,7 @@ impl ImageCacheService {
     pub fn get_image_by_hash(&self, hash: &str) -> Result<Option<PathBuf>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT cache_path, original_path FROM cached_files WHERE checksum = ? LIMIT 1"
+            "SELECT cache_path, original_path FROM cached_files WHERE checksum = ? LIMIT 1",
         )?;
 
         let result = stmt.query_row(params![hash], |row| {
@@ -176,15 +182,13 @@ impl ImageCacheService {
     pub fn cleanup_orphaned(&self) -> Result<usize, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare("SELECT id, original_path, cache_path FROM cached_files")?;
-        
+
         let entries: Vec<(i64, String, String)> = stmt
-            .query_map([], |row| {
-                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
-            })?
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
             .collect::<Result<Vec<_>, _>>()?;
-        
+
         let mut removed = 0;
-        
+
         for (id, original_path, cache_path) in entries {
             // Check if original file still exists
             if !Path::new(&original_path).exists() {
@@ -193,13 +197,13 @@ impl ImageCacheService {
                 if cache_file.exists() {
                     let _ = fs::remove_file(cache_file);
                 }
-                
+
                 // Remove database entry
                 conn.execute("DELETE FROM cached_files WHERE id = ?1", params![id])?;
                 removed += 1;
             }
         }
-        
+
         Ok(removed)
     }
 }

@@ -16,7 +16,6 @@ services:
       - DATABASE_PATH=/app/data/glyptotheka.db
       - CACHE_DIR=/app/cache
       - RUST_LOG=info,glyptotheka_backend=debug
-      - STL_THUMB_PATH=/usr/local/bin/stl-thumb
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]

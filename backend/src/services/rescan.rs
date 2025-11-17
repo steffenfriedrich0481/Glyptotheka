@@ -47,7 +47,7 @@ impl RescanService {
 
     pub fn rescan(&self, root_path: &str) -> Result<RescanResult, AppError> {
         let root = Path::new(root_path);
-        
+
         if !root.exists() {
             return Err(AppError::ValidationError(format!(
                 "Root path does not exist: {}",
@@ -80,7 +80,7 @@ impl RescanService {
 
         // Scan file system for current state
         let mut project_folders = HashMap::new();
-        
+
         for entry in WalkDir::new(root).follow_links(false) {
             match entry {
                 Ok(e) => {
@@ -98,7 +98,9 @@ impl RescanService {
                     }
                 }
                 Err(e) => {
-                    result.errors.push(format!("Error walking directory: {}", e));
+                    result
+                        .errors
+                        .push(format!("Error walking directory: {}", e));
                 }
             }
         }
@@ -111,7 +113,7 @@ impl RescanService {
         for (folder, stl_files) in project_folders.iter() {
             let full_path = folder.to_str().unwrap_or("").to_string();
             found_project_paths.insert(full_path.clone());
-            
+
             match self.create_or_update_project_hierarchy(
                 folder,
                 root,
@@ -122,16 +124,16 @@ impl RescanService {
             ) {
                 Ok(project_id) => {
                     result.projects_found += 1;
-                    
+
                     // Get existing STL files for this project
                     let existing_stl_files = self.get_existing_stl_files(project_id)?;
                     let mut found_stl_paths = HashSet::new();
-                    
+
                     // Process STL files
                     for stl_file in stl_files {
                         let file_path = stl_file.to_str().unwrap_or("");
                         found_stl_paths.insert(file_path.to_string());
-                        
+
                         match self.process_stl_file(
                             project_id,
                             stl_file,
@@ -139,15 +141,19 @@ impl RescanService {
                             &mut result,
                         ) {
                             Ok(_) => result.files_processed += 1,
-                            Err(e) => result.errors.push(format!("Error processing STL file: {}", e)),
+                            Err(e) => result
+                                .errors
+                                .push(format!("Error processing STL file: {}", e)),
                         }
                     }
-                    
+
                     // Remove deleted STL files
                     for (file_path, file_id) in existing_stl_files.iter() {
                         if !found_stl_paths.contains(file_path) {
                             if let Err(e) = self.file_repo.delete_stl_file(*file_id) {
-                                result.errors.push(format!("Error removing deleted STL file: {}", e));
+                                result
+                                    .errors
+                                    .push(format!("Error removing deleted STL file: {}", e));
                             } else {
                                 result.files_removed += 1;
                             }
@@ -155,23 +161,32 @@ impl RescanService {
                     }
 
                     // Process images
-                    if let Err(e) = self.process_images_for_project(project_id, folder, &mut result) {
-                        result.errors.push(format!("Error processing images: {}", e));
+                    if let Err(e) = self.process_images_for_project(project_id, folder, &mut result)
+                    {
+                        result
+                            .errors
+                            .push(format!("Error processing images: {}", e));
                     }
                 }
                 Err(e) => {
-                    result.errors.push(format!("Error processing project: {}", e));
+                    result
+                        .errors
+                        .push(format!("Error processing project: {}", e));
                 }
             }
         }
 
         // Remove projects that no longer exist
         for (project_path, project_id) in existing_projects.iter() {
-            if !found_project_paths.contains(project_path) && !processed_paths.contains(Path::new(project_path)) {
+            if !found_project_paths.contains(project_path)
+                && !processed_paths.contains(Path::new(project_path))
+            {
                 // Check if path still exists in filesystem
                 if !Path::new(project_path).exists() {
                     if let Err(e) = self.project_repo.delete(*project_id) {
-                        result.errors.push(format!("Error removing deleted project: {}", e));
+                        result
+                            .errors
+                            .push(format!("Error removing deleted project: {}", e));
                     } else {
                         result.projects_removed += 1;
                     }
@@ -184,7 +199,9 @@ impl RescanService {
             match cache_service.cleanup_orphaned() {
                 Ok(count) => {
                     if count > 0 {
-                        result.errors.push(format!("Cleaned up {} orphaned cache entries", count));
+                        result
+                            .errors
+                            .push(format!("Cleaned up {} orphaned cache entries", count));
                     }
                 }
                 Err(e) => {
@@ -210,7 +227,7 @@ impl RescanService {
         }
 
         let full_path = folder.to_str().unwrap_or("").to_string();
-        
+
         processed_paths.insert(folder.to_path_buf());
 
         let parent_id = if folder != root {
@@ -257,7 +274,7 @@ impl RescanService {
                 parent_id,
                 is_leaf: true,
             };
-            
+
             let new_id = self.project_repo.create(&create_project)?;
             path_to_id.insert(folder.to_path_buf(), new_id);
             result.projects_added += 1;
@@ -270,28 +287,26 @@ impl RescanService {
     fn get_all_projects_map(&self) -> Result<HashMap<String, i64>, AppError> {
         let conn = self.project_repo.pool.get()?;
         let mut stmt = conn.prepare("SELECT id, full_path FROM projects")?;
-        
+
         let projects = stmt
             .query_map([], |row| {
                 Ok((row.get::<_, String>(1)?, row.get::<_, i64>(0)?))
             })?
             .collect::<Result<HashMap<_, _>, _>>()?;
-        
+
         Ok(projects)
     }
 
     fn get_existing_stl_files(&self, project_id: i64) -> Result<HashMap<String, i64>, AppError> {
         let conn = self.file_repo.pool.get()?;
-        let mut stmt = conn.prepare(
-            "SELECT id, file_path FROM stl_files WHERE project_id = ?1"
-        )?;
-        
+        let mut stmt = conn.prepare("SELECT id, file_path FROM stl_files WHERE project_id = ?1")?;
+
         let files = stmt
             .query_map([project_id], |row| {
                 Ok((row.get::<_, String>(1)?, row.get::<_, i64>(0)?))
             })?
             .collect::<Result<HashMap<_, _>, _>>()?;
-        
+
         Ok(files)
     }
 
@@ -303,7 +318,11 @@ impl RescanService {
         result: &mut RescanResult,
     ) -> Result<(), AppError> {
         let file_path = stl_file.to_str().unwrap_or("");
-        let filename = stl_file.file_name().unwrap_or_default().to_str().unwrap_or("");
+        let filename = stl_file
+            .file_name()
+            .unwrap_or_default()
+            .to_str()
+            .unwrap_or("");
         let metadata = fs::metadata(stl_file)?;
         let file_size = metadata.len() as i64;
 
@@ -313,12 +332,8 @@ impl RescanService {
             // TODO: Could add modification detection based on size/mtime
         } else {
             // New file - add it
-            self.file_repo.add_stl_file(
-                project_id,
-                filename,
-                file_path,
-                file_size,
-            )?;
+            self.file_repo
+                .add_stl_file(project_id, filename, file_path, file_size)?;
             result.files_added += 1;
         }
 
@@ -332,7 +347,7 @@ impl RescanService {
         result: &mut RescanResult,
     ) -> Result<(), AppError> {
         let image_extensions = ["jpg", "jpeg", "png", "gif", "webp"];
-        
+
         // Get existing images
         let existing_images = self.get_existing_image_files(project_id)?;
         let mut found_image_paths = HashSet::new();
@@ -345,21 +360,17 @@ impl RescanService {
                             if image_extensions.iter().any(|e| ext.eq_ignore_ascii_case(e)) {
                                 let file_path = entry.path().to_str().unwrap_or("").to_string();
                                 found_image_paths.insert(file_path.clone());
-                                
+
                                 if !existing_images.contains_key(&file_path) {
-                                    let filename = entry.file_name().to_str().unwrap_or("").to_string();
+                                    let filename =
+                                        entry.file_name().to_str().unwrap_or("").to_string();
                                     let file_size = fs::metadata(entry.path())
                                         .map(|m| m.len() as i64)
                                         .unwrap_or(0);
 
                                     self.file_repo.add_image_file(
-                                        project_id,
-                                        &filename,
-                                        &file_path,
-                                        file_size,
-                                        "direct",
-                                        None,
-                                        0,
+                                        project_id, &filename, &file_path, file_size, "direct",
+                                        None, 0,
                                     )?;
                                     result.files_added += 1;
                                 }
@@ -369,12 +380,14 @@ impl RescanService {
                 }
             }
         }
-        
+
         // Remove deleted images
         for (image_path, image_id) in existing_images.iter() {
             if !found_image_paths.contains(image_path) {
                 if let Err(e) = self.file_repo.delete_image_file(*image_id) {
-                    result.errors.push(format!("Error removing deleted image: {}", e));
+                    result
+                        .errors
+                        .push(format!("Error removing deleted image: {}", e));
                 } else {
                     result.files_removed += 1;
                 }
@@ -389,13 +402,13 @@ impl RescanService {
         let mut stmt = conn.prepare(
             "SELECT id, file_path FROM image_files WHERE project_id = ?1 AND source_type = 'direct'"
         )?;
-        
+
         let files = stmt
             .query_map([project_id], |row| {
                 Ok((row.get::<_, String>(1)?, row.get::<_, i64>(0)?))
             })?
             .collect::<Result<HashMap<_, _>, _>>()?;
-        
+
         Ok(files)
     }
 }
