@@ -1,9 +1,10 @@
 # Issue: Parent Folder Images Not Scanned
 
 **Date:** 2025-11-17  
-**Status:** Needs Fix  
+**Status:** ✅ RESOLVED  
 **Branch:** 001-update-scan-service  
-**Related Commit:** 64af6e1
+**Related Commits:** 64af6e1, 37ed114  
+**Resolution:** Implemented Option 1 - Scan All Parent Folders
 
 ## Problem
 
@@ -170,8 +171,37 @@ $ curl '.../projects/6/files' | jq '.images[0]'
 
 ## Status
 
-**Blocked:** Image inheritance cannot work until parent folders are scanned for images.
+**✅ RESOLVED** - Parent folders are now scanned for images during the scan process.
 
-**Priority:** High - Core feature blocker
+**Implementation:** Option 1 (Scan All Parent Folders)  
+**Commit:** 37ed114  
+**Test Results:** Verified working - deep STL folders inherit images from parent folders
 
-**Estimated Effort:** 1-2 hours
+### What Was Fixed:
+
+1. Added parent folder scanning pass after main STL folder processing
+2. Modified `ensure_project_exists()` to cache project IDs properly
+3. Modified `inherit_images_from_parents()` signature for mutable path_to_id
+4. Added `scanned_folders` HashSet to avoid duplicate scanning
+
+### Verification:
+
+```bash
+# Project 11: 819_Dwarf Gemtreasure Trader (parent folder with image)
+$ curl '.../projects/11/files' | jq '.images[0]'
+{
+  "filename": "819_Dwarf Gemtreasure Trader.png",
+  "source_type": "direct",
+  "source_project_id": null
+}
+✅ Direct image found in parent folder
+
+# Project 14: Deep STL folder (inherits from project 11)
+$ curl '.../projects/14/files' | jq '.images[0]'
+{
+  "filename": "819_Dwarf Gemtreasure Trader.png",
+  "source_type": "inherited",
+  "source_project_id": 11
+}
+✅ Image inherited correctly from parent
+```
