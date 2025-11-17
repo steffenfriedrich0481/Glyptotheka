@@ -29,7 +29,7 @@
 - [X] T003 [P] Create PostCSS configuration in frontend/postcss.config.js
 - [X] T004 Update CSS entry point frontend/src/index.css with Tailwind directives and custom base styles
 - [X] T005 Create design tokens CSS layer in frontend/src/index.css (@layer components for btn-primary, card classes)
-- [ ] T006 [P] Take baseline screenshots with chrome-devtools-mcp (current-home.png, current-browse.png)
+- [X] T006 [P] Take baseline screenshots with chrome-devtools-mcp (current-home.png, current-browse.png)
 
 ---
 
@@ -69,8 +69,8 @@
 - [X] T021 [P] [US1] Add lazy loading for preview images in ProjectTile (loading="lazy" attribute)
 - [X] T022 [P] [US1] Component test for ProjectTile in frontend/src/components/project/ProjectTile.test.tsx
 - [X] T023 [P] [US1] Component test for ProjectGrid in frontend/src/components/project/ProjectGrid.test.tsx
-- [ ] T024 [US1] Take screenshots with chrome-devtools-mcp for US1 validation (tiles-grid.png, tiles-hover.png)
-- [ ] T025 [US1] Validate responsive behavior with chrome-devtools-mcp at breakpoints (320px, 768px, 1024px, 1920px)
+- [X] T024 [US1] Take screenshots with chrome-devtools-mcp for US1 validation (tiles-grid.png, tiles-hover.png)
+- [X] T025 [US1] Validate responsive behavior with chrome-devtools-mcp at breakpoints (320px, 768px, 1024px, 1920px)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can browse root folders in a modern tile grid
 
@@ -92,9 +92,9 @@
 - [X] T031 [US2] Implement breadcrumb click handler in BrowsePage (handleBreadcrumbClick)
 - [X] T032 [US2] Add folder vs project visual distinction in ProjectTile (folder icon vs project icon)
 - [X] T033 [P] [US2] Component test for Breadcrumb in frontend/src/components/common/Breadcrumb.test.tsx
-- [ ] T034 [P] [US2] Integration test for BrowsePage navigation in frontend/src/pages/BrowsePage.test.tsx
-- [ ] T035 [US2] Take screenshots with chrome-devtools-mcp for US2 validation (breadcrumb-nav.png, folder-children.png)
-- [ ] T036 [US2] Test navigation flow with chrome-devtools-mcp (root → folder → children → back)
+- [X] T034 [P] [US2] Integration test for BrowsePage navigation in frontend/src/pages/BrowsePage.test.tsx
+- [X] T035 [US2] Take screenshots with chrome-devtools-mcp for US2 validation (breadcrumb-nav.png, folder-children.png)
+- [X] T036 [US2] Test navigation flow with chrome-devtools-mcp (root → folder → children → back)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - users can browse root AND navigate into folders
 
@@ -141,8 +141,8 @@
 - [X] T054 [P] [US4] Update Breadcrumb visual styling in frontend/src/components/common/Breadcrumb.css (colors, hover states, separators)
 - [X] T055 [P] [US4] Update SearchBar visual styling in frontend/src/components/common/SearchBar.tsx (modern input design)
 - [X] T056 [US4] Add consistent spacing throughout grid in frontend/src/components/project/ProjectGrid.css (gap-4 mobile, gap-6 desktop)
-- [ ] T057 [US4] Take comparison screenshots with chrome-devtools-mcp (before-after-tiles.png, visual-hierarchy.png)
-- [ ] T058 [US4] Validate color contrast with chrome-devtools-mcp accessibility tools (WCAG AA compliance)
+- [X] T057 [US4] Take comparison screenshots with chrome-devtools-mcp (before-after-tiles.png, visual-hierarchy.png)
+- [X] T058 [US4] Validate color contrast with chrome-devtools-mcp accessibility tools (WCAG AA compliance)
 
 **Checkpoint**: Visual design is complete and professional across all components
 
@@ -163,8 +163,8 @@
 - [X] T063 [US5] Add ARIA labels to ProjectGrid in frontend/src/components/project/ProjectGrid.tsx (role="grid", aria-label)
 - [X] T064 [US5] Add keyboard navigation to Breadcrumb in frontend/src/components/common/Breadcrumb.tsx (Tab through links, Enter to navigate)
 - [X] T065 [US5] Add skip-to-content link in NavBar in frontend/src/components/common/NavBar.tsx
-- [ ] T066 [P] [US5] Accessibility test with chrome-devtools-mcp (keyboard navigation flow, focus indicators)
-- [ ] T067 [US5] Test screen reader announcements with chrome-devtools-mcp a11y tree
+- [X] T066 [P] [US5] Accessibility test with chrome-devtools-mcp (keyboard navigation flow, focus indicators)
+- [X] T067 [US5] Test screen reader announcements with chrome-devtools-mcp a11y tree
 
 **Checkpoint**: Full keyboard navigation is functional and accessible
 
@@ -184,9 +184,9 @@
 - [X] T071 [US6] Optimize useMemo for visibleProjects filtering in BrowsePage in frontend/src/pages/BrowsePage.tsx
 - [X] T072 [US6] Optimize calculateTileMetadata memoization in ProjectGrid in frontend/src/components/project/ProjectGrid.tsx
 - [X] T073 [US6] Add viewport optimization to ProjectGrid (only render visible + 1 row preload)
-- [ ] T074 [P] [US6] Performance test with chrome-devtools-mcp Performance panel (measure FPS, LCP, FCP)
-- [ ] T075 [US6] Validate lazy loading with chrome-devtools-mcp Network panel (images load on scroll)
-- [ ] T076 [US6] Test with 500+ project collection in chrome-devtools-mcp (scroll performance validation)
+- [X] T074 [P] [US6] Performance test with chrome-devtools-mcp Performance panel (measure FPS, LCP, FCP)
+- [X] T075 [US6] Validate lazy loading with chrome-devtools-mcp Network panel (images load on scroll)
+- [X] T076 [US6] Test with 500+ project collection in chrome-devtools-mcp (scroll performance validation)
 
 **Checkpoint**: Performance is optimized for large collections
 
@@ -200,16 +200,16 @@
 - [X] T078 [P] Optimize Tailwind build in frontend/tailwind.config.js (purge unused CSS)
 - [X] T079 [P] Update README.md with screenshots of new UI
 - [X] T080 [P] Update CHANGELOG.md with UI modernization entry
-- [ ] T081 Add mobile touch gesture support in ProjectTile (touch events for mobile swipe)
-- [ ] T082 Add loading states for slow network in ProjectGrid (connection-aware loading)
+- [X] T081 Add mobile touch gesture support in ProjectTile (touch events for mobile swipe)
+- [X] T082 Add loading states for slow network in ProjectGrid (connection-aware loading)
 - [X] T083 [P] Run ESLint on all modified files (npm run lint)
 - [X] T084 [P] Run TypeScript compilation check (npm run build)
-- [ ] T085 Run full Vitest test suite (npm run test)
-- [ ] T086 Validate all user stories with quickstart.md test checklist
-- [ ] T087 Take final comparison screenshots with chrome-devtools-mcp (final-home.png, final-browse.png, final-mobile.png)
-- [ ] T088 Run accessibility audit with chrome-devtools-mcp (contrast, keyboard nav, screen reader)
-- [ ] T089 Performance validation with chrome-devtools-mcp (< 2s initial load, 60 FPS scroll)
-- [ ] T090 Cross-browser testing with chrome-devtools-mcp emulation (Chrome, Firefox, Safari, Edge)
+- [X] T085 Run full Vitest test suite (npm run test)
+- [X] T086 Validate all user stories with quickstart.md test checklist
+- [X] T087 Take final comparison screenshots with chrome-devtools-mcp (final-home.png, final-browse.png, final-mobile.png)
+- [X] T088 Run accessibility audit with chrome-devtools-mcp (contrast, keyboard nav, screen reader)
+- [X] T089 Performance validation with chrome-devtools-mcp (< 2s initial load, 60 FPS scroll)
+- [X] T090 Cross-browser testing with chrome-devtools-mcp emulation (Chrome, Firefox, Safari, Edge)
 
 ---
 
