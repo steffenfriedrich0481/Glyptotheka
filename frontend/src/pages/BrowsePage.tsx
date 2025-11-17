@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { projectsAPI } from '../api/projects';
-import { Project } from '../types/project';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { ProjectWithChildren } from '../types/project';
+import ProjectGrid from '../components/project/ProjectGrid';
+import Breadcrumb from '../components/common/Breadcrumb';
+import { NoProjectsFound } from '../components/common/EmptyState';
+
+interface BreadcrumbItem {
+  id: number;
+  name: string;
+  path: string;
+}
 
 const BrowsePage: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithChildren[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [currentFolderId]);
 
   const loadProjects = async () => {
+    setLoading(true);
     try {
-      const data = await projectsAPI.listRoot();
-      setProjects(data);
+      if (currentFolderId === null) {
+        // Load root projects
+        const data = await projectsAPI.listRoot();
+        setProjects(data as ProjectWithChildren[]);
+      } else {
+        // Load children of current folder
+        const data = await projectsAPI.getProjectChildren(currentFolderId);
+        setProjects(data as ProjectWithChildren[]);
+      }
     } catch (err) {
       console.error('Failed to load projects:', err);
     } finally {
@@ -24,25 +42,51 @@ const BrowsePage: React.FC = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  const handleTileClick = async (projectId: number) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    if (project.is_leaf) {
+      // Navigate to project detail page
+      navigate(`/project/${projectId}`);
+    } else {
+      // Navigate into folder
+      setCurrentFolderId(projectId);
+      setBreadcrumbs([...breadcrumbs, { id: projectId, name: project.name, path: '' }]);
+    }
+  };
+
+  const handleBreadcrumbClick = (item: BreadcrumbItem, index: number) => {
+    if (index === -1) {
+      // Navigate to root
+      setCurrentFolderId(null);
+      setBreadcrumbs([]);
+    } else {
+      // Navigate to specific breadcrumb
+      setCurrentFolderId(item.id);
+      setBreadcrumbs(breadcrumbs.slice(0, index + 1));
+    }
+  };
+
+  const visibleProjects = useMemo(() => {
+    return projects;
+  }, [projects]);
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Browse Projects</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className="bg-white shadow-md rounded p-4 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate(`/project/${project.id}`)}
-          >
-            <h3 className="font-bold text-lg">{project.name}</h3>
-            <p className="text-sm text-gray-600">{project.is_leaf ? 'Project' : 'Folder'}</p>
-          </div>
-        ))}
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {currentFolderId === null ? 'Browse Projects' : 'Browse Folder'}
+        </h1>
+        <Breadcrumb items={breadcrumbs} onNavigate={handleBreadcrumbClick} />
       </div>
-      {projects.length === 0 && (
-        <p className="text-center text-gray-500 mt-8">No projects found. Run a scan first.</p>
+
+      {loading ? (
+        <ProjectGrid projects={[]} onProjectClick={() => {}} loading={true} />
+      ) : visibleProjects.length === 0 ? (
+        <NoProjectsFound />
+      ) : (
+        <ProjectGrid projects={visibleProjects} onProjectClick={handleTileClick} />
       )}
     </div>
   );

@@ -4,6 +4,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-16
 
 ## Active Technologies
 - SQLite (rusqlite with bundled feature) (001-integrate-stl-thumb)
+- TypeScript 5.9.3 / JavaScript ES2020 + React 18.2, React Router 6.30, Vite 5.4, Tailwind CSS (to be added) (001-ui-modernization)
+- Backend API (existing) - no frontend storage changes (001-ui-modernization)
 
 - Rust 1.75+ (backend), TypeScript 5.0+ (frontend) (001-3d-print-library)
 
@@ -23,6 +25,7 @@ cargo test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECH
 Rust 1.75+ (backend), TypeScript 5.0+ (frontend): Follow standard conventions
 
 ## Recent Changes
+- 001-ui-modernization: Added TypeScript 5.9.3 / JavaScript ES2020 + React 18.2, React Router 6.30, Vite 5.4, Tailwind CSS (to be added)
 - 001-integrate-stl-thumb: Added Rust 1.75+
 
 - 001-3d-print-library: Added Rust 1.75+ (backend), TypeScript 5.0+ (frontend)

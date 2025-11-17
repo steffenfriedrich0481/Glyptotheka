@@ -1,0 +1,20 @@
+.project-tile {
+  @apply hover:shadow-xl hover:-translate-y-1;
+}
+
+.project-tile__preview {
+  @apply relative overflow-hidden;
+}
+
+.project-tile__preview img {
+  @apply w-full h-full object-cover;
+  loading: lazy;
+}
+
+.project-tile:focus {
+  @apply ring-2 ring-primary-500 ring-offset-2 outline-none;
+}
+
+.project-tile:hover .project-tile__preview {
+  @apply scale-105 transition-transform duration-300;
+}

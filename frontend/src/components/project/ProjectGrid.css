@@ -1,0 +1,14 @@
+.project-grid {
+  @apply grid gap-4;
+  @apply grid-cols-1;
+  @apply sm:grid-cols-2 sm:gap-5;
+  @apply md:grid-cols-3 md:gap-6;
+  @apply lg:grid-cols-4 lg:gap-6;
+  @apply xl:grid-cols-5 xl:gap-6;
+}
+
+@media (min-width: 2560px) {
+  .project-grid {
+    @apply grid-cols-6;
+  }
+}

@@ -35,15 +35,7 @@ A web-based application for managing and browsing your 3D print model collection
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
-
-2. **Node.js** 18.0 or later
-   ```bash
-   # Using nvm (recommended)
-   nvm install 18
-   nvm use 18
-   ```
-
-3. **OpenGL Libraries** (Linux) - For STL preview rendering
+2. **OpenGL Libraries** (Linux) - For STL preview rendering
    ```bash
    # Debian/Ubuntu
    sudo apt-get install -y libgl1-mesa-glx libglu1-mesa

@@ -1,12 +1,16 @@
-import React, { useRef, useEffect, KeyboardEvent } from 'react';
-import { Project } from '../../types/project';
+import React, { useRef, useEffect } from 'react';
+import { ProjectWithChildren } from '../../types/project';
+import ProjectTile from './ProjectTile';
+import { SkeletonTile } from './SkeletonTile';
+import './ProjectGrid.css';
 
 interface Props {
-  projects: Project[];
+  projects: ProjectWithChildren[];
   onProjectClick: (id: number) => void;
+  loading?: boolean;
 }
 
-const ProjectGrid: React.FC<Props> = ({ projects, onProjectClick }) => {
+const ProjectGrid: React.FC<Props> = ({ projects, onProjectClick, loading = false }) => {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,77 +21,29 @@ const ProjectGrid: React.FC<Props> = ({ projects, onProjectClick }) => {
     }
   }, [projects]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, index: number, projectId: number) => {
-    const items = gridRef.current?.querySelectorAll('[role="button"]');
-    if (!items) return;
-
-    const cols = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 3 : 1;
-    let nextIndex = index;
-
-    switch (e.key) {
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        onProjectClick(projectId);
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        nextIndex = Math.min(index + 1, items.length - 1);
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        nextIndex = Math.max(index - 1, 0);
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        nextIndex = Math.min(index + cols, items.length - 1);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        nextIndex = Math.max(index - cols, 0);
-        break;
-      case 'Home':
-        e.preventDefault();
-        nextIndex = 0;
-        break;
-      case 'End':
-        e.preventDefault();
-        nextIndex = items.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    // Update focus and tabindex
-    if (nextIndex !== index) {
-      (items[index] as HTMLElement).tabIndex = -1;
-      (items[nextIndex] as HTMLElement).tabIndex = 0;
-      (items[nextIndex] as HTMLElement).focus();
-    }
-  };
+  if (loading) {
+    return (
+      <div className="project-grid">
+        {[...Array(8)].map((_, i) => (
+          <SkeletonTile key={i} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div 
       ref={gridRef}
-      className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      className="project-grid"
       role="grid"
       aria-label="Projects grid"
     >
-      {projects.map((project, index) => (
-        <div
+      {projects.map((project) => (
+        <ProjectTile
           key={project.id}
-          role="button"
-          tabIndex={index === 0 ? 0 : -1}
-          className="bg-white shadow-md rounded p-4 cursor-pointer hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+          project={project}
           onClick={() => onProjectClick(project.id)}
-          onKeyDown={(e) => handleKeyDown(e, index, project.id)}
-          aria-label={`${project.name}, ${project.is_leaf ? 'Project' : 'Folder'}`}
-        >
-          <h3 className="font-bold text-lg">{project.name}</h3>
-          <p className="text-sm text-gray-600">
-            {project.is_leaf ? 'Project' : 'Folder'}
-          </p>
-        </div>
+        />
       ))}
     </div>
   );
