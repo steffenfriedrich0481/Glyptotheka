@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Image Inheritance Feature (Complete)
+
+**Downward Image Inheritance**: Images in parent folders are now automatically inherited by all child projects, providing visual previews for all levels of the project hierarchy.
+
+#### Implementation Details
+
+**Scanner Service** (`backend/src/services/scanner.rs`)
+- ✅ Added `ensure_project_exists()` helper method to create project entries for parent folders without STL files
+- ✅ Added `inherit_images_from_parents()` method to walk up folder tree and collect images from all ancestors
+- ✅ Implemented second-pass image propagation after main scan completes
+- ✅ Images marked with `source_type="inherited"` and `source_project_id` for traceability
+
+**Rescan Service** (`backend/src/services/rescan.rs`)
+- ✅ Added `clear_inherited_images()` to remove inherited images before rebuilding
+- ✅ Duplicated inheritance logic for rescan operations
+- ✅ Implemented second-pass image propagation to rebuild inheritance on each rescan
+
+**Benefits**
+- Collection header images apply to all child projects automatically
+- Creator logos and brand images propagate throughout the hierarchy
+- Every project has visual previews, even deep leaf folders
+- No file duplication - only database references
+- Minimal performance impact
+
+**Testing**
+- ✅ Verified simple inheritance (parent → child)
+- ✅ Verified multi-level inheritance (grandparent → parent → child)
+- ✅ Verified rescan rebuilds inheritance correctly
+- ✅ Verified API returns inherited images with correct metadata
+
 ### Added - UI Modernization (Complete)
 
 **Modern Tile-Based UI**: Complete frontend refactor with Tailwind CSS, modern card-based design, hierarchical navigation, keyboard accessibility, and performance optimizations.

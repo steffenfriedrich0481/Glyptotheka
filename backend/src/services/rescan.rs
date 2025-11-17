@@ -7,6 +7,7 @@ use crate::utils::error::AppError;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use tracing::{info, warn};
 use walkdir::WalkDir;
 
 #[derive(Debug, Clone)]
@@ -73,6 +74,15 @@ impl RescanService {
             files_removed: 0,
             errors: Vec::new(),
         };
+
+        // Clear all inherited images before rescanning (they will be regenerated)
+        if let Err(e) = self.clear_inherited_images() {
+            let error_msg = format!("Error clearing inherited images: {}", e);
+            warn!("{}", error_msg);
+            result.errors.push(error_msg);
+        } else {
+            info!("Cleared inherited images for rebuild");
+        }
 
         // Get all existing projects from database
         let existing_projects = self.get_all_projects_map()?;
@@ -190,6 +200,23 @@ impl RescanService {
                     } else {
                         result.projects_removed += 1;
                     }
+                }
+            }
+        }
+
+        // Second pass: Propagate images from parent folders to children
+        info!("Propagating images from parent folders to children");
+        for (folder, _) in project_folders.iter() {
+            if let Some(&project_id) = path_to_id.get(folder) {
+                if let Err(e) = self.inherit_images_from_parents(project_id, folder, root, &path_to_id)
+                {
+                    let error_msg = format!(
+                        "Error inheriting images for project {}: {}",
+                        folder.display(),
+                        e
+                    );
+                    warn!("{}", error_msg);
+                    result.errors.push(error_msg);
                 }
             }
         }
@@ -410,5 +437,141 @@ impl RescanService {
             .collect::<Result<HashMap<_, _>, _>>()?;
 
         Ok(files)
+    }
+
+    /// Clear all inherited images from the database.
+    /// This is done at the start of rescan to rebuild inheritance fresh.
+    fn clear_inherited_images(&self) -> Result<(), AppError> {
+        let conn = self.file_repo.pool.get()?;
+        conn.execute("DELETE FROM image_files WHERE source_type = 'inherited'", [])?;
+        Ok(())
+    }
+
+    /// Ensure a project exists for the given folder path.
+    fn ensure_project_exists(
+        &self,
+        folder: &Path,
+        root: &Path,
+        path_to_id: &HashMap<PathBuf, i64>,
+    ) -> Result<i64, AppError> {
+        // Check cache first
+        if let Some(&existing_id) = path_to_id.get(folder) {
+            return Ok(existing_id);
+        }
+
+        // Check database
+        let full_path = folder.to_str().unwrap().to_string();
+        if let Some(project) = self.project_repo.get_by_path(&full_path)? {
+            return Ok(project.id);
+        }
+
+        // Create project for this folder
+        let parent_id = if folder != root {
+            folder.parent().and_then(|p| {
+                if p >= root {
+                    path_to_id.get(p).copied()
+                } else {
+                    None
+                }
+            })
+        } else {
+            None
+        };
+
+        let name = folder
+            .file_name()
+            .unwrap_or_default()
+            .to_str()
+            .unwrap_or("Unknown")
+            .to_string();
+
+        let create_project = CreateProject {
+            name,
+            full_path,
+            parent_id,
+            is_leaf: false,
+        };
+
+        self.project_repo.create(&create_project)
+    }
+
+    /// Walk up the folder tree and inherit images from all ancestor folders.
+    fn inherit_images_from_parents(
+        &self,
+        project_id: i64,
+        folder: &Path,
+        root: &Path,
+        path_to_id: &HashMap<PathBuf, i64>,
+    ) -> Result<(), AppError> {
+        let image_extensions = ["jpg", "jpeg", "png", "gif", "webp"];
+        let mut inherited_images = Vec::new();
+
+        // Walk up the tree from current folder to root
+        let mut current_folder = folder;
+        while let Some(parent_folder) = current_folder.parent() {
+            if parent_folder < root {
+                break;
+            }
+
+            // Scan parent folder for images
+            if let Ok(entries) = fs::read_dir(parent_folder) {
+                for entry in entries.flatten() {
+                    if let Ok(file_type) = entry.file_type() {
+                        if file_type.is_file() {
+                            if let Some(ext) = entry.path().extension() {
+                                if image_extensions.iter().any(|e| ext.eq_ignore_ascii_case(e)) {
+                                    // Get the parent project ID
+                                    let source_project_id = path_to_id
+                                        .get(parent_folder)
+                                        .copied()
+                                        .or_else(|| {
+                                            self.ensure_project_exists(
+                                                parent_folder,
+                                                root,
+                                                path_to_id,
+                                            )
+                                            .ok()
+                                        });
+
+                                    if let Some(source_id) = source_project_id {
+                                        let filename =
+                                            entry.file_name().to_str().unwrap_or("").to_string();
+                                        let file_path =
+                                            entry.path().to_str().unwrap_or("").to_string();
+                                        let file_size = fs::metadata(entry.path())
+                                            .map(|m| m.len() as i64)
+                                            .unwrap_or(0);
+
+                                        inherited_images.push((
+                                            filename,
+                                            file_path,
+                                            file_size,
+                                            source_id,
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            current_folder = parent_folder;
+        }
+
+        // Add all inherited images to this project
+        for (filename, file_path, file_size, source_id) in inherited_images {
+            self.file_repo.add_image_file(
+                project_id,
+                &filename,
+                &file_path,
+                file_size,
+                "inherited",
+                Some(source_id),
+                0,
+            )?;
+        }
+
+        Ok(())
     }
 }

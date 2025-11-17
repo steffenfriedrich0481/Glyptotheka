@@ -27,10 +27,10 @@ description: "Task list for Image Inheritance Feature implementation"
 
 **Purpose**: Understand current implementation and prepare for changes
 
-- [ ] T001 Review current scanner.rs implementation in backend/src/services/scanner.rs
-- [ ] T002 Review current rescan.rs implementation in backend/src/services/rescan.rs
-- [ ] T003 Review file_repo.rs add_image_file method signature in backend/src/db/repositories/file_repo.rs
-- [ ] T004 Verify database schema supports source_type and source_project_id in image_files table
+- [X] T001 Review current scanner.rs implementation in backend/src/services/scanner.rs
+- [X] T002 Review current rescan.rs implementation in backend/src/services/rescan.rs
+- [X] T003 Review file_repo.rs add_image_file method signature in backend/src/db/repositories/file_repo.rs
+- [X] T004 Verify database schema supports source_type and source_project_id in image_files table
 
 **Checkpoint**: Foundation understood - implementation can begin
 
@@ -46,14 +46,14 @@ description: "Task list for Image Inheritance Feature implementation"
 
 ### Helper Methods
 
-- [ ] T005 [P] Add ensure_project_exists() helper method in backend/src/services/scanner.rs
+- [X] T005 [P] Add ensure_project_exists() helper method in backend/src/services/scanner.rs
   - Purpose: Create project entry for parent folders that may not have STL files
   - Parameters: folder: &Path, root: &Path, path_to_id: &HashMap<PathBuf, i64>
   - Returns: Result<i64, AppError> with project ID
   - Logic: Check path_to_id cache, query database, create if needed
   - Location: Add after create_project_hierarchy() method
 
-- [ ] T006 [P] Add inherit_images_from_parents() method in backend/src/services/scanner.rs
+- [X] T006 [P] Add inherit_images_from_parents() method in backend/src/services/scanner.rs
   - Purpose: Walk up folder tree and inherit images from all ancestors
   - Parameters: project_id: i64, folder: &Path, root: &Path, path_to_id: &HashMap<PathBuf, i64>
   - Returns: Result<(), AppError>
@@ -63,7 +63,7 @@ description: "Task list for Image Inheritance Feature implementation"
 
 ### Integration into Scan Flow
 
-- [ ] T007 Add second pass for image inheritance in scan() method in backend/src/services/scanner.rs
+- [X] T007 Add second pass for image inheritance in scan() method in backend/src/services/scanner.rs
   - Location: After main scan loop (after line 136)
   - Add logging: "Propagating images from parent folders to children"
   - Iterate through project_folders calling inherit_images_from_parents()
@@ -84,7 +84,7 @@ description: "Task list for Image Inheritance Feature implementation"
 
 ### Clear Inherited Images
 
-- [ ] T008 Add inherited image cleanup in rescan() method in backend/src/services/rescan.rs
+- [X] T008 Add inherited image cleanup in rescan() method in backend/src/services/rescan.rs
   - Location: At start of rescan() method, before filesystem walk (around line 48)
   - Execute SQL: "DELETE FROM image_files WHERE source_type = 'inherited'"
   - Log operation: "Clearing inherited images for rebuild"
@@ -92,14 +92,14 @@ description: "Task list for Image Inheritance Feature implementation"
 
 ### Update Image Processing
 
-- [ ] T009 Update get_existing_image_files() query in backend/src/services/rescan.rs
+- [X] T009 Update get_existing_image_files() query in backend/src/services/rescan.rs
   - Current query (line 403): Already filters by source_type = 'direct'
   - Verify this query only returns direct images (not inherited)
   - No changes needed if query is correct
 
 ### Add Second Pass for Inheritance
 
-- [ ] T010 Add image inheritance second pass in rescan() method in backend/src/services/rescan.rs
+- [X] T010 Add image inheritance second pass in rescan() method in backend/src/services/rescan.rs
   - Location: After main processing loop, before cleanup_orphaned() (around line 196)
   - Add logging: "Propagating images from parent folders to children"
   - Iterate through all processed projects calling inherit_images_from_parents()
@@ -119,7 +119,7 @@ description: "Task list for Image Inheritance Feature implementation"
 
 **Independent Test**: Run all test scenarios and verify expected behavior
 
-- [ ] T011 Test Scenario 1: Simple Inheritance
+- [X] T011 Test Scenario 1: Simple Inheritance
   - Create parent folder with header_image.jpg
   - Create child folder with STL files
   - Run scan
@@ -127,7 +127,7 @@ description: "Task list for Image Inheritance Feature implementation"
   - Verify source_type = "inherited" in database
   - Verify source_project_id points to parent project
 
-- [ ] T012 Test Scenario 2: Multi-Level Inheritance
+- [X] T012 Test Scenario 2: Multi-Level Inheritance
   - Create 3-level folder structure: grandparent/parent/child
   - Place different images at each level
   - Run scan
@@ -135,28 +135,28 @@ description: "Task list for Image Inheritance Feature implementation"
   - Verify each inherited image has correct source_project_id
   - Verify direct images remain marked as "direct"
 
-- [ ] T013 Test Scenario 3: Rescan with New Images
+- [X] T013 Test Scenario 3: Rescan with New Images
   - Run initial scan
   - Add new image to parent folder
   - Run rescan
   - Verify new image appears in all child projects
   - Verify old inherited images still present
 
-- [ ] T014 Test Scenario 4: Rescan with Removed Images
+- [X] T014 Test Scenario 4: Rescan with Removed Images
   - Run initial scan with parent images
   - Remove image from parent folder
   - Run rescan
   - Verify removed image no longer shows in child projects
   - Verify other inherited images remain
 
-- [ ] T015 Test Scenario 5: Mixed Direct and Inherited Images
+- [X] T015 Test Scenario 5: Mixed Direct and Inherited Images
   - Create parent with image A
   - Create child with direct image B and STL files
   - Run scan
   - Verify child shows both image A (inherited) and image B (direct)
   - Verify source_type correctly set for each
 
-- [ ] T016 Verify API endpoints return inherited images correctly
+- [X] T016 Verify API endpoints return inherited images correctly
   - Test GET /api/projects/{id}/images endpoint
   - Verify response includes both direct and inherited images
   - Verify source_project_id is included in response for inherited images
@@ -169,21 +169,21 @@ description: "Task list for Image Inheritance Feature implementation"
 
 **Purpose**: Document the feature and ensure code quality
 
-- [ ] T017 Add code comments explaining inheritance logic in backend/src/services/scanner.rs
+- [X] T017 Add code comments explaining inheritance logic in backend/src/services/scanner.rs
   - Document ensure_project_exists() method purpose
   - Document inherit_images_from_parents() method algorithm
   - Document second pass rationale in scan() method
 
-- [ ] T018 Add code comments explaining inheritance handling in backend/src/services/rescan.rs
+- [X] T018 Add code comments explaining inheritance handling in backend/src/services/rescan.rs
   - Document why inherited images are cleared
   - Document rebuild process
 
-- [ ] T019 [P] Update CHANGELOG.md with feature description
+- [X] T019 [P] Update CHANGELOG.md with feature description
   - Add entry for image inheritance feature
   - Describe downward propagation behavior
   - Note benefits for users
 
-- [ ] T020 [P] Consider adding metrics/logging for inheritance operations
+- [X] T020 [P] Consider adding metrics/logging for inheritance operations
   - Log count of inherited images per project
   - Log total inheritance operations in scan summary
   - Add to ScanResult if helpful for monitoring
