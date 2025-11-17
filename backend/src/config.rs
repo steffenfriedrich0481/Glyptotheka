@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub database_path: String,
     pub cache_dir: String,
-    pub stl_thumb_path: Option<String>,
 }
 
 impl Default for Config {
@@ -15,7 +14,6 @@ impl Default for Config {
         Self {
             database_path: "glyptotheka.db".to_string(),
             cache_dir: "cache".to_string(),
-            stl_thumb_path: Some("stl-thumb".to_string()),
         }
     }
 }
@@ -25,7 +23,6 @@ pub struct AppConfig {
     pub id: i64,
     pub root_path: Option<String>,
     pub last_scan_at: Option<i64>,
-    pub stl_thumb_path: Option<String>,
     pub cache_max_size_mb: i64,
     pub images_per_page: i64,
     pub created_at: i64,
@@ -35,7 +32,6 @@ pub struct AppConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateConfigRequest {
     pub root_path: Option<String>,
-    pub stl_thumb_path: Option<String>,
     pub cache_max_size_mb: Option<i64>,
     pub images_per_page: Option<i64>,
 }
@@ -52,7 +48,7 @@ impl ConfigService {
     pub fn get_config(&self) -> Result<AppConfig, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, root_path, last_scan_at, stl_thumb_path, cache_max_size_mb, images_per_page, created_at, updated_at
+            "SELECT id, root_path, last_scan_at, cache_max_size_mb, images_per_page, created_at, updated_at
              FROM config WHERE id = 1"
         )?;
 
@@ -61,11 +57,10 @@ impl ConfigService {
                 id: row.get(0)?,
                 root_path: row.get(1)?,
                 last_scan_at: row.get(2)?,
-                stl_thumb_path: row.get(3)?,
-                cache_max_size_mb: row.get(4)?,
-                images_per_page: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
+                cache_max_size_mb: row.get(3)?,
+                images_per_page: row.get(4)?,
+                created_at: row.get(5)?,
+                updated_at: row.get(6)?,
             })
         })?;
 
@@ -82,13 +77,6 @@ impl ConfigService {
             conn.execute(
                 "UPDATE config SET root_path = ?1, updated_at = ?2 WHERE id = 1",
                 params![root_path, now],
-            )?;
-        }
-
-        if let Some(ref stl_thumb_path) = updates.stl_thumb_path {
-            conn.execute(
-                "UPDATE config SET stl_thumb_path = ?1, updated_at = ?2 WHERE id = 1",
-                params![stl_thumb_path, now],
             )?;
         }
 

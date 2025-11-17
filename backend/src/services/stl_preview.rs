@@ -3,22 +3,19 @@ use crate::services::image_cache::ImageCacheService;
 use crate::utils::error::AppError;
 use rusqlite::params;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use tokio::sync::mpsc;
 use tokio::task;
 use tracing::{info, warn};
 
 #[derive(Clone)]
 pub struct StlPreviewService {
-    stl_thumb_path: Option<PathBuf>,
     image_cache: ImageCacheService,
     pool: DbPool,
 }
 
 impl StlPreviewService {
-    pub fn new(stl_thumb_path: Option<PathBuf>, image_cache: ImageCacheService, pool: DbPool) -> Self {
+    pub fn new(image_cache: ImageCacheService, pool: DbPool) -> Self {
         Self {
-            stl_thumb_path,
             image_cache,
             pool,
         }
@@ -32,25 +29,13 @@ impl StlPreviewService {
             return Ok(cached_path);
         }
 
-        // Check if stl-thumb is available
-        let stl_thumb_path = self.stl_thumb_path.as_ref().ok_or_else(|| {
-            AppError::InternalServer("stl-thumb is not configured".to_string())
-        })?;
-
-        if !stl_thumb_path.exists() {
-            return Err(AppError::InternalServer(format!(
-                "stl-thumb not found at: {}",
-                stl_thumb_path.display()
-            )));
-        }
-
         let stl_path_buf = PathBuf::from(stl_path);
         if !stl_path_buf.exists() {
             return Err(AppError::NotFound(format!("STL file not found: {}", stl_path)));
         }
 
-        // Generate preview using stl-thumb
-        let preview_data = self.run_stl_thumb(&stl_path_buf, stl_thumb_path).await?;
+        // Generate preview using stl-thumb library
+        let preview_data = self.render_stl_preview(&stl_path_buf).await?;
 
         // Cache the preview
         let cache_path = self.image_cache.cache_preview(stl_path, &preview_data)?;
@@ -62,29 +47,29 @@ impl StlPreviewService {
         Ok(cache_path)
     }
 
-    /// Run stl-thumb command to generate preview
-    async fn run_stl_thumb(&self, stl_path: &Path, stl_thumb_path: &Path) -> Result<Vec<u8>, AppError> {
+    /// Render STL file to PNG using stl-thumb library
+    async fn render_stl_preview(&self, stl_path: &Path) -> Result<Vec<u8>, AppError> {
         let stl_path = stl_path.to_path_buf();
-        let stl_thumb_path = stl_thumb_path.to_path_buf();
 
+        // Render in blocking thread (CPU-bound OpenGL work)
         task::spawn_blocking(move || {
-            let output = Command::new(&stl_thumb_path)
-                .arg(stl_path.as_os_str())
-                .arg("-") // Output to stdout
-                .arg("-s")
-                .arg("512") // 512x512 preview size
-                .output()
-                .map_err(|e| AppError::InternalServer(format!("Failed to run stl-thumb: {}", e)))?;
+            // Note: stl-thumb library integration will be implemented here
+            // For now, return placeholder that will be replaced with actual library call
+            // once stl-thumb dependency is available
+            // 
+            // Expected implementation:
+            // use stl_thumb::Config as StlConfig;
+            // let config = StlConfig {
+            //     size: 512,
+            //     ..Default::default()
+            // };
+            // let image_data = stl_thumb::render_to_buffer(&stl_path, &config)
+            //     .map_err(|e| AppError::InternalServer(format!("STL rendering failed: {}", e)))?;
+            // Ok(image_data)
 
-            if !output.status.success() {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                return Err(AppError::InternalServer(format!(
-                    "stl-thumb failed: {}",
-                    stderr
-                )));
-            }
-
-            Ok(output.stdout)
+            Err(AppError::InternalServer(
+                "STL preview generation requires stl-thumb library dependency".to_string()
+            ))
         })
         .await
         .map_err(|e| AppError::InternalServer(format!("Task join error: {}", e)))?

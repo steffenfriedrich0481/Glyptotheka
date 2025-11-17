@@ -38,20 +38,7 @@ pub struct AppState {
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir, pool.clone()));
     
-    // Get stl_thumb_path from config
-    let stl_thumb_path = {
-        let conn = pool.get().ok();
-        conn.and_then(|c| {
-            c.query_row(
-                "SELECT stl_thumb_path FROM config WHERE id = 1",
-                [],
-                |row| row.get::<_, Option<String>>(0)
-            ).ok().flatten()
-        }).map(PathBuf::from)
-    };
-    
     let stl_preview = Arc::new(StlPreviewService::new(
-        stl_thumb_path,
         (*image_cache).clone(),
         pool.clone(),
     ));

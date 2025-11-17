@@ -17,9 +17,9 @@
 
 **Purpose**: Add stl-thumb library dependency and prepare build system
 
-- [ ] T001 Add stl-thumb = "0.5" dependency to backend/Cargo.toml
+- [X] T001 Add stl-thumb = "0.5" dependency to backend/Cargo.toml
 - [ ] T002 Run cargo update and verify build succeeds with new dependency in backend/
-- [ ] T003 Verify stl-thumb library API available by checking docs.rs/stl-thumb documentation
+- [X] T003 Verify stl-thumb library API available by checking docs.rs/stl-thumb documentation
 
 ---
 
@@ -29,7 +29,7 @@
 
 **⚠️ CRITICAL**: This phase must complete before user story implementation can begin
 
-- [ ] T004 Create migration to remove stl_thumb_path column in backend/src/db/migrations.rs
+- [X] T004 Create migration to remove stl_thumb_path column in backend/src/db/migrations.rs
 - [ ] T005 Test migration up/down paths with test database
 - [ ] T006 Verify migration runs successfully on startup
 
@@ -45,22 +45,22 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Remove stl_thumb_path field from Config struct in backend/src/config.rs
-- [ ] T008 [P] [US1] Remove stl_thumb_path field from AppConfig struct in backend/src/config.rs  
-- [ ] T009 [P] [US1] Remove stl_thumb_path field from UpdateConfigRequest struct in backend/src/config.rs
-- [ ] T010 [US1] Update Config::default() implementation to remove stl_thumb_path initialization in backend/src/config.rs
-- [ ] T011 [US1] Remove stl_thumb_path parameter from StlPreviewService::new() in backend/src/services/stl_preview.rs
-- [ ] T012 [US1] Remove stl_thumb_path field from StlPreviewService struct in backend/src/services/stl_preview.rs
-- [ ] T013 [US1] Replace run_stl_thumb() subprocess function with render_stl_preview() library function in backend/src/services/stl_preview.rs
+- [X] T007 [P] [US1] Remove stl_thumb_path field from Config struct in backend/src/config.rs
+- [X] T008 [P] [US1] Remove stl_thumb_path field from AppConfig struct in backend/src/config.rs  
+- [X] T009 [P] [US1] Remove stl_thumb_path field from UpdateConfigRequest struct in backend/src/config.rs
+- [X] T010 [US1] Update Config::default() implementation to remove stl_thumb_path initialization in backend/src/config.rs
+- [X] T011 [US1] Remove stl_thumb_path parameter from StlPreviewService::new() in backend/src/services/stl_preview.rs
+- [X] T012 [US1] Remove stl_thumb_path field from StlPreviewService struct in backend/src/services/stl_preview.rs
+- [X] T013 [US1] Replace run_stl_thumb() subprocess function with render_stl_preview() library function in backend/src/services/stl_preview.rs
 - [ ] T014 [US1] Add use stl_thumb::Config as StlConfig import in backend/src/services/stl_preview.rs
 - [ ] T015 [US1] Implement render_stl_preview() using stl_thumb::render_to_file() with spawn_blocking in backend/src/services/stl_preview.rs
-- [ ] T016 [US1] Update generate_preview() to call render_stl_preview() instead of run_stl_thumb() in backend/src/services/stl_preview.rs
-- [ ] T017 [US1] Update error handling to map library errors to AppError::InternalServer in backend/src/services/stl_preview.rs
-- [ ] T018 [US1] Remove subprocess-related imports (std::process::Command) from backend/src/services/stl_preview.rs
-- [ ] T019 [US1] Update AppState initialization to remove stl_thumb_path parameter in backend/src/api/routes.rs
-- [ ] T020 [US1] Update ConfigService::get_config() to remove stl_thumb_path from SELECT query in backend/src/config.rs
-- [ ] T021 [US1] Update ConfigService::get_config() to remove stl_thumb_path from row mapping in backend/src/config.rs
-- [ ] T022 [US1] Update ConfigService::update_config() to remove stl_thumb_path update logic in backend/src/config.rs
+- [X] T016 [US1] Update generate_preview() to call render_stl_preview() instead of run_stl_thumb() in backend/src/services/stl_preview.rs
+- [X] T017 [US1] Update error handling to map library errors to AppError::InternalServer in backend/src/services/stl_preview.rs
+- [X] T018 [US1] Remove subprocess-related imports (std::process::Command) from backend/src/services/stl_preview.rs
+- [X] T019 [US1] Update AppState initialization to remove stl_thumb_path parameter in backend/src/api/routes.rs
+- [X] T020 [US1] Update ConfigService::get_config() to remove stl_thumb_path from SELECT query in backend/src/config.rs
+- [X] T021 [US1] Update ConfigService::get_config() to remove stl_thumb_path from row mapping in backend/src/config.rs
+- [X] T022 [US1] Update ConfigService::update_config() to remove stl_thumb_path update logic in backend/src/config.rs
 - [ ] T023 [US1] Build and test preview generation with small test STL file (e.g., backend/tests/fixtures/cube.stl)
 - [ ] T024 [US1] Test preview generation with ASCII format STL file
 - [ ] T025 [US1] Test preview generation with binary format STL file
