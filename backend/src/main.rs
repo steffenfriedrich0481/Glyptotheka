@@ -58,7 +58,7 @@ async fn main() {
         .layer(middleware::from_fn(cors_middleware))
         .layer(middleware::from_fn(error_middleware));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!(address = %addr, "Starting HTTP server");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
