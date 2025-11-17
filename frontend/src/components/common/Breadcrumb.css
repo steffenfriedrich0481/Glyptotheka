@@ -1,5 +1,5 @@
 .breadcrumb {
-  @apply mb-6;
+  @apply mb-6 animate-fade-in;
 }
 
 .breadcrumb-list {
@@ -11,19 +11,27 @@
 }
 
 .breadcrumb-link {
-  @apply bg-transparent border-0 text-primary-600 dark:text-primary-400 cursor-pointer px-2 py-1 rounded transition-colors text-sm;
+  @apply bg-transparent border-0 text-primary-600 dark:text-primary-400 cursor-pointer px-2 py-1 rounded transition-all text-sm font-medium;
 }
 
 .breadcrumb-link:hover {
-  @apply bg-primary-50 dark:bg-primary-900/20 underline;
+  @apply bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 scale-105;
 }
 
 .breadcrumb-link:focus {
   @apply ring-2 ring-primary-500 ring-offset-2 outline-none;
 }
 
+.breadcrumb-link:focus-visible {
+  @apply ring-2 ring-primary-500 ring-offset-2 outline-none;
+}
+
+.breadcrumb-link:active {
+  @apply scale-95;
+}
+
 .breadcrumb-separator {
-  @apply text-gray-500 dark:text-gray-400 select-none;
+  @apply text-gray-400 dark:text-gray-500 select-none;
 }
 
 .breadcrumb-current {

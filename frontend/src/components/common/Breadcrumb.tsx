@@ -17,6 +17,13 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, onNavigate }) => {
     return null;
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent, item: BreadcrumbItem, index: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onNavigate(item, index);
+    }
+  };
+
   return (
     <nav className="breadcrumb" aria-label="Breadcrumb">
       <ol className="breadcrumb-list">
@@ -24,19 +31,23 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, onNavigate }) => {
           <button 
             className="breadcrumb-link"
             onClick={() => onNavigate({ id: 0, name: 'Home', path: '/' }, -1)}
+            onKeyDown={(e) => handleKeyDown(e, { id: 0, name: 'Home', path: '/' }, -1)}
+            aria-label="Navigate to Home"
           >
             🏠 Home
           </button>
         </li>
         {items.map((item, index) => (
           <li key={item.id} className="breadcrumb-item">
-            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-separator" aria-hidden="true">/</span>
             {index === items.length - 1 ? (
-              <span className="breadcrumb-current">{item.name}</span>
+              <span className="breadcrumb-current" aria-current="page">{item.name}</span>
             ) : (
               <button 
                 className="breadcrumb-link"
                 onClick={() => onNavigate(item, index)}
+                onKeyDown={(e) => handleKeyDown(e, item, index)}
+                aria-label={`Navigate to ${item.name}`}
               >
                 {item.name}
               </button>

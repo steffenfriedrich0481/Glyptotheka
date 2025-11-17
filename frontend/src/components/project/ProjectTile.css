@@ -1,20 +1,46 @@
 .project-tile {
-  @apply hover:shadow-xl hover:-translate-y-1;
+  @apply hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary-200 dark:hover:border-primary-800;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .project-tile__preview {
   @apply relative overflow-hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .project-tile__preview img {
   @apply w-full h-full object-cover;
   loading: lazy;
+  transition: opacity 0.3s ease-in;
+}
+
+.project-tile__preview img.loading {
+  @apply opacity-0;
+}
+
+.project-tile__preview img.loaded {
+  @apply opacity-100 animate-fade-in;
 }
 
 .project-tile:focus {
   @apply ring-2 ring-primary-500 ring-offset-2 outline-none;
 }
 
+.project-tile:focus-visible {
+  @apply ring-2 ring-primary-500 ring-offset-2 outline-none;
+}
+
 .project-tile:hover .project-tile__preview {
-  @apply scale-105 transition-transform duration-300;
+  @apply scale-105;
+}
+
+.project-tile:hover .project-tile__preview::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-black/20 to-transparent;
+  transition: opacity 0.3s ease;
+}
+
+.project-tile:active {
+  @apply scale-[0.98];
+  transition: transform 0.1s ease;
 }

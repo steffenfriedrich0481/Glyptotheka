@@ -2,10 +2,15 @@ import React from 'react';
 
 export const SkeletonTile: React.FC = () => {
   return (
-    <div className="card animate-pulse p-4">
-      <div className="aspect-square bg-gray-300 dark:bg-gray-700 rounded-lg mb-4"></div>
-      <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-      <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+    <div className="card overflow-hidden">
+      <div className="aspect-square bg-gray-200 dark:bg-gray-700 animate-pulse-subtle"></div>
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse-subtle" style={{ width: '75%' }}></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse-subtle" style={{ width: '50%' }}></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse-subtle" style={{ width: '40%' }}></div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -5,6 +5,16 @@
   @apply md:grid-cols-3 md:gap-6;
   @apply lg:grid-cols-4 lg:gap-6;
   @apply xl:grid-cols-5 xl:gap-6;
+  @apply animate-fade-in;
+}
+
+.project-grid--loading {
+  @apply opacity-75;
+}
+
+.project-grid:empty::after {
+  content: '';
+  @apply block col-span-full;
 }
 
 @media (min-width: 2560px) {

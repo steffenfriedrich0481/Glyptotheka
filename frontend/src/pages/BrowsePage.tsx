@@ -75,7 +75,7 @@ const BrowsePage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <h1 id="main-content" className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4" tabIndex={-1}>
           {currentFolderId === null ? 'Browse Projects' : 'Browse Folder'}
         </h1>
         <Breadcrumb items={breadcrumbs} onNavigate={handleBreadcrumbClick} />

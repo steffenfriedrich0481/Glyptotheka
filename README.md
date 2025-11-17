@@ -1,16 +1,27 @@
 # Glyptotheka - 3D Print Model Library
 
-A web-based application for managing and browsing your 3D print model collection. Features hierarchical organization, STL preview generation, search & tagging, and easy file downloads.
+A modern web-based application for managing and browsing your 3D print model collection. Features a tile-based UI, hierarchical organization, STL preview generation, search & tagging, and easy file downloads.
 
 ## Features
 
-- 📁 Hierarchical folder-based organization
+### Core Functionality
+- 📁 Hierarchical folder-based organization with breadcrumb navigation
 - 🖼️ STL preview image generation
 - 🔍 Full-text search with tag filtering
 - 🏷️ Custom tagging system
 - ⬇️ Individual file and ZIP archive downloads
 - 🔄 Rescan functionality to keep library up-to-date
 - 💾 Local-first architecture (SQLite database)
+
+### Modern UI (Latest Update)
+- 🎨 **Tile-based card design** with responsive grid layout
+- 🌓 **Dark mode support** throughout the interface
+- ⌨️ **Full keyboard navigation** (Tab, Enter, Space keys)
+- ♿ **WCAG AA accessibility** (ARIA labels, focus indicators, screen reader support)
+- 🚀 **Performance optimized** for large collections (500+ projects)
+- 📱 **Responsive design** from mobile (320px) to ultra-wide displays (2560px+)
+- ✨ **Smooth animations** and transitions
+- 🎯 **Visual hierarchy** with proper spacing and typography
 
 ## Tech Stack
 
@@ -22,6 +33,7 @@ A web-based application for managing and browsing your 3D print model collection
 
 **Frontend:**
 - React 18 with TypeScript
+- **Tailwind CSS 3.4** for modern styling
 - Vite for build tooling
 - React Router for navigation
 - Zustand for state management
