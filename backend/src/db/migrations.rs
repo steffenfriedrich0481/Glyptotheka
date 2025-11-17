@@ -12,6 +12,16 @@ pub const MIGRATIONS: &[Migration] = &[
         description: "Initial schema",
         sql: include_str!("../../migrations/001_initial.sql"),
     },
+    Migration {
+        version: 2,
+        description: "Performance indexes",
+        sql: include_str!("../../migrations/002_performance_indexes.sql"),
+    },
+    Migration {
+        version: 3,
+        description: "Remove stl_thumb_path configuration",
+        sql: include_str!("../../migrations/003_remove_stl_thumb_path.sql"),
+    },
 ];
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {

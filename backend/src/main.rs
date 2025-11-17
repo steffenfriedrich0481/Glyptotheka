@@ -7,12 +7,10 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-mod config;
-mod models;
-mod db;
-mod services;
+// Re-export library modules
+use glyptotheka_backend::{config, db, models, services, utils};
+
 mod api;
-mod utils;
 
 use api::middleware::{cors::cors_middleware, error::error_middleware};
 use db::connection::create_pool;

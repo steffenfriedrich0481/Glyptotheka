@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
 use tokio::task;
 use tracing::{info, warn};
+use stl_thumb::config::Config as StlConfig;
 
 #[derive(Clone)]
 pub struct StlPreviewService {
@@ -50,29 +51,42 @@ impl StlPreviewService {
     /// Render STL file to PNG using stl-thumb library
     async fn render_stl_preview(&self, stl_path: &Path) -> Result<Vec<u8>, AppError> {
         let stl_path = stl_path.to_path_buf();
+        let stl_path_str = stl_path.to_string_lossy().to_string();
 
         // Render in blocking thread (CPU-bound OpenGL work)
         task::spawn_blocking(move || {
-            // Note: stl-thumb library integration will be implemented here
-            // For now, return placeholder that will be replaced with actual library call
-            // once stl-thumb dependency is available
-            // 
-            // Expected implementation:
-            // use stl_thumb::Config as StlConfig;
-            // let config = StlConfig {
-            //     size: 512,
-            //     ..Default::default()
-            // };
-            // let image_data = stl_thumb::render_to_buffer(&stl_path, &config)
-            //     .map_err(|e| AppError::InternalServer(format!("STL rendering failed: {}", e)))?;
-            // Ok(image_data)
+            // Generate temporary output path
+            let temp_dir = std::env::temp_dir();
+            let temp_filename = format!("stl_preview_{}.png", std::process::id());
+            let output_path = temp_dir.join(temp_filename);
 
-            Err(AppError::InternalServer(
-                "STL preview generation requires stl-thumb library dependency".to_string()
-            ))
+            // Configure stl-thumb to render at 512x512
+            let config = StlConfig {
+                stl_filename: stl_path_str.clone(),
+                img_filename: output_path.to_string_lossy().to_string(),
+                width: 512,
+                height: 512,
+                visible: false,  // Headless rendering
+                verbosity: 0,
+                ..Default::default()
+            };
+
+            // Render directly to file
+            stl_thumb::render_to_file(&config)
+                .map_err(|e| format!("STL rendering failed: {}", e))?;
+
+            // Read the generated file
+            let data = std::fs::read(&output_path)
+                .map_err(|e| format!("Failed to read generated preview: {}", e))?;
+
+            // Clean up temporary file
+            let _ = std::fs::remove_file(&output_path);
+
+            Ok(data)
         })
         .await
         .map_err(|e| AppError::InternalServer(format!("Task join error: {}", e)))?
+        .map_err(|e| AppError::InternalServer(e))
     }
 
     /// Update STL file record with preview information
