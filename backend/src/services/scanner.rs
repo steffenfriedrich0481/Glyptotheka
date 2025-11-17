@@ -135,11 +135,59 @@ impl ScannerService {
             }
         }
 
+        // NEW: Scan parent folders for images
+        info!("Scanning parent folders for images");
+        let mut scanned_folders = HashSet::new();
+        
+        for (folder, _) in project_folders.iter() {
+            let mut current: &Path = folder.as_path();
+            
+            while let Some(parent_folder) = current.parent() {
+                if parent_folder < root {
+                    break;
+                }
+                
+                // Skip if already scanned
+                if scanned_folders.contains(parent_folder) {
+                    current = parent_folder;
+                    continue;
+                }
+                
+                // Ensure parent project exists
+                match self.ensure_project_exists(parent_folder, root, &mut path_to_id) {
+                    Ok(parent_id) => {
+                        // Scan parent folder for images
+                        if let Err(e) = self.add_images_for_project(parent_id, parent_folder) {
+                            let error_msg = format!(
+                                "Error adding images for parent folder {}: {}",
+                                parent_folder.display(),
+                                e
+                            );
+                            warn!("{}", error_msg);
+                            errors.push(error_msg);
+                        }
+                        scanned_folders.insert(parent_folder.to_path_buf());
+                    }
+                    Err(e) => {
+                        let error_msg = format!(
+                            "Error ensuring parent project exists for {}: {}",
+                            parent_folder.display(),
+                            e
+                        );
+                        warn!("{}", error_msg);
+                        errors.push(error_msg);
+                    }
+                }
+                
+                current = parent_folder;
+            }
+        }
+
         // Second pass: Propagate images from parent folders to children
         info!("Propagating images from parent folders to children");
         for (folder, _) in project_folders.iter() {
             if let Some(&project_id) = path_to_id.get(folder) {
-                if let Err(e) = self.inherit_images_from_parents(project_id, folder, root, &path_to_id)
+                if let Err(e) = self.inherit_images_from_parents(project_id, folder, root, &mut path_to_id)
                 {
                     let error_msg = format!(
                         "Error inheriting images for project {}: {}",
@@ -270,7 +318,7 @@ impl ScannerService {
         &self,
         folder: &Path,
         root: &Path,
-        path_to_id: &HashMap<PathBuf, i64>,
+        path_to_id: &mut HashMap<PathBuf, i64>,
     ) -> Result<i64, AppError> {
         // Check cache first
         if let Some(&existing_id) = path_to_id.get(folder) {
@@ -280,6 +328,8 @@ impl ScannerService {
         // Check database
         let full_path = folder.to_str().unwrap().to_string();
         if let Some(project) = self.project_repo.get_by_path(&full_path)? {
+            // Add to cache for future lookups
+            path_to_id.insert(folder.to_path_buf(), project.id);
             return Ok(project.id);
         }
 
@@ -310,7 +360,12 @@ impl ScannerService {
             is_leaf: false,
         };
 
-        self.project_repo.create(&create_project)
+        let project_id = self.project_repo.create(&create_project)?;
+        
+        // Add to cache
+        path_to_id.insert(folder.to_path_buf(), project_id);
+        
+        Ok(project_id)
     }
 
     /// Walk up the folder tree and inherit images from all ancestor folders.
@@ -321,7 +376,7 @@ impl ScannerService {
         project_id: i64,
         folder: &Path,
         root: &Path,
-        path_to_id: &HashMap<PathBuf, i64>,
+        path_to_id: &mut HashMap<PathBuf, i64>,
     ) -> Result<(), AppError> {
         let image_extensions = ["jpg", "jpeg", "png", "gif", "webp"];
         let mut inherited_images = Vec::new();
