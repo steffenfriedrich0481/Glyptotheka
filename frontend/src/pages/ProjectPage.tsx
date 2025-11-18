@@ -77,12 +77,22 @@ const ProjectPage: React.FC = () => {
   const loadChildPreviews = async (children: any[]) => {
     const previews = new Map<number, any>();
     
-    // Load first image for each child project
+    // Try to load composite preview for each child project
     for (const child of children) {
       try {
-        const data = await projectsAPI.getProjectFiles(child.id, 1, 1);
-        if (data.images && data.images.length > 0) {
-          previews.set(child.id, data.images[0]);
+        // First try to get composite preview
+        const previewUrl = `/api/projects/${child.id}/preview`;
+        const response = await fetch(previewUrl);
+        
+        if (response.ok) {
+          // Composite preview exists, store the URL
+          previews.set(child.id, { type: 'composite', url: previewUrl });
+        } else {
+          // No composite, fall back to first image
+          const data = await projectsAPI.getProjectFiles(child.id, 1, 1);
+          if (data.images && data.images.length > 0) {
+            previews.set(child.id, { type: 'image', data: data.images[0] });
+          }
         }
       } catch (err) {
         console.error(`Failed to load preview for child ${child.id}:`, err);
@@ -184,12 +194,25 @@ const ProjectPage: React.FC = () => {
                   {/* Preview Image */}
                   <div className="aspect-video bg-gray-200 dark:bg-gray-700 relative">
                     {preview ? (
-                      <img
-                        src={`/api/files/images/${preview.id}`}
-                        alt={child.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                      preview.type === 'composite' ? (
+                        <img
+                          src={preview.url}
+                          alt={child.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            // If composite fails to load, hide the image
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={`/api/files/images/${preview.data.id}`}
+                          alt={child.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
                         📁
