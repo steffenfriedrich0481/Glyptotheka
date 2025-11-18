@@ -150,10 +150,18 @@ const ProjectPage: React.FC = () => {
             {project.children.map((child) => (
               <div
                 key={child.id}
-                className="bg-white shadow-md rounded p-4 cursor-pointer hover:shadow-lg"
+                className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
                 onClick={() => navigate(`/project/${child.id}`)}
               >
-                <h3 className="font-bold">{child.name}</h3>
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl">📁</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">{child.name}</h3>
+                    {child.is_leaf && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Contains files</span>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
