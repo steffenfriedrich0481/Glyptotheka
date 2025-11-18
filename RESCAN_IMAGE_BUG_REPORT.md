@@ -224,6 +224,116 @@ Update parent folder scanning to:
 
 ---
 
-**Status:** Bug documented, needs fix before composite preview feature  
+**Status:** ✅ **FIXED AND TESTED**  
 **Priority:** HIGH - Must fix before implementing composite previews  
-**Blocker:** Yes - Rescan must work for preview updates to work
+**Blocker:** Resolved - Rescan now works correctly
+
+---
+
+## Fix Implementation (2025-11-18 09:40 UTC)
+
+### Changes Made
+
+#### Scanner Service (`backend/src/services/scanner.rs`)
+Added duplicate detection to `add_images_for_project()`:
+```rust
+// Get existing images for this project to avoid duplicates
+let conn = self.file_repo.pool.get()?;
+let mut stmt = conn.prepare(
+    "SELECT file_path FROM image_files WHERE project_id = ?1 AND source_type = 'direct'"
+)?;
+let existing_images: HashSet<String> = stmt
+    .query_map([project_id], |row| row.get::<_, String>(0))?
+    .collect::<Result<HashSet<_>, _>>()?;
+
+// Skip if already exists
+if existing_images.contains(&file_path) {
+    continue;
+}
+```
+
+#### Rescan Service (`backend/src/services/rescan.rs`)
+Added parent folder scanning pass:
+```rust
+// First-and-a-half pass: Scan parent folders for images
+info!("Scanning parent folders for images during rescan");
+let mut scanned_parent_folders = HashSet::new();
+
+for (folder, _) in project_folders.iter() {
+    let mut current: &Path = folder.as_path();
+    
+    while let Some(parent_folder) = current.parent() {
+        if parent_folder < root {
+            break;
+        }
+        
+        if scanned_parent_folders.contains(parent_folder) {
+            current = parent_folder;
+            continue;
+        }
+        
+        match self.ensure_project_exists(parent_folder, root, &path_to_id) {
+            Ok(parent_id) => {
+                // Process images in parent folder (checks for new/deleted images)
+                self.process_images_for_project(parent_id, parent_folder, &mut result)?;
+                scanned_parent_folders.insert(parent_folder.to_path_buf());
+            }
+            Err(e) => {
+                warn!("Error ensuring parent project exists: {}", e);
+            }
+        }
+        
+        current = parent_folder;
+    }
+}
+```
+
+### Test Results
+
+**Test Case:** Bahamut project (ID 6)
+- **Old image:** `Bahamut.jpg` (May 2022)
+- **New image:** `Bahamut_2.jpg` (Nov 18, 2025)
+
+**Before Fix:**
+```json
+GET /api/projects/6/files
+{
+  "images": [
+    {"id": 2, "filename": "Bahamut.jpg"}
+  ]
+}
+```
+
+**After Rescan (with fix):**
+```json
+GET /api/projects/6/files
+{
+  "images": [
+    {"id": 2, "filename": "Bahamut.jpg"},
+    {"id": 24, "filename": "Bahamut_2.jpg"}  ← NEW!
+  ]
+}
+```
+
+**Logs Confirmed:**
+```
+2025-11-18T09:40:07 INFO Scanning parent folders for images during rescan
+```
+
+### Verification
+- ✅ New code executed during rescan
+- ✅ New image detected in parent folder
+- ✅ Image added to database (ID: 24)
+- ✅ No duplicate entries created
+- ✅ API returns both images
+- ✅ Ready for UI display
+
+### Commits
+- `1a28a4a` - fix: add parent folder scanning to rescan service and deduplicate image adds
+
+---
+
+**Status:** ✅ **BUG FIXED**  
+**Date Fixed:** 2025-11-18  
+**Verified:** API and database  
+**Next:** Verify UI display and implement composite previews
