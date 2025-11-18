@@ -6,6 +6,7 @@ use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
+use rusqlite::params;
 use serde::Deserialize;
 use tokio::fs::File;
 use tokio_util::io::ReaderStream;
@@ -14,6 +15,44 @@ use tokio_util::io::ReaderStream;
 pub struct FileQueryParams {
     #[serde(rename = "type")]
     pub file_type: String,
+}
+
+/// Serve image by database ID
+pub async fn serve_image_by_id(
+    State(state): State<AppState>,
+    AxumPath(id): AxumPath<i64>,
+) -> Result<impl IntoResponse, AppError> {
+    // Get image file path from database
+    let conn = state.pool.get()?;
+    let file_path: String = conn
+        .query_row(
+            "SELECT file_path FROM image_files WHERE id = ?1",
+            params![id],
+            |row| row.get(0),
+        )
+        .map_err(|_| AppError::NotFound(format!("Image not found with id: {}", id)))?;
+
+    // Cache the image and get the cached path
+    let cache_path = state.image_cache_service.cache_image(&file_path)?;
+
+    // Serve the cached image
+    let file = File::open(&cache_path).await?;
+    let stream = ReaderStream::new(file);
+    let body = Body::from_stream(stream);
+
+    let content_type = match cache_path.extension().and_then(|e| e.to_str()) {
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("png") => "image/png",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        _ => "application/octet-stream",
+    };
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, content_type)
+        .body(body)
+        .unwrap())
 }
 
 pub async fn serve_image(

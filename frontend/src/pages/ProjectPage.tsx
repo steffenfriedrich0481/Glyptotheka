@@ -7,6 +7,7 @@ import { ProjectWithRelations, Tag } from '../types/project';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import FileList from '../components/project/FileList';
 import ImageGallery from '../components/project/ImageGallery';
+import ImageCarousel from '../components/project/ImageCarousel';
 import { TagManager } from '../components/project/TagManager';
 
 const ProjectPage: React.FC = () => {
@@ -127,6 +128,11 @@ const ProjectPage: React.FC = () => {
           </div>
           <p className="text-sm text-gray-600 mt-1">{downloadProgress}% complete</p>
         </div>
+      )}
+
+      {/* Image Carousel Preview */}
+      {images.length > 0 && (
+        <ImageCarousel images={images} />
       )}
 
       <div className="mb-8">

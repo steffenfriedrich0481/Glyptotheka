@@ -33,7 +33,7 @@ const LazyImage: React.FC<{ image: ImageFile }> = ({ image }) => {
     return () => observer.disconnect();
   }, []);
 
-  const imageUrl = `/api/images/${image.id}`;
+  const imageUrl = `/api/files/images/${image.id}`;
 
   return (
     <div className="border rounded overflow-hidden">

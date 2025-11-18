@@ -81,6 +81,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
             get(files::download_project_zip),
         )
         // File/Image routes
+        .route("/api/files/images/:id", get(files::serve_image_by_id))
         .route("/api/images/:hash", get(files::serve_image))
         .route("/api/previews/:hash", get(files::serve_preview))
         .route("/api/files/:id", get(files::download_file))
