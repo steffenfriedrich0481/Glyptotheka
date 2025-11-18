@@ -4,7 +4,6 @@ import { SearchProvider } from './store/searchContext';
 import { ToastProvider } from './components/common/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavBar } from './components/common/NavBar';
-import HomePage from './pages/HomePage';
 import BrowsePage from './pages/BrowsePage';
 import ProjectPage from './pages/ProjectPage';
 import { SearchPage } from './pages/SearchPage';
@@ -21,11 +20,10 @@ function App() {
                 <NavBar />
                 <main className="app">
                   <Routes>
-                    <Route path="/" element={<HomePage />} />
+                    <Route path="/" element={<SearchPage />} />
                     <Route path="/browse" element={<BrowsePage />} />
                     <Route path="/project/:id" element={<ProjectPage />} />
                     <Route path="/projects/:id" element={<ProjectPage />} />
-                    <Route path="/search" element={<SearchPage />} />
                   </Routes>
                 </main>
               </div>

@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     container_name: glyptotheka-backend
+    command: ["/app/glyptotheka-backend"]
     ports:
       - "3000:3000"
     volumes:
@@ -17,12 +18,6 @@ services:
       - CACHE_DIR=/app/cache
       - RUST_LOG=info,glyptotheka_backend=debug
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   frontend:
     build:
@@ -34,11 +29,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   data:

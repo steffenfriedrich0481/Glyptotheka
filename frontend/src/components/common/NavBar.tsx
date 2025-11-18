@@ -43,28 +43,6 @@ export const NavBar: React.FC = () => {
               >
                 Browse
               </Link>
-              <Link
-                to="/search"
-                className={`text-sm font-medium transition-colors ${
-                  isActive('/search')
-                    ? 'text-white'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-                aria-current={isActive('/search') ? 'page' : undefined}
-              >
-                Search
-              </Link>
-              <Link
-                to="/"
-                className={`text-sm font-medium transition-colors ${
-                  isActive('/')
-                    ? 'text-white'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-                aria-current={isActive('/') ? 'page' : undefined}
-              >
-                Settings
-              </Link>
 
               {/* Scan Button */}
               <div className="relative">

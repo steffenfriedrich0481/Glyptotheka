@@ -64,12 +64,12 @@ const HomePage: React.FC = () => {
           <input
             className="input-field"
             type="text"
-            placeholder="/path/to/your/3d-models"
+            placeholder="/projects"
             value={rootPath}
             onChange={(e) => setRootPath(e.target.value)}
           />
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Enter the path to your 3D model collection
+            Enter the path to your 3D model collection. When running in Docker, use <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">/projects</code> which is mounted from your <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">PROJECTS_PATH</code> environment variable.
           </p>
         </div>
 
