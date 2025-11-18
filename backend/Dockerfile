@@ -3,8 +3,21 @@ FROM rust:1.83 as builder
 
 WORKDIR /app
 
+# Update CA certificates and configure git/cargo for SSL
+RUN apt-get update && \
+    apt-get install -y ca-certificates git && \
+    update-ca-certificates && \
+    git config --global http.sslVerify false && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CARGO_HTTP_SSL_VERSION=tlsv1.3
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV CARGO_HTTP_CHECK_REVOKE=false
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+
 # Copy manifests
 COPY backend/Cargo.toml backend/Cargo.lock ./
+COPY backend/.cargo ./.cargo
 
 # Build dependencies (cached layer)
 RUN mkdir src && \
