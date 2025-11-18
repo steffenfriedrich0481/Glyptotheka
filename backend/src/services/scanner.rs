@@ -287,6 +287,15 @@ impl ScannerService {
     fn add_images_for_project(&self, project_id: i64, folder: &Path) -> Result<(), AppError> {
         let image_extensions = ["jpg", "jpeg", "png", "gif", "webp"];
 
+        // Get existing images for this project to avoid duplicates
+        let conn = self.file_repo.pool.get()?;
+        let mut stmt = conn.prepare(
+            "SELECT file_path FROM image_files WHERE project_id = ?1 AND source_type = 'direct'"
+        )?;
+        let existing_images: HashSet<String> = stmt
+            .query_map([project_id], |row| row.get::<_, String>(0))?
+            .collect::<Result<HashSet<_>, _>>()?;
+
         if let Ok(entries) = fs::read_dir(folder) {
             for entry in entries.flatten() {
                 if let Ok(file_type) = entry.file_type() {
@@ -295,6 +304,12 @@ impl ScannerService {
                             if image_extensions.iter().any(|e| ext.eq_ignore_ascii_case(e)) {
                                 let filename = entry.file_name().to_str().unwrap_or("").to_string();
                                 let file_path = entry.path().to_str().unwrap_or("").to_string();
+
+                                // Skip if already exists
+                                if existing_images.contains(&file_path) {
+                                    continue;
+                                }
+
                                 let file_size = fs::metadata(entry.path())
                                     .map(|m| m.len() as i64)
                                     .unwrap_or(0);

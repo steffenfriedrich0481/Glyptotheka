@@ -204,6 +204,55 @@ impl RescanService {
             }
         }
 
+        // First-and-a-half pass: Scan parent folders for images
+        info!("Scanning parent folders for images during rescan");
+        let mut scanned_parent_folders = HashSet::new();
+        
+        for (folder, _) in project_folders.iter() {
+            let mut current: &Path = folder.as_path();
+            
+            while let Some(parent_folder) = current.parent() {
+                if parent_folder < root {
+                    break;
+                }
+                
+                // Skip if already scanned
+                if scanned_parent_folders.contains(parent_folder) {
+                    current = parent_folder;
+                    continue;
+                }
+                
+                // Ensure parent project exists
+                match self.ensure_project_exists(parent_folder, root, &path_to_id)
+                {
+                    Ok(parent_id) => {
+                        // Process images in parent folder (checks for new/deleted images)
+                        if let Err(e) = self.process_images_for_project(parent_id, parent_folder, &mut result) {
+                            let error_msg = format!(
+                                "Error processing images for parent folder {}: {}",
+                                parent_folder.display(),
+                                e
+                            );
+                            warn!("{}", error_msg);
+                            result.errors.push(error_msg);
+                        }
+                        scanned_parent_folders.insert(parent_folder.to_path_buf());
+                    }
+                    Err(e) => {
+                        let error_msg = format!(
+                            "Error ensuring parent project exists for {}: {}",
+                            parent_folder.display(),
+                            e
+                        );
+                        warn!("{}", error_msg);
+                        result.errors.push(error_msg);
+                    }
+                }
+                
+                current = parent_folder;
+            }
+        }
+
         // Second pass: Propagate images from parent folders to children
         info!("Propagating images from parent folders to children");
         for (folder, _) in project_folders.iter() {
