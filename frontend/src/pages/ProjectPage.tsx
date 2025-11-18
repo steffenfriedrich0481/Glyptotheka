@@ -20,6 +20,7 @@ const ProjectPage: React.FC = () => {
   const [images, setImages] = useState<any[]>([]);
   const [imagesPage, setImagesPage] = useState(1);
   const [totalImages, setTotalImages] = useState(0);
+  const [childPreviews, setChildPreviews] = useState<Map<number, any>>(new Map());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,12 @@ const ProjectPage: React.FC = () => {
       loadImages(parseInt(id), 1);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (project?.children) {
+      loadChildPreviews(project.children);
+    }
+  }, [project?.children]);
 
   const loadProject = async (projectId: number) => {
     try {
@@ -65,6 +72,24 @@ const ProjectPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to load images:', err);
     }
+  };
+
+  const loadChildPreviews = async (children: any[]) => {
+    const previews = new Map<number, any>();
+    
+    // Load first image for each child project
+    for (const child of children) {
+      try {
+        const data = await projectsAPI.getProjectFiles(child.id, 1, 1);
+        if (data.images && data.images.length > 0) {
+          previews.set(child.id, data.images[0]);
+        }
+      } catch (err) {
+        console.error(`Failed to load preview for child ${child.id}:`, err);
+      }
+    }
+    
+    setChildPreviews(previews);
   };
 
   const handleDownloadAll = async () => {
@@ -147,23 +172,43 @@ const ProjectPage: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Sub-projects</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {project.children.map((child) => (
-              <div
-                key={child.id}
-                className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
-                onClick={() => navigate(`/project/${child.id}`)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-3xl">📁</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">{child.name}</h3>
+            {project.children.map((child) => {
+              const preview = childPreviews.get(child.id);
+              
+              return (
+                <div
+                  key={child.id}
+                  className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700"
+                  onClick={() => navigate(`/project/${child.id}`)}
+                >
+                  {/* Preview Image */}
+                  <div className="aspect-video bg-gray-200 dark:bg-gray-700 relative">
+                    {preview ? (
+                      <img
+                        src={`/api/files/images/${preview.id}`}
+                        alt={child.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
+                        📁
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Project Info */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate" title={child.name}>
+                      {child.name}
+                    </h3>
                     {child.is_leaf && (
                       <span className="text-xs text-gray-500 dark:text-gray-400">Contains files</span>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
