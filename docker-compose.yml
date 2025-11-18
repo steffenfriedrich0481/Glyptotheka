@@ -16,6 +16,7 @@ services:
     environment:
       - DATABASE_PATH=/app/data/glyptotheka.db
       - CACHE_DIR=/app/cache
+      - ROOT_PATH=/projects
       - RUST_LOG=info,glyptotheka_backend=debug
     restart: unless-stopped
 

@@ -42,6 +42,22 @@ async fn main() {
 
     tracing::info!("Database migrations completed successfully");
 
+    // Initialize root_path from environment variable if not already set
+    if let Ok(root_path) = std::env::var("ROOT_PATH") {
+        let config_service = config::ConfigService::new(pool.clone());
+        if let Ok(config) = config_service.get_config() {
+            if config.root_path.is_none() {
+                tracing::info!(root_path = %root_path, "Initializing root_path from environment");
+                let update = config::UpdateConfigRequest {
+                    root_path: Some(root_path.clone()),
+                    cache_max_size_mb: None,
+                    images_per_page: None,
+                };
+                config_service.update_config(&update).expect("Failed to initialize root_path");
+            }
+        }
+    }
+
     // Initialize cache directory
     let cache_dir = std::env::var("CACHE_DIR").unwrap_or_else(|_| "cache".to_string());
     let cache_path = PathBuf::from(&cache_dir);
