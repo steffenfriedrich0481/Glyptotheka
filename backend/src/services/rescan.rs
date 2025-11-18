@@ -20,6 +20,8 @@ pub struct RescanResult {
     pub files_added: usize,
     pub files_updated: usize,
     pub files_removed: usize,
+    pub stl_previews_regenerated: usize,
+    pub stl_previews_cached: usize,
     pub errors: Vec<String>,
 }
 
@@ -29,6 +31,8 @@ pub struct RescanService {
     image_cache_service: Option<ImageCacheService>,
     preview_repo: crate::db::repositories::preview_repo::PreviewRepository,
     composite_service: Option<crate::services::composite_preview::CompositePreviewService>,
+    stl_preview_service: Option<crate::services::stl_preview::StlPreviewService>,
+    preview_queue: Option<std::sync::Arc<crate::services::stl_preview::PreviewQueue>>,
 }
 
 impl RescanService {
@@ -39,6 +43,8 @@ impl RescanService {
             image_cache_service: None,
             preview_repo: crate::db::repositories::preview_repo::PreviewRepository::new(pool),
             composite_service: None,
+            stl_preview_service: None,
+            preview_queue: None,
         }
     }
 
@@ -49,12 +55,24 @@ impl RescanService {
             image_cache_service: Some(cache_service),
             preview_repo: crate::db::repositories::preview_repo::PreviewRepository::new(pool),
             composite_service: None,
+            stl_preview_service: None,
+            preview_queue: None,
         }
     }
 
     pub fn with_composite_preview(mut self, cache_dir: std::path::PathBuf) -> Self {
         self.composite_service =
             Some(crate::services::composite_preview::CompositePreviewService::new(cache_dir));
+        self
+    }
+
+    pub fn with_stl_preview(
+        mut self,
+        stl_preview_service: crate::services::stl_preview::StlPreviewService,
+        preview_queue: std::sync::Arc<crate::services::stl_preview::PreviewQueue>,
+    ) -> Self {
+        self.stl_preview_service = Some(stl_preview_service);
+        self.preview_queue = Some(preview_queue);
         self
     }
 
@@ -84,6 +102,8 @@ impl RescanService {
             files_added: 0,
             files_updated: 0,
             files_removed: 0,
+            stl_previews_regenerated: 0,
+            stl_previews_cached: 0,
             errors: Vec::new(),
         };
 
@@ -152,7 +172,8 @@ impl RescanService {
                     let mut found_stl_paths = HashSet::new();
 
                     // Process STL files
-                    for stl_file in stl_files {
+                    let stl_files_vec: Vec<_> = stl_files.to_vec();
+                    for stl_file in &stl_files_vec {
                         let file_path = stl_file.to_str().unwrap_or("");
                         found_stl_paths.insert(file_path.to_string());
 
@@ -169,7 +190,23 @@ impl RescanService {
                         }
                     }
 
-                    // Remove deleted STL files
+                    // T040-T042: Regenerate STL previews with smart caching (US4)
+                    if self.stl_preview_service.is_some() && !stl_files_vec.is_empty() {
+                        for stl_file in &stl_files_vec {
+                            match self.regenerate_stl_preview_if_needed(
+                                project_id,
+                                stl_file,
+                                &mut result,
+                            ) {
+                                Ok(_) => {}
+                                Err(e) => {
+                                    warn!("Failed to regenerate preview for {}: {}", stl_file.display(), e);
+                                }
+                            }
+                        }
+                    }
+
+                    // T043: Remove deleted STL files and their previews
                     for (file_path, file_id) in existing_stl_files.iter() {
                         if !found_stl_paths.contains(file_path) {
                             if let Err(e) = self.file_repo.delete_stl_file(*file_id) {
@@ -659,12 +696,12 @@ impl RescanService {
         composite_service: &crate::services::composite_preview::CompositePreviewService,
         result: &mut RescanResult,
     ) -> Result<(), AppError> {
-        // Get first 4 direct images for this project
+        // Get first 4 direct images for this project (priority-sorted)
         let conn = self.file_repo.pool.get()?;
         let mut stmt = conn.prepare(
             "SELECT id, file_path FROM image_files 
              WHERE project_id = ?1 AND source_type = 'direct'
-             ORDER BY created_at ASC
+             ORDER BY image_priority DESC, display_order ASC, created_at ASC
              LIMIT 4"
         )?;
 
@@ -707,6 +744,68 @@ impl RescanService {
         } else {
             result.files_updated += 1; // Count updated previews
         }
+
+        Ok(())
+    }
+
+    // T039-T042: Regenerate STL preview with smart caching
+    fn regenerate_stl_preview_if_needed(
+        &self,
+        project_id: i64,
+        stl_file: &PathBuf,
+        result: &mut RescanResult,
+    ) -> Result<(), AppError> {
+        if let Some(ref service) = self.stl_preview_service {
+            let stl_path = stl_file.to_str().unwrap();
+            
+            // T040: Check if preview is still valid (smart cache logic)
+            let rt = tokio::runtime::Handle::current();
+            let is_valid = rt.block_on(service.is_preview_valid(stl_path))?;
+
+            if is_valid {
+                // T041: Cache hit - skip regeneration
+                info!("Preview cache hit for {}", stl_path);
+                result.stl_previews_cached += 1;
+            } else {
+                // T041-T042: Regenerate stale preview
+                match rt.block_on(service.generate_preview_with_smart_cache(stl_path))? {
+                    crate::services::stl_preview::PreviewResult::Generated(preview_path) => {
+                        self.add_stl_preview_to_db(project_id, stl_file, &preview_path)?;
+                        info!("Regenerated preview for {}", stl_path);
+                        result.stl_previews_regenerated += 1;
+                    }
+                    crate::services::stl_preview::PreviewResult::CacheHit(preview_path) => {
+                        self.add_stl_preview_to_db(project_id, stl_file, &preview_path)?;
+                        result.stl_previews_cached += 1;
+                    }
+                    crate::services::stl_preview::PreviewResult::Skipped(reason) => {
+                        warn!("Skipped preview for {}: {}", stl_path, reason);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    // T043: Add STL preview to database (helper for rescan)
+    fn add_stl_preview_to_db(
+        &self,
+        project_id: i64,
+        stl_file: &PathBuf,
+        preview_path: &PathBuf,
+    ) -> Result<(), AppError> {
+        let filename = format!("{}.png", stl_file.file_name().unwrap().to_str().unwrap());
+        let preview_path_str = preview_path.to_str().unwrap();
+        let file_size = fs::metadata(preview_path)
+            .map(|m| m.len() as i64)
+            .unwrap_or(0);
+
+        self.file_repo.insert_stl_preview_image(
+            project_id,
+            &filename,
+            preview_path_str,
+            file_size,
+        )?;
 
         Ok(())
     }

@@ -53,7 +53,7 @@ impl DownloadService {
         let image_files = {
             let conn = self.pool.get()?;
             let mut stmt = conn.prepare(
-                "SELECT id, project_id, filename, file_path, file_size, source_type, source_project_id, display_order, created_at, updated_at
+                "SELECT id, project_id, filename, file_path, file_size, source_type, source_project_id, display_order, image_priority, image_source, created_at, updated_at
                  FROM image_files
                  WHERE project_id = ?1
                  ORDER BY filename",
@@ -70,8 +70,10 @@ impl DownloadService {
                         source_type: row.get(5)?,
                         source_project_id: row.get(6)?,
                         display_order: row.get(7)?,
-                        created_at: row.get(8)?,
-                        updated_at: row.get(9)?,
+                        image_priority: row.get(8)?,
+                        image_source: row.get(9)?,
+                        created_at: row.get(10)?,
+                        updated_at: row.get(11)?,
                     })
                 })?
                 .collect();

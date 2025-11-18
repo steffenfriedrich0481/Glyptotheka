@@ -27,6 +27,11 @@ pub const MIGRATIONS: &[Migration] = &[
         description: "Add project_previews table",
         sql: include_str!("../../migrations/004_project_previews.sql"),
     },
+    Migration {
+        version: 5,
+        description: "Add image priority and source columns",
+        sql: include_str!("../../migrations/005_stl_preview_priority.sql"),
+    },
 ];
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {

@@ -71,9 +71,10 @@ pub async fn get_project_files(
     let offset = (page - 1) * per_page;
 
     let stl_files = state.file_repo.get_stl_files_by_project(id)?;
+    // T030: Use priority-sorted images (regular images before STL previews)
     let images = state
         .file_repo
-        .get_image_files_by_project(id, per_page, offset)?;
+        .get_images_by_priority(id, per_page, offset)?;
     let total_images = state.file_repo.count_images_by_project(id)?;
 
     Ok(Json(FilesResponse {

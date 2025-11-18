@@ -10,6 +10,8 @@ pub struct ImageFile {
     pub source_type: String,
     pub source_project_id: Option<i64>,
     pub display_order: i32,
+    pub image_priority: i32,
+    pub image_source: String,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -23,4 +25,6 @@ pub struct CreateImageFile {
     pub source_type: String,
     pub source_project_id: Option<i64>,
     pub display_order: i32,
+    pub image_priority: i32,
+    pub image_source: String,
 }

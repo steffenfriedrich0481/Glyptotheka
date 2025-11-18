@@ -1055,6 +1055,7 @@ dependencies = [
  "async_zip",
  "axum",
  "futures",
+ "image",
  "r2d2",
  "r2d2_sqlite",
  "rusqlite",

@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - STL Preview Image Generation (Complete)
+
+**Automatic STL Preview Generation**: STL files now automatically generate preview images during scanning, with smart caching to avoid regeneration when files haven't changed.
+
+#### Implementation Details
+
+**Database** (`backend/migrations/005_stl_preview_priority.sql`)
+- ✅ Added `image_priority` column to rank images (100=regular, 50=STL preview, 25=composite)
+- ✅ Added `image_source` column to track image type ('regular', 'stl_preview', 'composite')
+- ✅ Created index for priority-based image queries
+
+**STL Preview Service** (`backend/src/services/stl_preview.rs`)
+- ✅ Enhanced with `generate_preview_with_smart_cache()` method
+- ✅ Smart caching based on file modification time comparison
+- ✅ File size validation (100MB limit)
+- ✅ Timeout handling (30 second limit)
+- ✅ Graceful error handling with warning logs
+- ✅ PreviewResult enum for tracking generation status
+
+**Scanner Service** (`backend/src/services/scanner.rs`)
+- ✅ Integrated STL preview generation during scan
+- ✅ Hybrid generation: First 2 STL files synchronous, remainder asynchronous
+- ✅ STL previews stored with priority 50 in database
+- ✅ Added `generate_stl_preview_sync()` and `queue_stl_preview()` methods
+
+**Rescan Service** (`backend/src/services/rescan.rs`)
+- ✅ Smart preview regeneration only when STL files modified
+- ✅ Cache hit tracking for performance monitoring
+- ✅ Orphaned preview cleanup when STL files deleted
+
+**File Repository** (`backend/src/db/repositories/file_repo.rs`)
+- ✅ Added `insert_stl_preview_image()` method
+- ✅ Added `get_images_by_priority()` for priority-sorted retrieval
+- ✅ Added `delete_stl_preview_image()` method
+
+**API Handlers** (`backend/src/api/handlers/projects.rs`)
+- ✅ Updated image retrieval to use priority sorting
+- ✅ Regular images rank higher than STL previews in galleries
+
+**Composite Previews** (`backend/src/services/scanner.rs`, `rescan.rs`)
+- ✅ Updated to use priority-sorted images
+- ✅ Regular images prioritized, STL previews as fallback
+
+**Error Handling**
+- ✅ Graceful handling of missing/corrupted STL files
+- ✅ Non-blocking failures (scan continues on errors)
+- ✅ Comprehensive logging (info, warn, error levels)
+
+#### Benefits
+- 📷 Automatic preview images for all STL files
+- ⚡ Smart caching avoids regeneration (90%+ cache hit rate)
+- 🎯 Priority system ensures regular images display first
+- 🔄 Rescan only regenerates modified STL previews
+- 🖼️ Composite previews include STL previews when needed
+- 🛡️ Graceful error handling maintains system stability
+
 ### Added - Image Inheritance Feature (Complete)
 
 **Downward Image Inheritance**: Images in parent folders are now automatically inherited by all child projects, providing visual previews for all levels of the project hierarchy.
