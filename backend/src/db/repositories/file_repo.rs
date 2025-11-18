@@ -4,6 +4,7 @@ use crate::models::stl_file::{CreateStlFile, StlFile};
 use crate::utils::error::AppError;
 use rusqlite::params;
 
+#[derive(Clone)]
 pub struct FileRepository {
     pub(crate) pool: DbPool,
 }

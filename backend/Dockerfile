@@ -24,7 +24,7 @@ FROM debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y libsqlite3-0 ca-certificates \
-        libgl1-mesa-glx libglu1-mesa && \
+        libgl1-mesa-glx libglu1-mesa libosmesa6 libxext6 libxrender1 && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

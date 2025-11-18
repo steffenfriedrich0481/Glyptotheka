@@ -271,10 +271,20 @@ impl ScannerService {
             }
         }
 
+        // Fourth pass: Backfill missing STL previews
+        let (stl_previews_generated, stl_previews_queued) = if self.stl_preview_service.is_some() {
+            info!("Backfilling missing STL previews");
+            self.backfill_stl_previews(&mut errors)?
+        } else {
+            (0, 0)
+        };
+
         info!(
-            "Scan complete: {} projects found, {} files processed, {} errors",
+            "Scan complete: {} projects found, {} files processed, {} STL previews generated, {} queued, {} errors",
             projects_found,
             files_processed,
+            stl_previews_generated,
+            stl_previews_queued,
             errors.len()
         );
 
@@ -285,8 +295,8 @@ impl ScannerService {
         Ok(ScanResult {
             projects_found,
             files_processed,
-            stl_previews_generated: 0, // TODO: Track in scan loop
-            stl_previews_queued: 0, // TODO: Track in scan loop
+            stl_previews_generated,
+            stl_previews_queued,
             errors,
         })
     }
@@ -584,18 +594,37 @@ impl ScannerService {
     }
 
     // T021: Generate STL preview synchronously
-    fn generate_stl_preview_sync(&self, _project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn generate_stl_preview_sync(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
         if let Some(ref service) = self.stl_preview_service {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let service_clone = service.clone();
             let stl_file_clone = stl_file.clone();
+            let file_repo_clone = self.file_repo.clone();
             
             // Spawn async task without blocking
             tokio::spawn(async move {
                 match service_clone.generate_preview_with_smart_cache(&stl_path).await {
-                    Ok(crate::services::stl_preview::PreviewResult::Generated(_preview_path)) | 
-                    Ok(crate::services::stl_preview::PreviewResult::CacheHit(_preview_path)) => {
-                        info!("Generated preview for {}", stl_path);
+                    Ok(crate::services::stl_preview::PreviewResult::Generated(preview_path)) | 
+                    Ok(crate::services::stl_preview::PreviewResult::CacheHit(preview_path)) => {
+                        info!("Generated preview for {}: {}", stl_path, preview_path.display());
+                        
+                        // Add preview to image_files database
+                        let filename = format!("{}.png", stl_file_clone.file_name().unwrap().to_str().unwrap());
+                        let preview_path_str = preview_path.to_str().unwrap();
+                        let file_size = std::fs::metadata(&preview_path)
+                            .map(|m| m.len() as i64)
+                            .unwrap_or(0);
+
+                        if let Err(e) = file_repo_clone.insert_stl_preview_image(
+                            project_id,
+                            &filename,
+                            preview_path_str,
+                            file_size,
+                        ) {
+                            warn!("Failed to add STL preview to database for {}: {}", stl_path, e);
+                        } else {
+                            info!("Added STL preview to database for {}", stl_path);
+                        }
                     }
                     Ok(crate::services::stl_preview::PreviewResult::Skipped(reason)) => {
                         warn!("Skipped preview for {}: {}", stl_path, reason);
@@ -610,10 +639,13 @@ impl ScannerService {
     }
 
     // T022: Queue STL preview for async generation
-    fn queue_stl_preview(&self, _project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn queue_stl_preview(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
         if let Some(ref queue) = self.preview_queue {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let queue_clone = queue.clone();
+            let stl_file_clone = stl_file.clone();
+            let file_repo_clone = self.file_repo.clone();
+            let service_clone = self.stl_preview_service.as_ref().unwrap().clone();
             
             // Spawn async task to queue the preview
             tokio::spawn(async move {
@@ -621,6 +653,29 @@ impl ScannerService {
                     warn!("Failed to queue preview for {}: {}", stl_path, e);
                 } else {
                     info!("Queued preview generation for {}", stl_path);
+                    
+                    // Wait a bit and check if preview was generated, then add to DB
+                    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                    
+                    // Check if preview exists and add to database
+                    if let Ok(Some(preview_path)) = service_clone.get_preview(&stl_path) {
+                        let filename = format!("{}.png", stl_file_clone.file_name().unwrap().to_str().unwrap());
+                        let preview_path_str = preview_path.to_str().unwrap();
+                        let file_size = std::fs::metadata(&preview_path)
+                            .map(|m| m.len() as i64)
+                            .unwrap_or(0);
+
+                        if let Err(e) = file_repo_clone.insert_stl_preview_image(
+                            project_id,
+                            &filename,
+                            preview_path_str,
+                            file_size,
+                        ) {
+                            warn!("Failed to add queued STL preview to database for {}: {}", stl_path, e);
+                        } else {
+                            info!("Added queued STL preview to database for {}", stl_path);
+                        }
+                    }
                 }
             });
         }
@@ -648,5 +703,127 @@ impl ScannerService {
         )?;
 
         Ok(())
+    }
+
+    /// Backfill missing STL previews for all STL files in the database
+    fn backfill_stl_previews(&self, errors: &mut Vec<String>) -> Result<(usize, usize), AppError> {
+        let mut generated = 0;
+        let mut queued = 0;
+
+        // Get all STL files from database
+        let conn = self.file_repo.pool.get()?;
+        let mut stmt = conn.prepare(
+            "SELECT s.id, s.project_id, s.file_path, s.preview_path 
+             FROM stl_files s
+             ORDER BY s.project_id"
+        )?;
+
+        let stl_files: Vec<(i64, i64, String, Option<String>)> = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        drop(stmt);
+        drop(conn);
+
+        info!("Found {} STL files in database", stl_files.len());
+
+        // Check which ones need preview generation
+        for (_file_id, project_id, stl_path, existing_preview) in stl_files {
+            let stl_path_buf = PathBuf::from(&stl_path);
+            
+            // Skip if file doesn't exist
+            if !stl_path_buf.exists() {
+                warn!("STL file not found, skipping preview: {}", stl_path);
+                continue;
+            }
+
+            // Check if preview exists and is valid
+            let needs_preview = if let Some(ref preview_path) = existing_preview {
+                let preview_path_buf = PathBuf::from(preview_path);
+                // Check if preview file exists
+                if !preview_path_buf.exists() {
+                    info!("Preview file missing for {}, will regenerate", stl_path);
+                    true
+                } else {
+                    // Check if preview is older than STL file
+                    match (fs::metadata(&stl_path_buf), fs::metadata(&preview_path_buf)) {
+                        (Ok(stl_meta), Ok(preview_meta)) => {
+                            match (stl_meta.modified(), preview_meta.modified()) {
+                                (Ok(stl_time), Ok(preview_time)) => {
+                                    if stl_time > preview_time {
+                                        info!("Preview outdated for {}, will regenerate", stl_path);
+                                        true
+                                    } else {
+                                        // Preview exists and is up to date, check if in image_files
+                                        let conn = self.file_repo.pool.get()?;
+                                        let count: i64 = conn.query_row(
+                                            "SELECT COUNT(*) FROM image_files WHERE file_path = ?1 AND image_source = 'stl_preview'",
+                                            [preview_path],
+                                            |row| row.get(0)
+                                        )?;
+                                        
+                                        if count == 0 {
+                                            info!("Preview exists but not in image_files for {}, will add", stl_path);
+                                            // Add existing preview to image_files
+                                            if let Err(e) = self.add_stl_preview_to_db(
+                                                project_id,
+                                                &stl_path_buf,
+                                                &preview_path_buf
+                                            ) {
+                                                let error_msg = format!(
+                                                    "Error adding existing STL preview to database for {}: {}",
+                                                    stl_path, e
+                                                );
+                                                warn!("{}", error_msg);
+                                                errors.push(error_msg);
+                                            } else {
+                                                generated += 1;
+                                            }
+                                        }
+                                        false
+                                    }
+                                }
+                                _ => true
+                            }
+                        }
+                        _ => true
+                    }
+                }
+            } else {
+                info!("No preview exists for {}, will generate", stl_path);
+                true
+            };
+
+            if needs_preview {
+                // Generate first 5 synchronously, rest async
+                if generated < 5 {
+                    if let Err(e) = self.generate_stl_preview_sync(project_id, &stl_path_buf) {
+                        let error_msg = format!("Error generating STL preview for {}: {}", stl_path, e);
+                        warn!("{}", error_msg);
+                        errors.push(error_msg);
+                    } else {
+                        generated += 1;
+                    }
+                } else {
+                    if let Err(e) = self.queue_stl_preview(project_id, &stl_path_buf) {
+                        let error_msg = format!("Error queuing STL preview for {}: {}", stl_path, e);
+                        warn!("{}", error_msg);
+                        errors.push(error_msg);
+                    } else {
+                        queued += 1;
+                    }
+                }
+            }
+        }
+
+        info!("Backfill complete: {} previews generated, {} queued", generated, queued);
+        Ok((generated, queued))
     }
 }
