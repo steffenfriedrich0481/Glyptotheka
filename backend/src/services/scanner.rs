@@ -19,14 +19,24 @@ pub struct ScanResult {
 pub struct ScannerService {
     project_repo: ProjectRepository,
     file_repo: FileRepository,
+    preview_repo: crate::db::repositories::preview_repo::PreviewRepository,
+    composite_service: Option<crate::services::composite_preview::CompositePreviewService>,
 }
 
 impl ScannerService {
     pub fn new(pool: DbPool) -> Self {
         Self {
             project_repo: ProjectRepository::new(pool.clone()),
-            file_repo: FileRepository::new(pool),
+            file_repo: FileRepository::new(pool.clone()),
+            preview_repo: crate::db::repositories::preview_repo::PreviewRepository::new(pool),
+            composite_service: None,
         }
+    }
+
+    pub fn with_composite_preview(mut self, cache_dir: std::path::PathBuf) -> Self {
+        self.composite_service =
+            Some(crate::services::composite_preview::CompositePreviewService::new(cache_dir));
+        self
     }
 
     pub fn scan(&self, root_path: &str) -> Result<ScanResult, AppError> {
@@ -193,6 +203,22 @@ impl ScannerService {
                         "Error inheriting images for project {}: {}",
                         folder.display(),
                         e
+                    );
+                    warn!("{}", error_msg);
+                    errors.push(error_msg);
+                }
+            }
+        }
+
+        // Third pass: Generate composite previews for ALL projects
+        if let Some(ref composite_service) = self.composite_service {
+            info!("Generating composite previews for all projects");
+            // Iterate over all projects, not just folders with STL files
+            for (_folder, &project_id) in path_to_id.iter() {
+                if let Err(e) = self.generate_preview_for_project(project_id, composite_service) {
+                    let error_msg = format!(
+                        "Error generating preview for project {}: {}",
+                        project_id, e
                     );
                     warn!("{}", error_msg);
                     errors.push(error_msg);
@@ -461,6 +487,51 @@ impl ScannerService {
                 0,
             )?;
         }
+
+        Ok(())
+    }
+
+    /// Generate composite preview for a project
+    fn generate_preview_for_project(
+        &self,
+        project_id: i64,
+        composite_service: &crate::services::composite_preview::CompositePreviewService,
+    ) -> Result<(), AppError> {
+        // Get first 4 direct images for this project
+        let conn = self.file_repo.pool.get()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, file_path FROM image_files 
+             WHERE project_id = ?1 AND source_type = 'direct'
+             ORDER BY created_at ASC
+             LIMIT 4"
+        )?;
+
+        let images: Vec<(i64, String)> = stmt
+            .query_map([project_id], |row| {
+                Ok((row.get(0)?, row.get(1)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        if images.len() < 2 {
+            // Need at least 2 images for a composite
+            return Ok(());
+        }
+
+        let image_paths: Vec<String> = images.iter().map(|(_, path)| path.clone()).collect();
+        let image_ids: Vec<i64> = images.iter().map(|(id, _)| *id).collect();
+
+        // Generate the composite preview
+        let preview_path = composite_service.generate_preview(project_id, &image_paths)?;
+
+        // Store in database
+        let create_preview = crate::db::repositories::preview_repo::CreateProjectPreview {
+            project_id,
+            preview_path: preview_path.to_string_lossy().to_string(),
+            image_count: image_ids.len() as i32,
+            source_image_ids: image_ids,
+        };
+
+        self.preview_repo.store_preview(&create_preview)?;
 
         Ok(())
     }

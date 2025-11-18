@@ -24,6 +24,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 zip = "6.0.0"
 stl-thumb = "0.5"
+image = "0.24"
 
 [dev-dependencies]
 tempfile = "3.8"

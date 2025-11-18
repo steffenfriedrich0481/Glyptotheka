@@ -25,6 +25,7 @@ pub struct AppState {
     pub project_repo: Arc<ProjectRepository>,
     pub file_repo: Arc<FileRepository>,
     pub tag_repo: Arc<TagRepository>,
+    pub preview_repo: Arc<crate::db::repositories::preview_repo::PreviewRepository>,
     pub config_service: Arc<ConfigService>,
     pub scanner_service: Arc<ScannerService>,
     pub rescan_service: Arc<RescanService>,
@@ -36,21 +37,29 @@ pub struct AppState {
 }
 
 pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
-    let image_cache = Arc::new(ImageCacheService::new(cache_dir, pool.clone()));
+    let image_cache = Arc::new(ImageCacheService::new(cache_dir.clone(), pool.clone()));
 
     let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
+
+    // Initialize services with composite preview support
+    let scanner_service = Arc::new(
+        ScannerService::new(pool.clone()).with_composite_preview(cache_dir.clone())
+    );
+    
+    let rescan_service = Arc::new(
+        RescanService::with_cache(pool.clone(), (*image_cache).clone())
+            .with_composite_preview(cache_dir.clone())
+    );
 
     let state = AppState {
         pool: pool.clone(),
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
         file_repo: Arc::new(FileRepository::new(pool.clone())),
         tag_repo: Arc::new(TagRepository::new(pool.clone())),
+        preview_repo: Arc::new(crate::db::repositories::preview_repo::PreviewRepository::new(pool.clone())),
         config_service: Arc::new(ConfigService::new(pool.clone())),
-        scanner_service: Arc::new(ScannerService::new(pool.clone())),
-        rescan_service: Arc::new(RescanService::with_cache(
-            pool.clone(),
-            (*image_cache).clone(),
-        )),
+        scanner_service,
+        rescan_service,
         image_cache_service: image_cache,
         search_service: Arc::new(SearchService::new(pool.clone())),
         download_service: Arc::new(DownloadService::new(pool.clone())),
@@ -76,6 +85,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
             get(projects::get_project_children),
         )
         .route("/api/projects/:id/files", get(projects::get_project_files))
+        .route("/api/projects/:id/preview", get(projects::get_project_preview))
         .route(
             "/api/projects/:id/download",
             get(files::download_project_zip),

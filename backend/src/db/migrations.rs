@@ -22,6 +22,11 @@ pub const MIGRATIONS: &[Migration] = &[
         description: "Remove stl_thumb_path configuration",
         sql: include_str!("../../migrations/003_remove_stl_thumb_path.sql"),
     },
+    Migration {
+        version: 4,
+        description: "Add project_previews table",
+        sql: include_str!("../../migrations/004_project_previews.sql"),
+    },
 ];
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {

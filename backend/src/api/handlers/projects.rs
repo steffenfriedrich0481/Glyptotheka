@@ -84,3 +84,44 @@ pub async fn get_project_files(
         per_page,
     }))
 }
+
+pub async fn get_project_preview(
+    State(state): State<AppState>,
+    Path(id): Path<i64>,
+) -> Result<impl axum::response::IntoResponse, AppError> {
+    use axum::response::Response;
+    use axum::body::Body;
+    use axum::http::{StatusCode, header};
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    // Get preview from database
+    let preview = state
+        .preview_repo
+        .get_preview(id)?
+        .ok_or_else(|| AppError::NotFound(format!("Preview not found for project {}", id)))?;
+
+    // Check if file exists
+    let preview_path = std::path::Path::new(&preview.preview_path);
+    if !preview_path.exists() {
+        return Err(AppError::NotFound(format!(
+            "Preview file not found at {:?}",
+            preview_path
+        )));
+    }
+
+    // Serve the image
+    let file = File::open(preview_path)
+        .await
+        .map_err(|e| AppError::InternalServer(format!("Failed to open preview file: {}", e)))?;
+    
+    let stream = ReaderStream::new(file);
+    let body = Body::from_stream(stream);
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "image/png")
+        .header(header::CACHE_CONTROL, "public, max-age=3600")
+        .body(body)
+        .unwrap())
+}
