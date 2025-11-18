@@ -584,33 +584,45 @@ impl ScannerService {
     }
 
     // T021: Generate STL preview synchronously
-    fn generate_stl_preview_sync(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn generate_stl_preview_sync(&self, _project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
         if let Some(ref service) = self.stl_preview_service {
-            let stl_path = stl_file.to_str().unwrap();
+            let stl_path = stl_file.to_str().unwrap().to_string();
+            let service_clone = service.clone();
+            let stl_file_clone = stl_file.clone();
             
-            // Use tokio runtime to run async code in sync context
-            let rt = tokio::runtime::Handle::current();
-            match rt.block_on(service.generate_preview_with_smart_cache(stl_path))? {
-                crate::services::stl_preview::PreviewResult::Generated(preview_path) | 
-                crate::services::stl_preview::PreviewResult::CacheHit(preview_path) => {
-                    self.add_stl_preview_to_db(project_id, stl_file, &preview_path)?;
-                    info!("Generated preview for {}", stl_path);
+            // Spawn async task without blocking
+            tokio::spawn(async move {
+                match service_clone.generate_preview_with_smart_cache(&stl_path).await {
+                    Ok(crate::services::stl_preview::PreviewResult::Generated(_preview_path)) | 
+                    Ok(crate::services::stl_preview::PreviewResult::CacheHit(_preview_path)) => {
+                        info!("Generated preview for {}", stl_path);
+                    }
+                    Ok(crate::services::stl_preview::PreviewResult::Skipped(reason)) => {
+                        warn!("Skipped preview for {}: {}", stl_path, reason);
+                    }
+                    Err(e) => {
+                        warn!("Failed to generate preview for {}: {}", stl_file_clone.display(), e);
+                    }
                 }
-                crate::services::stl_preview::PreviewResult::Skipped(reason) => {
-                    warn!("Skipped preview for {}: {}", stl_path, reason);
-                }
-            }
+            });
         }
         Ok(())
     }
 
     // T022: Queue STL preview for async generation
-    fn queue_stl_preview(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn queue_stl_preview(&self, _project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
         if let Some(ref queue) = self.preview_queue {
             let stl_path = stl_file.to_str().unwrap().to_string();
-            let rt = tokio::runtime::Handle::current();
-            rt.block_on(queue.queue_preview(stl_path))?;
-            info!("Queued preview generation for {}", stl_file.display());
+            let queue_clone = queue.clone();
+            
+            // Spawn async task to queue the preview
+            tokio::spawn(async move {
+                if let Err(e) = queue_clone.queue_preview(stl_path.clone()).await {
+                    warn!("Failed to queue preview for {}: {}", stl_path, e);
+                } else {
+                    info!("Queued preview generation for {}", stl_path);
+                }
+            });
         }
         Ok(())
     }

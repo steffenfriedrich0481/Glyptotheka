@@ -40,15 +40,21 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir.clone(), pool.clone()));
 
     let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
+    
+    // Initialize preview queue for async STL preview generation (queue size: 100)
+    let preview_queue = Arc::new(crate::services::stl_preview::PreviewQueue::new((*stl_preview).clone(), 100));
 
-    // Initialize services with composite preview support
+    // Initialize services with composite preview and STL preview support
     let scanner_service = Arc::new(
-        ScannerService::new(pool.clone()).with_composite_preview(cache_dir.clone())
+        ScannerService::new(pool.clone())
+            .with_composite_preview(cache_dir.clone())
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
     );
     
     let rescan_service = Arc::new(
         RescanService::with_cache(pool.clone(), (*image_cache).clone())
             .with_composite_preview(cache_dir.clone())
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
     );
 
     let state = AppState {
