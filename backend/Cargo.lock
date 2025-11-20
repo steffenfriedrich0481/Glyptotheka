@@ -3051,6 +3051,7 @@ dependencies = [
 [[package]]
 name = "stl-thumb"
 version = "0.5.0"
+source = "git+https://github.com/steffenfriedrich0481/stl-thumb#ab20ce6b83be01fcec52afb4b28b5b5e2e9066da"
 dependencies = [
  "ahash",
  "cbindgen",
