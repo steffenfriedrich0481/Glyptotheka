@@ -6,7 +6,6 @@ import { downloadUtils } from '../utils/download';
 import { ProjectWithRelations, Tag } from '../types/project';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import FileList from '../components/project/FileList';
-import ImageGallery from '../components/project/ImageGallery';
 import ImageCarousel from '../components/project/ImageCarousel';
 import { TagManager } from '../components/project/TagManager';
 
@@ -18,8 +17,6 @@ const ProjectPage: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [files, setFiles] = useState<{ stl_files: any[], images: any[] } | null>(null);
   const [images, setImages] = useState<any[]>([]);
-  const [imagesPage, setImagesPage] = useState(1);
-  const [totalImages, setTotalImages] = useState(0);
   const [childPreviews, setChildPreviews] = useState<Map<number, any>>(new Map());
   const navigate = useNavigate();
 
@@ -67,8 +64,6 @@ const ProjectPage: React.FC = () => {
     try {
       const data = await projectsAPI.getProjectFiles(projectId, page, 20);
       setImages(data.images || []);
-      setTotalImages(data.total_images || 0);
-      setImagesPage(page);
     } catch (err) {
       console.error('Failed to load images:', err);
     }
@@ -233,18 +228,6 @@ const ProjectPage: React.FC = () => {
               );
             })}
           </div>
-        </div>
-      )}
-
-      {images.length > 0 && (
-        <div className="mb-8">
-          <ImageGallery
-            images={images}
-            total={totalImages}
-            page={imagesPage}
-            perPage={20}
-            onPageChange={(page) => id && loadImages(parseInt(id), page)}
-          />
         </div>
       )}
 
