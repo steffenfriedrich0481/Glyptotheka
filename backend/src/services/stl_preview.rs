@@ -155,40 +155,53 @@ impl StlPreviewService {
         let stl_path = stl_path.to_path_buf();
         let stl_path_str = stl_path.to_string_lossy().to_string();
 
-        // Render in blocking thread (CPU-bound OpenGL work)
-        task::spawn_blocking(move || {
-            // Generate temporary output path
-            let temp_dir = std::env::temp_dir();
-            let temp_filename = format!("stl_preview_{}.png", std::process::id());
-            let output_path = temp_dir.join(temp_filename);
+        // Use a channel to communicate between threads
+        let (tx, mut rx) = mpsc::channel::<Result<Vec<u8>, String>>(1);
 
-            // Configure stl-thumb to render at 512x512
-            let config = StlConfig {
-                stl_filename: stl_path_str.clone(),
-                img_filename: output_path.to_string_lossy().to_string(),
-                width: 512,
-                height: 512,
-                visible: false, // Headless rendering
-                verbosity: 0,
-                ..Default::default()
-            };
+        // Spawn a native OS thread (not tokio task) to avoid event loop conflicts
+        // stl-thumb requires its own event loop which conflicts with tokio
+        std::thread::spawn(move || {
+            let result = (|| {
+                // Generate temporary output path
+                let temp_dir = std::env::temp_dir();
+                let temp_filename = format!("stl_preview_{}_{}.png", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
+                let output_path = temp_dir.join(temp_filename);
 
-            // Render directly to file
-            stl_thumb::render_to_file(&config)
-                .map_err(|e| format!("STL rendering failed: {}", e))?;
+                // Configure stl-thumb to render at 512x512
+                let config = StlConfig {
+                    model_filename: stl_path_str.clone(),
+                    img_filename: output_path.to_string_lossy().to_string(),
+                    width: 512,
+                    height: 512,
+                    visible: false, // Headless rendering
+                    verbosity: 0,
+                    ..Default::default()
+                };
 
-            // Read the generated file
-            let data = std::fs::read(&output_path)
-                .map_err(|e| format!("Failed to read generated preview: {}", e))?;
+                // Render directly to file
+                stl_thumb::render_to_file(&config)
+                    .map_err(|e| format!("STL rendering failed: {}", e))?;
 
-            // Clean up temporary file
-            let _ = std::fs::remove_file(&output_path);
+                // Read the generated file
+                let data = std::fs::read(&output_path)
+                    .map_err(|e| format!("Failed to read generated preview: {}", e))?;
 
-            Ok(data)
-        })
-        .await
-        .map_err(|e| AppError::InternalServer(format!("Task join error: {}", e)))?
-        .map_err(AppError::InternalServer)
+                // Clean up temporary file
+                let _ = std::fs::remove_file(&output_path);
+
+                Ok(data)
+            })();
+
+            // Send result back (ignore errors if receiver is dropped)
+            let _ = tx.blocking_send(result);
+        });
+
+        // Wait for result from the thread
+        match rx.recv().await {
+            Some(Ok(data)) => Ok(data),
+            Some(Err(e)) => Err(AppError::InternalServer(e)),
+            None => Err(AppError::InternalServer("Render thread terminated unexpectedly".to_string())),
+        }
     }
 
     /// Update STL file record with preview information
@@ -219,7 +232,7 @@ impl StlPreviewService {
 
 /// Background job queue for preview generation
 pub struct PreviewQueue {
-    sender: mpsc::Sender<String>,
+    pub sender: mpsc::Sender<String>,
 }
 
 impl PreviewQueue {

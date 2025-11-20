@@ -190,17 +190,17 @@ impl RescanService {
                         }
                     }
 
-                    // T040-T042: Regenerate STL previews with smart caching (US4)
-                    if self.stl_preview_service.is_some() && !stl_files_vec.is_empty() {
+                    // T040-T042: Queue STL previews for generation with smart caching (US4)
+                    if self.preview_queue.is_some() && !stl_files_vec.is_empty() {
                         for stl_file in &stl_files_vec {
-                            match self.regenerate_stl_preview_if_needed(
+                            match self.queue_stl_preview_generation(
                                 project_id,
                                 stl_file,
                                 &mut result,
                             ) {
                                 Ok(_) => {}
                                 Err(e) => {
-                                    warn!("Failed to regenerate preview for {}: {}", stl_file.display(), e);
+                                    warn!("Failed to queue preview for {}: {}", stl_file.display(), e);
                                 }
                             }
                         }
@@ -748,39 +748,25 @@ impl RescanService {
         Ok(())
     }
 
-    // T039-T042: Regenerate STL preview with smart caching
-    fn regenerate_stl_preview_if_needed(
+    // T039-T042: Queue STL preview generation (async background processing)
+    fn queue_stl_preview_generation(
         &self,
-        project_id: i64,
+        _project_id: i64,
         stl_file: &PathBuf,
         result: &mut RescanResult,
     ) -> Result<(), AppError> {
-        if let Some(ref service) = self.stl_preview_service {
-            let stl_path = stl_file.to_str().unwrap();
+        if let Some(ref queue) = self.preview_queue {
+            let stl_path = stl_file.to_str().unwrap().to_string();
             
-            // T040: Check if preview is still valid (smart cache logic)
-            let rt = tokio::runtime::Handle::current();
-            let is_valid = rt.block_on(service.is_preview_valid(stl_path))?;
-
-            if is_valid {
-                // T041: Cache hit - skip regeneration
-                info!("Preview cache hit for {}", stl_path);
-                result.stl_previews_cached += 1;
-            } else {
-                // T041-T042: Regenerate stale preview
-                match rt.block_on(service.generate_preview_with_smart_cache(stl_path))? {
-                    crate::services::stl_preview::PreviewResult::Generated(preview_path) => {
-                        self.add_stl_preview_to_db(project_id, stl_file, &preview_path)?;
-                        info!("Regenerated preview for {}", stl_path);
-                        result.stl_previews_regenerated += 1;
-                    }
-                    crate::services::stl_preview::PreviewResult::CacheHit(preview_path) => {
-                        self.add_stl_preview_to_db(project_id, stl_file, &preview_path)?;
-                        result.stl_previews_cached += 1;
-                    }
-                    crate::services::stl_preview::PreviewResult::Skipped(reason) => {
-                        warn!("Skipped preview for {}: {}", stl_path, reason);
-                    }
+            // Queue preview generation - this happens asynchronously in the background
+            // We can't use async methods from this sync context, so we use the queue's sender directly
+            match queue.sender.try_send(stl_path.clone()) {
+                Ok(_) => {
+                    info!("Queued STL preview generation for {}", stl_path);
+                    result.stl_previews_regenerated += 1;
+                }
+                Err(e) => {
+                    warn!("Failed to queue preview for {}: {}", stl_path, e);
                 }
             }
         }

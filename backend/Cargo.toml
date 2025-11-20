@@ -23,7 +23,7 @@ thiserror = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 zip = "6.0.0"
-stl-thumb = "0.5"
+stl-thumb = { path = "/home/stefffri/Workspace/stl-thumb" }
 image = "0.24"
 
 [dev-dependencies]
