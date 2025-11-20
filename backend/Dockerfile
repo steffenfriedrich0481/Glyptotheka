@@ -38,7 +38,8 @@ FROM debian:bookworm-slim
 RUN apt-get update && \
     apt-get install -y libsqlite3-0 ca-certificates \
         libgl1-mesa-glx libglu1-mesa libosmesa6 libosmesa6-dev \
-        libxext6 libxrender1 libx11-6 libxcursor1 libxi6 libxrandr2 libxinerama1 && \
+        libxext6 libxrender1 libx11-6 libxcursor1 libxi6 libxrandr2 libxinerama1 \
+        libfreetype6 fontconfig libfontconfig1 && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
