@@ -5,6 +5,7 @@ import { tagsApi } from '../api/tags';
 import { SearchBar } from '../components/common/SearchBar';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Pagination } from '../components/common/Pagination';
+import { SearchProjectTile } from '../components/project/SearchProjectTile';
 import type { SearchResultProject, Tag } from '../types/project';
 import './SearchPage.css';
 
@@ -150,14 +151,11 @@ export const SearchPage: React.FC = () => {
             </div>
             <div className="search-page__grid">
               {projects.map(project => (
-                <div
+                <SearchProjectTile
                   key={project.id}
-                  className="search-page__project"
-                  onClick={() => handleProjectClick(project.id)}
-                >
-                  <h3>{project.name}</h3>
-                  <p className="search-page__project-path">{project.full_path}</p>
-                </div>
+                  project={project}
+                  onClick={handleProjectClick}
+                />
               ))}
             </div>
             
