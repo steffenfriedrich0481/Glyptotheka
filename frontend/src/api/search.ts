@@ -1,11 +1,12 @@
 import { apiClient } from './client';
-import type { Project } from '../types/project';
+import type { SearchResultProject } from '../types/project';
 
 export interface SearchParams {
   q?: string;
   tags?: string[];
   page?: number;
   per_page?: number;
+  leaf_only?: boolean;
 }
 
 export interface SearchMeta {
@@ -16,7 +17,7 @@ export interface SearchMeta {
 }
 
 export interface SearchResponse {
-  data: Project[];
+  data: SearchResultProject[];
   meta: SearchMeta;
 }
 
@@ -38,6 +39,10 @@ export const searchApi = {
     
     if (params.per_page) {
       queryParams.append('per_page', params.per_page.toString());
+    }
+
+    if (params.leaf_only !== undefined) {
+      queryParams.append('leaf_only', params.leaf_only.toString());
     }
     
     const response = await apiClient.get(`/api/search?${queryParams.toString()}`);

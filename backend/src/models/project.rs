@@ -30,3 +30,21 @@ pub struct CreateProject {
     pub parent_id: Option<i64>,
     pub is_leaf: bool,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImagePreview {
+    pub id: i64,
+    pub filename: String,
+    pub source_type: String, // "direct", "inherited", "stl_preview"
+    pub image_source: String, // "original", "stl_preview"
+    pub priority: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResultProject {
+    #[serde(flatten)]
+    pub project: Project,
+    pub stl_count: usize,
+    pub image_count: usize,
+    pub images: Vec<ImagePreview>,
+}

@@ -8,6 +8,7 @@ Auto-generated from all feature plans. Last updated: 2025-11-16
 - Backend API (existing) - no frontend storage changes (001-ui-modernization)
 - Rust 1.75+ (stable channel) (002-stl-preview-generation)
 - SQLite database (existing schema requires extension) (002-stl-preview-generation)
+- SQLite 3.x with FTS5 (Full-Text Search) (001-search-refinement)
 
 - Rust 1.75+ (backend), TypeScript 5.0+ (frontend) (001-3d-print-library)
 
@@ -27,9 +28,9 @@ cargo test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECH
 Rust 1.75+ (backend), TypeScript 5.0+ (frontend): Follow standard conventions
 
 ## Recent Changes
+- 001-search-refinement: Added SQLite 3.x with FTS5 (Full-Text Search)
 - 002-stl-preview-generation: Added Rust 1.75+ (stable channel)
 - 001-ui-modernization: Added TypeScript 5.9.3 / JavaScript ES2020 + React 18.2, React Router 6.30, Vite 5.4, Tailwind CSS (to be added)
-- 001-integrate-stl-thumb: Added Rust 1.75+
 
 
 <!-- MANUAL ADDITIONS START -->

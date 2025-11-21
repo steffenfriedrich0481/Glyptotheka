@@ -5,14 +5,14 @@ import { tagsApi } from '../api/tags';
 import { SearchBar } from '../components/common/SearchBar';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Pagination } from '../components/common/Pagination';
-import type { Project, Tag } from '../types/project';
+import type { SearchResultProject, Tag } from '../types/project';
 import './SearchPage.css';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<SearchResultProject[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(0);
@@ -49,6 +49,7 @@ export const SearchPage: React.FC = () => {
           tags: selectedTags.length > 0 ? selectedTags : undefined,
           page,
           per_page: 20,
+          leaf_only: true,
         });
         
         setProjects(result.data);

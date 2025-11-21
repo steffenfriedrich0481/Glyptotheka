@@ -1,0 +1,463 @@
+openapi: 3.0.3
+info:
+  title: Glyptotheka Search API - Search View Refinement
+  description: |
+    Enhanced search API for the Glyptotheka 3D Print Library application.
+    
+    This specification documents the extended search endpoint that supports:
+    - Filtering to leaf projects only (projects containing STL files)
+    - Aggregated image data for visual carousels in search results
+    - Backward compatibility with existing search functionality
+    
+    Feature: 001-search-refinement
+  version: 1.1.0
+  contact:
+    name: Glyptotheka API
+    
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+  - url: /api
+    description: Production (relative URL)
+
+tags:
+  - name: Search
+    description: Search and filter projects
+
+paths:
+  /search:
+    get:
+      summary: Search projects
+      description: |
+        Search for projects by name, path, or tags. Optionally filter to only
+        leaf projects (projects containing STL files).
+        
+        ## Features (v1.1.0)
+        - **Leaf filtering**: Set `leaf_only=true` to show only projects with STL files
+        - **Image aggregation**: Returns up to 15 images per project for carousel display
+        - **Full-text search**: Uses FTS5 for efficient text matching
+        - **Tag filtering**: Filter by multiple tags (AND logic)
+        - **Pagination**: Standard page-based pagination
+        
+        ## Backward Compatibility
+        - `leaf_only` parameter defaults to `true` for new behavior
+        - Set `leaf_only=false` to restore old behavior (all projects)
+        
+      operationId: searchProjects
+      tags:
+        - Search
+      parameters:
+        - name: q
+          in: query
+          description: |
+            Full-text search query. Searches project names and full paths.
+            Uses FTS5 with porter stemming for flexible matching.
+            
+            Examples:
+            - "dwarf" - matches "Dwarf Gemtreasure Trader"
+            - "cast play" - matches "Cast'N'Play" collections
+          schema:
+            type: string
+            maxLength: 256
+          example: "dwarf merchant"
+          
+        - name: tags
+          in: query
+          description: |
+            Comma-separated list of tag names. Projects must have ALL specified tags (AND logic).
+            Tag names are case-insensitive and whitespace is trimmed.
+            
+            Examples:
+            - "miniature" - projects tagged with "miniature"
+            - "miniature,fantasy" - projects tagged with both "miniature" AND "fantasy"
+          schema:
+            type: string
+            maxLength: 512
+          example: "miniature,fantasy"
+          
+        - name: leaf_only
+          in: query
+          description: |
+            **NEW in v1.1.0**: Filter to only leaf projects (projects containing STL files).
+            
+            - `true` (default): Returns only projects with `is_leaf = true` (have STL files)
+            - `false`: Returns all matching projects (old behavior)
+            
+            Setting this to `true` eliminates parent folders from search results,
+            ensuring users only see projects they can actually print.
+          schema:
+            type: boolean
+            default: true
+          example: true
+          
+        - name: page
+          in: query
+          description: |
+            Page number for pagination (1-indexed).
+            First page is 1, not 0.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+          
+        - name: per_page
+          in: query
+          description: |
+            Number of results per page.
+            Maximum is 100 to prevent excessive payload sizes.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+          
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              examples:
+                withResults:
+                  summary: Search with results
+                  value:
+                    data:
+                      - id: 42
+                        name: "819_Dwarf Gemtreasure Trader"
+                        full_path: "/library/CastNPlay/Dwarves/819_Dwarf Gemtreasure Trader"
+                        parent_id: 15
+                        is_leaf: true
+                        description: "A dwarf merchant miniature"
+                        stl_count: 3
+                        image_count: 8
+                        images:
+                          - id: 101
+                            filename: "hero_shot.jpg"
+                            image_source: "regular"
+                            source_type: "direct"
+                            source_project_id: null
+                            image_priority: 100
+                          - id: 102
+                            filename: "angle_view.jpg"
+                            image_source: "regular"
+                            source_type: "inherited"
+                            source_project_id: 15
+                            image_priority: 100
+                          - id: 103
+                            filename: "body_preview.png"
+                            image_source: "stl_preview"
+                            source_type: "direct"
+                            source_project_id: null
+                            image_priority: 50
+                        tags:
+                          - id: 1
+                            name: "miniature"
+                            color: "#3b82f6"
+                            usage_count: 145
+                            created_at: 1700000000
+                          - id: 2
+                            name: "fantasy"
+                            color: "#8b5cf6"
+                            usage_count: 89
+                            created_at: 1700000100
+                        created_at: 1700000000
+                        updated_at: 1700000500
+                    meta:
+                      total: 47
+                      page: 1
+                      per_page: 20
+                      total_pages: 3
+                      
+                emptyResults:
+                  summary: No matching projects
+                  value:
+                    data: []
+                    meta:
+                      total: 0
+                      page: 1
+                      per_page: 20
+                      total_pages: 0
+                      
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidPage:
+                  summary: Invalid page number
+                  value:
+                    error: "Invalid page parameter: must be >= 1"
+                invalidPerPage:
+                  summary: Invalid per_page value
+                  value:
+                    error: "Invalid per_page parameter: must be between 1 and 100"
+                    
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Database error: unable to execute query"
+
+components:
+  schemas:
+    SearchResponse:
+      type: object
+      description: Paginated search response with results and metadata
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          description: Array of search result projects (0 to per_page items)
+          items:
+            $ref: '#/components/schemas/SearchResultProject'
+        meta:
+          $ref: '#/components/schemas/SearchMeta'
+          
+    SearchResultProject:
+      type: object
+      description: |
+        Project returned in search results, extended with image data for carousel display.
+        
+        **NEW in v1.1.0**: Includes `images` array for visual preview carousels.
+      required:
+        - id
+        - name
+        - full_path
+        - is_leaf
+        - stl_count
+        - image_count
+        - images
+        - tags
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique project identifier
+          example: 42
+        name:
+          type: string
+          description: Project name (directory name)
+          minLength: 1
+          maxLength: 255
+          example: "819_Dwarf Gemtreasure Trader"
+        full_path:
+          type: string
+          description: Absolute filesystem path to project directory
+          minLength: 1
+          maxLength: 1024
+          example: "/library/CastNPlay/Dwarves/819_Dwarf Gemtreasure Trader"
+        parent_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Parent project ID (null for root projects)
+          example: 15
+        is_leaf:
+          type: boolean
+          description: |
+            Whether project contains STL files directly.
+            Always `true` when `leaf_only=true` in query.
+          example: true
+        description:
+          type: string
+          nullable: true
+          description: Project description (if available)
+          maxLength: 2048
+          example: "A dwarf merchant miniature with detailed textures"
+        stl_count:
+          type: integer
+          description: Number of STL files in this project
+          minimum: 0
+          example: 3
+        image_count:
+          type: integer
+          description: |
+            Total number of images available for this project (including inherited).
+            May be greater than length of `images` array (which is capped at 15).
+          minimum: 0
+          example: 8
+        images:
+          type: array
+          description: |
+            **NEW in v1.1.0**: Up to 15 images for carousel display.
+            Sorted by priority (regular images first, STL previews second).
+            Empty array if no images available.
+          maxItems: 15
+          items:
+            $ref: '#/components/schemas/ImagePreview'
+        tags:
+          type: array
+          description: Tags associated with this project
+          items:
+            $ref: '#/components/schemas/Tag'
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp (seconds) when project was created
+          example: 1700000000
+        updated_at:
+          type: integer
+          format: int64
+          description: Unix timestamp (seconds) when project was last updated
+          example: 1700000500
+          
+    ImagePreview:
+      type: object
+      description: |
+        **NEW in v1.1.0**: Lightweight image metadata for search result carousels.
+        
+        Images are ordered by priority:
+        - Priority 100: Regular images (photos, renders)
+        - Priority 50: STL preview images (auto-generated)
+        - Priority 25: Composite preview images
+      required:
+        - id
+        - filename
+        - image_source
+        - source_type
+        - image_priority
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique image identifier (used to construct image URL)
+          example: 101
+        filename:
+          type: string
+          description: Image filename
+          minLength: 1
+          maxLength: 255
+          example: "hero_shot.jpg"
+        image_source:
+          type: string
+          description: |
+            Type of image source:
+            - `regular`: Manual image (photo, render)
+            - `stl_preview`: Auto-generated STL preview thumbnail
+            - `composite`: Composite preview (multiple STLs)
+          enum:
+            - regular
+            - stl_preview
+            - composite
+          example: "regular"
+        source_type:
+          type: string
+          description: |
+            How image relates to this project:
+            - `direct`: Image is in this project's directory
+            - `inherited`: Image is from a parent project directory
+          enum:
+            - direct
+            - inherited
+          example: "direct"
+        source_project_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            ID of project where image originated (if inherited).
+            Null for direct images.
+          example: null
+        image_priority:
+          type: integer
+          description: |
+            Display priority (higher = shown first):
+            - 100: Regular images
+            - 50: STL previews
+            - 25: Composite previews
+          enum:
+            - 25
+            - 50
+            - 100
+          example: 100
+          
+    Tag:
+      type: object
+      description: Project tag for categorization
+      required:
+        - id
+        - name
+        - usage_count
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique tag identifier
+          example: 1
+        name:
+          type: string
+          description: Tag name (case-insensitive, unique)
+          minLength: 1
+          maxLength: 50
+          example: "miniature"
+        color:
+          type: string
+          nullable: true
+          description: Hex color code for UI display (optional)
+          pattern: '^#[0-9a-fA-F]{6}$'
+          example: "#3b82f6"
+        usage_count:
+          type: integer
+          description: Number of projects using this tag
+          minimum: 0
+          example: 145
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when tag was created
+          example: 1700000000
+          
+    SearchMeta:
+      type: object
+      description: Pagination metadata for search results
+      required:
+        - total
+        - page
+        - per_page
+        - total_pages
+      properties:
+        total:
+          type: integer
+          description: Total number of matching projects (across all pages)
+          minimum: 0
+          example: 47
+        page:
+          type: integer
+          description: Current page number (1-indexed)
+          minimum: 1
+          example: 1
+        per_page:
+          type: integer
+          description: Results per page
+          minimum: 1
+          maximum: 100
+          example: 20
+        total_pages:
+          type: integer
+          description: Total number of pages (ceil(total / per_page), or 0 if total = 0)
+          minimum: 0
+          example: 3
+          
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Invalid parameter: per_page must be between 1 and 100"

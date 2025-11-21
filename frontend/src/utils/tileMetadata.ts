@@ -1,10 +1,10 @@
 import { TileMetadata } from '../types/tile';
-import { ProjectWithChildren } from '../types/project';
+import { ProjectWithChildren, SearchResultProject } from '../types/project';
 import { formatBytes } from './formatBytes';
 
 const metadataCache = new Map<number, TileMetadata>();
 
-export function calculateTileMetadata(project: ProjectWithChildren): TileMetadata {
+export function calculateTileMetadata(project: ProjectWithChildren | SearchResultProject): TileMetadata {
   // Check cache first
   const cached = metadataCache.get(project.id);
   if (cached) {

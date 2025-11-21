@@ -10,6 +10,20 @@ export interface Project {
   updated_at: number;
 }
 
+export interface ImagePreview {
+  id: number;
+  filename: string;
+  source_type: string;
+  image_source: string;
+  priority: number;
+}
+
+export interface SearchResultProject extends Project {
+  stl_count: number;
+  image_count: number;
+  images: ImagePreview[];
+}
+
 export interface ProjectWithChildren extends Project {
   children: Project[];
   stl_count: number;

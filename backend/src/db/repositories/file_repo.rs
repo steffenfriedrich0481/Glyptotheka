@@ -261,4 +261,47 @@ impl FileRepository {
         conn.execute("DELETE FROM image_files WHERE id = ?1", params![id])?;
         Ok(())
     }
+
+    pub fn get_aggregated_images(
+        &self,
+        project_id: i64,
+        limit: i64,
+    ) -> Result<Vec<crate::models::project::ImagePreview>, AppError> {
+        let conn = self.pool.get()?;
+        let mut stmt = conn.prepare(
+            "WITH RECURSIVE parent_chain AS (
+                SELECT id, parent_id, 0 as level
+                FROM projects
+                WHERE id = ?1
+                UNION ALL
+                SELECT p.id, p.parent_id, pc.level + 1
+                FROM projects p
+                JOIN parent_chain pc ON p.id = pc.parent_id
+            )
+            SELECT 
+                img.id, 
+                img.filename, 
+                img.source_type, 
+                img.image_source, 
+                img.image_priority
+            FROM image_files img
+            JOIN parent_chain pc ON img.project_id = pc.id
+            ORDER BY img.image_priority DESC, pc.level ASC, img.display_order ASC
+            LIMIT ?2"
+        )?;
+
+        let images = stmt
+            .query_map(params![project_id, limit], |row| {
+                Ok(crate::models::project::ImagePreview {
+                    id: row.get(0)?,
+                    filename: row.get(1)?,
+                    source_type: row.get(2)?,
+                    image_source: row.get(3)?,
+                    priority: row.get(4)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(images)
+    }
 }

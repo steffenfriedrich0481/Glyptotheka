@@ -1,5 +1,5 @@
 use glyptotheka_backend::config::Config;
-use glyptotheka_backend::db::connection::init_pool;
+use glyptotheka_backend::db::connection::create_pool;
 use glyptotheka_backend::services::scanner::ScannerService;
 use std::fs;
 use tempfile::TempDir;
@@ -7,15 +7,14 @@ use tempfile::TempDir;
 fn setup_test_env() -> (TempDir, Config) {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
+    let cache_dir = temp_dir.path().join("cache");
 
     let config = Config {
-        database_url: db_path.to_str().unwrap().to_string(),
-        cache_dir: temp_dir.path().join("cache"),
-        root_path: None,
-        stl_thumb_path: None,
+        database_path: db_path.to_str().unwrap().to_string(),
+        cache_dir: cache_dir.to_str().unwrap().to_string(),
     };
 
-    fs::create_dir_all(&config.cache_dir).unwrap();
+    fs::create_dir_all(&cache_dir).unwrap();
 
     (temp_dir, config)
 }
@@ -45,7 +44,7 @@ fn create_test_project(
 #[test]
 fn test_scan_empty_directory() {
     let (temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("empty");
@@ -60,7 +59,7 @@ fn test_scan_empty_directory() {
 #[test]
 fn test_scan_single_project() {
     let (temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -78,7 +77,7 @@ fn test_scan_single_project() {
 #[test]
 fn test_scan_nested_projects() {
     let (temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -96,7 +95,7 @@ fn test_scan_nested_projects() {
 #[test]
 fn test_scan_multiple_projects() {
     let (temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -116,7 +115,7 @@ fn test_scan_multiple_projects() {
 #[test]
 fn test_scan_invalid_path() {
     let (_temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let result = scanner.scan("/nonexistent/path");
@@ -127,7 +126,7 @@ fn test_scan_invalid_path() {
 #[test]
 fn test_rescan_updates_existing() {
     let (temp_dir, config) = setup_test_env();
-    let pool = init_pool(&config.database_url).unwrap();
+    let pool = create_pool(&config.database_path).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");

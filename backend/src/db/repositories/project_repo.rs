@@ -191,4 +191,39 @@ impl ProjectRepository {
         conn.execute("DELETE FROM projects WHERE id = ?1", params![id])?;
         Ok(())
     }
+
+    pub fn get_parent_chain(&self, project_id: i64) -> Result<Vec<Project>, AppError> {
+        let conn = self.pool.get()?;
+        let mut stmt = conn.prepare(
+            "WITH RECURSIVE parent_chain AS (
+                SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at, 0 as level
+                FROM projects
+                WHERE id = ?1
+                UNION ALL
+                SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at, pc.level + 1
+                FROM projects p
+                JOIN parent_chain pc ON p.id = pc.parent_id
+            )
+            SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            FROM parent_chain
+            ORDER BY level DESC"
+        )?;
+
+        let projects = stmt
+            .query_map(params![project_id], |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(projects)
+    }
 }

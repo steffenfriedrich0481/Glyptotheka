@@ -16,6 +16,8 @@ pub struct SearchQuery {
     pub page: usize,
     #[serde(default = "default_per_page")]
     pub per_page: usize,
+    #[serde(default = "default_leaf_only")]
+    pub leaf_only: bool,
 }
 
 fn default_page() -> usize {
@@ -24,6 +26,10 @@ fn default_page() -> usize {
 
 fn default_per_page() -> usize {
     20
+}
+
+fn default_leaf_only() -> bool {
+    true
 }
 
 #[derive(Debug, Serialize)]
@@ -59,6 +65,7 @@ pub async fn search_projects(
         tags,
         page: query.page,
         per_page: query.per_page.min(100),
+        leaf_only: query.leaf_only,
     };
 
     let result = state.search_service.search(&params).map_err(|e| {
