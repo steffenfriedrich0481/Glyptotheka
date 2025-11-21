@@ -147,18 +147,18 @@ description: "Task breakdown for Search View Refinement feature"
 
 ### Tests for User Story 3
 
-- [ ] T051 [P] [US3] Add component test for auto-advance functionality in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
-- [ ] T052 [P] [US3] Add component test for pause on hover in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
-- [ ] T053 [P] [US3] Add component test for pause after manual navigation in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T051 [P] [US3] Add component test for auto-advance functionality in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T052 [P] [US3] Add component test for pause on hover in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T053 [P] [US3] Add component test for pause after manual navigation in SearchTileCarousel in frontend/tests/components/SearchTileCarousel.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T054 [US3] Add `autoAdvance` prop to SearchTileCarousel component in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T055 [US3] Implement auto-advance logic with staggered intervals (3-5 seconds) using setInterval in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T056 [US3] Implement pause on hover by tracking `isHovered` state in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T057 [US3] Implement pause after manual navigation with 10-second delay in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T058 [US3] Add cleanup logic to clear interval on component unmount in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T059 [US3] Update ProjectTile to pass `autoAdvance={true}` to SearchTileCarousel in frontend/src/components/project/ProjectTile.tsx
+- [x] T054 [US3] Add `autoAdvance` prop to SearchTileCarousel component in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T055 [US3] Implement auto-advance logic with staggered intervals (3-5 seconds) using setInterval in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T056 [US3] Implement pause on hover by tracking `isHovered` state in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T057 [US3] Implement pause after manual navigation with 10-second delay in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T058 [US3] Add cleanup logic to clear interval on component unmount in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T059 [US3] Update ProjectTile to pass `autoAdvance={true}` to SearchTileCarousel in frontend/src/components/project/ProjectTile.tsx
 
 **Checkpoint**: All user stories should now be independently functional. Test auto-advance behavior with multiple search result tiles.
 
@@ -168,15 +168,15 @@ description: "Task breakdown for Search View Refinement feature"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T060 [P] Add accessibility: keyboard navigation (arrow keys) for carousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T061 [P] Add accessibility: ARIA labels for carousel controls and images in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T062 [P] Add Intersection Observer for viewport-based lazy loading in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T063 [P] Optimize performance: Add React.memo() to SearchTileCarousel component in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T064 [P] Optimize performance: Add CSS containment (`contain: layout style paint`) to carousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T065 [P] Batch image queries for all search results in single database call in backend/src/api/handlers/search.rs
+- [x] T060 [P] Add accessibility: keyboard navigation (arrow keys) for carousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T061 [P] Add accessibility: ARIA labels for carousel controls and images in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T062 [P] Add Intersection Observer for viewport-based lazy loading in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T063 [P] Optimize performance: Add React.memo() to SearchTileCarousel component in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T064 [P] Optimize performance: Add CSS containment (`contain: layout style paint`) to carousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T065 [P] Batch image queries for all search results in single database call in backend/src/api/handlers/search.rs
 - [ ] T066 [P] Add performance benchmark test for search query with 50 results in backend/tests/performance/search_bench.rs
-- [ ] T067 [P] Add error handling for failed image loads with retry option in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T068 [P] Add loading skeleton animation with smooth transitions in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T067 [P] Add error handling for failed image loads with retry option in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T068 [P] Add loading skeleton animation with smooth transitions in frontend/src/components/project/SearchTileCarousel.tsx
 - [ ] T069 [P] Update API documentation to reflect new search parameters and response structure in docs/api.md
 - [ ] T070 [P] Add frontend component documentation for SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
 - [ ] T071 Run all backend tests with `cargo test` and verify passing

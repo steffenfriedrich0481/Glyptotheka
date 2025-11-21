@@ -3,6 +3,7 @@ use crate::models::image_file::{CreateImageFile, ImageFile};
 use crate::models::stl_file::{CreateStlFile, StlFile};
 use crate::utils::error::AppError;
 use rusqlite::params;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct FileRepository {
@@ -304,6 +305,83 @@ impl FileRepository {
 
         Ok(images)
     }
+
+    pub fn get_aggregated_images_batch(
+        &self,
+        project_ids: &[i64],
+        limit_per_project: i64,
+    ) -> Result<HashMap<i64, Vec<crate::models::project::ImagePreview>>, AppError> {
+        if project_ids.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        let conn = self.pool.get()?;
+        
+        let placeholders = project_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        
+        let sql = format!(
+            "WITH RECURSIVE parent_chain AS (
+                SELECT id, parent_id, id as original_project_id, 0 as level
+                FROM projects
+                WHERE id IN ({})
+                UNION ALL
+                SELECT p.id, p.parent_id, pc.original_project_id, pc.level + 1
+                FROM projects p
+                JOIN parent_chain pc ON p.id = pc.parent_id
+            ),
+            ranked_images AS (
+                SELECT 
+                    pc.original_project_id,
+                    img.id, 
+                    img.filename, 
+                    img.source_type, 
+                    img.image_source, 
+                    img.image_priority,
+                    ROW_NUMBER() OVER (PARTITION BY pc.original_project_id ORDER BY img.image_priority DESC, pc.level ASC, img.display_order ASC) as rn
+                FROM image_files img
+                JOIN parent_chain pc ON img.project_id = pc.id
+            )
+            SELECT 
+                original_project_id,
+                id, 
+                filename, 
+                source_type, 
+                image_source, 
+                image_priority
+            FROM ranked_images 
+            WHERE rn <= ?",
+            placeholders
+        );
+
+        let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(project_ids.len() + 1);
+        for id in project_ids {
+            params.push(id);
+        }
+        params.push(&limit_per_project);
+
+        let mut stmt = conn.prepare(&sql)?;
+        
+        let rows = stmt.query_map(rusqlite::params_from_iter(params.iter()), |row| {
+            let original_project_id: i64 = row.get(0)?;
+            let image = crate::models::project::ImagePreview {
+                id: row.get(1)?,
+                filename: row.get(2)?,
+                source_type: row.get(3)?,
+                image_source: row.get(4)?,
+                priority: row.get(5)?,
+            };
+            Ok((original_project_id, image))
+        })?;
+
+        let mut result: HashMap<i64, Vec<crate::models::project::ImagePreview>> = HashMap::new();
+        
+        for row in rows {
+            let (project_id, image) = row?;
+            result.entry(project_id).or_default().push(image);
+        }
+
+        Ok(result)
+    }
 }
 
 #[cfg(test)]
@@ -406,5 +484,40 @@ mod tests {
         // Regular image (100) should come before preview (50)
         assert_eq!(images[0].filename, "regular.jpg");
         assert_eq!(images[1].filename, "preview.png");
+    }
+
+    #[test]
+    fn test_get_aggregated_images_batch() {
+        let pool = setup_db();
+        let repo = FileRepository::new(pool.clone());
+        let conn = pool.get().unwrap();
+
+        // Create projects
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (1, 'Root', '/root', NULL, 0, 0, 0)", []).unwrap();
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (2, 'Child1', '/root/child1', 1, 1, 0, 0)", []).unwrap();
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (3, 'Child2', '/root/child2', 1, 1, 0, 0)", []).unwrap();
+
+        // Add images
+        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0).unwrap();
+        repo.add_image_file(2, "child1.jpg", "/root/child1/child1.jpg", 100, "direct", None, 0).unwrap();
+        repo.add_image_file(3, "child2.jpg", "/root/child2/child2.jpg", 100, "direct", None, 0).unwrap();
+
+        // Get batch images for Child1 and Child2
+        let images_map = repo.get_aggregated_images_batch(&[2, 3], 15).unwrap();
+
+        assert_eq!(images_map.len(), 2);
+        
+        // Child1 should have child1.jpg and root.jpg
+        let child1_images = images_map.get(&2).unwrap();
+        assert_eq!(child1_images.len(), 2);
+        // Order: Child1 (level 0), Root (level 1)
+        assert_eq!(child1_images[0].filename, "child1.jpg");
+        assert_eq!(child1_images[1].filename, "root.jpg");
+
+        // Child2 should have child2.jpg and root.jpg
+        let child2_images = images_map.get(&3).unwrap();
+        assert_eq!(child2_images.len(), 2);
+        assert_eq!(child2_images[0].filename, "child2.jpg");
+        assert_eq!(child2_images[1].filename, "root.jpg");
     }
 }

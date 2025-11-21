@@ -51,10 +51,14 @@ impl SearchService {
 
         // Populate images for each project
         let file_repo = FileRepository::new(self.pool.clone());
+        let project_ids: Vec<i64> = projects.iter().map(|p| p.project.id).collect();
+        let mut images_map = file_repo.get_aggregated_images_batch(&project_ids, 15)?;
+        
         for project in &mut projects {
-            let images = file_repo.get_aggregated_images(project.project.id, 15)?;
-            project.image_count = images.len();
-            project.images = images;
+            if let Some(images) = images_map.remove(&project.project.id) {
+                project.image_count = images.len();
+                project.images = images;
+            }
         }
 
         let total_pages = if total > 0 {
