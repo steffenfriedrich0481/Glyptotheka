@@ -308,15 +308,21 @@ impl ScannerService {
         path_to_id: &mut HashMap<PathBuf, i64>,
         processed_paths: &mut HashSet<PathBuf>,
     ) -> Result<i64, AppError> {
+        let full_path = folder.to_str().unwrap().to_string();
+
         if let Some(&existing_id) = path_to_id.get(folder) {
+            // Ensure is_leaf is true since this folder has STL files
+            self.project_repo.update_is_leaf(existing_id, true)?;
             return Ok(existing_id);
         }
-
-        let full_path = folder.to_str().unwrap().to_string();
 
         if processed_paths.contains(folder) {
             if let Some(project) = self.project_repo.get_by_path(&full_path)? {
                 path_to_id.insert(folder.to_path_buf(), project.id);
+                // Ensure is_leaf is true
+                if !project.is_leaf {
+                    self.project_repo.update_is_leaf(project.id, true)?;
+                }
                 return Ok(project.id);
             }
         }
@@ -326,11 +332,11 @@ impl ScannerService {
         let parent_id = if folder != root {
             if let Some(parent) = folder.parent() {
                 if parent >= root {
-                    Some(self.create_project_hierarchy(
+                    // Use ensure_project_exists for parent (creates with is_leaf=false)
+                    Some(self.ensure_project_exists(
                         parent,
                         root,
                         path_to_id,
-                        processed_paths,
                     )?)
                 } else {
                     None
@@ -357,6 +363,9 @@ impl ScannerService {
         };
 
         let project_id = if let Some(existing) = self.project_repo.get_by_path(&full_path)? {
+            if !existing.is_leaf {
+                self.project_repo.update_is_leaf(existing.id, true)?;
+            }
             existing.id
         } else {
             self.project_repo.create(&create_project)?

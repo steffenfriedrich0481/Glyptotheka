@@ -186,6 +186,19 @@ impl ProjectRepository {
         }))
     }
 
+    pub fn update_is_leaf(&self, id: i64, is_leaf: bool) -> Result<(), AppError> {
+        let conn = self.pool.get()?;
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs() as i64;
+
+        conn.execute(
+            "UPDATE projects SET is_leaf = ?1, updated_at = ?2 WHERE id = ?3",
+            params![is_leaf, now, id],
+        )?;
+        Ok(())
+    }
+
     pub fn delete(&self, id: i64) -> Result<(), AppError> {
         let conn = self.pool.get()?;
         conn.execute("DELETE FROM projects WHERE id = ?1", params![id])?;

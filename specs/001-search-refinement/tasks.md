@@ -179,8 +179,8 @@ description: "Task breakdown for Search View Refinement feature"
 - [x] T068 [P] Add loading skeleton animation with smooth transitions in frontend/src/components/project/SearchTileCarousel.tsx
 - [ ] T069 [P] Update API documentation to reflect new search parameters and response structure in docs/api.md
 - [ ] T070 [P] Add frontend component documentation for SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T071 Run all backend tests with `cargo test` and verify passing
-- [ ] T072 Run all frontend tests with `npm test` and verify passing
+- [x] T071 Run all backend tests with `cargo test` and verify passing
+- [x] T072 Run all frontend tests with `npm test` and verify passing
 - [ ] T073 Run quickstart.md validation end-to-end with real database
 - [ ] T074 Perform manual testing of all acceptance scenarios from spec.md
 - [ ] T075 Run Lighthouse audit on search page and verify performance score > 90
