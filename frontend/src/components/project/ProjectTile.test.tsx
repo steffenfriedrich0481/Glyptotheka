@@ -101,6 +101,6 @@ describe('ProjectTile', () => {
     };
     const onClick = vi.fn();
     render(<ProjectTile project={projectWithImages} onClick={onClick} />);
-    expect(screen.getByAltText('Test Project - Image 1')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 1 of 1')).toBeInTheDocument();
   });
 });

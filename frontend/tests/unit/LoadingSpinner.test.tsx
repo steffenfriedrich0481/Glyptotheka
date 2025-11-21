@@ -10,8 +10,8 @@ describe('LoadingSpinner Component', () => {
   });
 
   it('renders with custom size', () => {
-    const { container } = render(<LoadingSpinner size={100} />);
-    const spinner = container.querySelector('.animate-spin');
-    expect(spinner).toBeInTheDocument();
+    const { container } = render(<LoadingSpinner size="large" />);
+    const spinnerContainer = container.querySelector('.loading-spinner-container.large');
+    expect(spinnerContainer).toBeInTheDocument();
   });
 });

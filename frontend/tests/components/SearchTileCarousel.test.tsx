@@ -25,7 +25,7 @@ describe('SearchTileCarousel', () => {
 
   it('renders first image when images provided', () => {
     render(<SearchTileCarousel images={mockImages} projectName="Test Project" />);
-    const img = screen.getByAltText('Test Project - Image 1');
+    const img = screen.getByAltText('Test Project - Image 1 of 3');
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', '/api/files/images/1');
   });
@@ -41,20 +41,20 @@ describe('SearchTileCarousel', () => {
     render(<SearchTileCarousel images={mockImages} projectName="Test Project" />);
     const nextBtn = screen.getByLabelText('Next image');
     fireEvent.click(nextBtn);
-    expect(screen.getByAltText('Test Project - Image 2')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 2 of 3')).toBeInTheDocument();
   });
 
   it('auto-advances to next image', () => {
     vi.useFakeTimers();
     render(<SearchTileCarousel images={mockImages} projectName="Test Project" autoAdvance={true} />);
     
-    expect(screen.getByAltText('Test Project - Image 1')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 1 of 3')).toBeInTheDocument();
     
     act(() => {
       vi.advanceTimersByTime(5000);
     });
     
-    expect(screen.getByAltText('Test Project - Image 2')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 2 of 3')).toBeInTheDocument();
     vi.useRealTimers();
   });
 
@@ -62,14 +62,14 @@ describe('SearchTileCarousel', () => {
     vi.useFakeTimers();
     render(<SearchTileCarousel images={mockImages} projectName="Test Project" autoAdvance={true} />);
     
-    const container = screen.getByAltText('Test Project - Image 1').parentElement!;
+    const container = screen.getByAltText('Test Project - Image 1 of 3').parentElement!;
     fireEvent.mouseEnter(container);
     
     act(() => {
       vi.advanceTimersByTime(5000);
     });
     
-    expect(screen.getByAltText('Test Project - Image 1')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 1 of 3')).toBeInTheDocument();
     vi.useRealTimers();
   });
 
@@ -81,7 +81,7 @@ describe('SearchTileCarousel', () => {
     fireEvent.click(nextBtn);
     
     // Should be Image 2
-    expect(screen.getByAltText('Test Project - Image 2')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 2 of 3')).toBeInTheDocument();
     
     // Advance by 5000ms (should be paused)
     act(() => {
@@ -89,7 +89,7 @@ describe('SearchTileCarousel', () => {
     });
     
     // Should still be Image 2
-    expect(screen.getByAltText('Test Project - Image 2')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 2 of 3')).toBeInTheDocument();
     
     // Advance to end pause (10000ms)
     act(() => {
@@ -102,7 +102,7 @@ describe('SearchTileCarousel', () => {
     });
     
     // Should have advanced to Image 3
-    expect(screen.getByAltText('Test Project - Image 3')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Project - Image 3 of 3')).toBeInTheDocument();
     
     vi.useRealTimers();
   });

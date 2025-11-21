@@ -63,7 +63,13 @@ describe('ProjectGrid', () => {
   it('displays correct file counts', () => {
     const onProjectClick = vi.fn();
     render(<ProjectGrid projects={mockProjects} onProjectClick={onProjectClick} />);
-    expect(screen.getByText('4 files')).toBeInTheDocument(); // Project 1
-    expect(screen.getByText('7 files')).toBeInTheDocument(); // Project 2
+    
+    // Project 1: 3 STLs, 1 Image
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    
+    // Project 2: 5 STLs, 2 Images
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
   });
 });
