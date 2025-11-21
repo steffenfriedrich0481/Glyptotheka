@@ -1,4 +1,5 @@
 use axum::{middleware, routing::get, Router};
+use tower_http::services::{ServeDir, ServeFile};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
@@ -80,9 +81,14 @@ async fn main() {
     // Build application with routes and middleware
     let api_routes = api::routes::create_router(pool, cache_path, ignored_keywords);
 
+    let frontend_path = std::env::var("FRONTEND_PATH").unwrap_or_else(|_| "frontend".to_string());
+    let serve_dir = ServeDir::new(&frontend_path)
+        .not_found_service(ServeFile::new(format!("{}/index.html", frontend_path)));
+
     let app = Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(api_routes)
+        .fallback_service(serve_dir)
         .layer(middleware::from_fn(cors_middleware))
         .layer(middleware::from_fn(error_middleware));
 

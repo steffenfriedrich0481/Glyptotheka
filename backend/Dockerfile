@@ -1,5 +1,13 @@
-# Backend Dockerfile
-FROM rust:1.83 as builder
+# Frontend Builder
+FROM node:18 as frontend-builder
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Backend Builder
+FROM rust:1.83 as backend-builder
 
 WORKDIR /app
 
@@ -44,9 +52,12 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copy binary from builder
-COPY --from=builder /app/target/release/glyptotheka-backend /app/
-COPY --from=builder /app/migrations /app/migrations
+# Copy binary from backend-builder
+COPY --from=backend-builder /app/target/release/glyptotheka-backend /app/
+COPY --from=backend-builder /app/migrations /app/migrations
+
+# Copy frontend from frontend-builder
+COPY --from=frontend-builder /app/dist /app/frontend
 
 # Create directories
 RUN mkdir -p /app/cache /app/data
@@ -54,6 +65,7 @@ RUN mkdir -p /app/cache /app/data
 # Environment variables
 ENV DATABASE_PATH=/app/data/glyptotheka.db
 ENV CACHE_DIR=/app/cache
+ENV FRONTEND_PATH=/app/frontend
 ENV RUST_LOG=info
 
 EXPOSE 3000

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    # REPLACE 'yourusername/glyptotheka' with your actual GitHub username and repo name
+    image: ghcr.io/yourusername/glyptotheka-backend:latest
+    container_name: glyptotheka-backend
+    command: ["/app/glyptotheka-backend"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - /mnt/user/appdata/glyptotheka/data:/app/data
+      - /mnt/user/appdata/glyptotheka/cache:/app/cache
+      # Map your Unraid share containing STLs here
+      - /mnt/user/isos:/projects:ro
+    environment:
+      - DATABASE_PATH=/app/data/glyptotheka.db
+      - CACHE_DIR=/app/cache
+      - ROOT_PATH=/projects
+      - RUST_LOG=info,glyptotheka_backend=debug
+      - IGNORED_KEYWORDS=${IGNORED_KEYWORDS:-PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported}
+    restart: unless-stopped
+
+  frontend:
+    # REPLACE 'yourusername/glyptotheka' with your actual GitHub username and repo name
+    image: ghcr.io/yourusername/glyptotheka-frontend:latest
+    container_name: glyptotheka-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

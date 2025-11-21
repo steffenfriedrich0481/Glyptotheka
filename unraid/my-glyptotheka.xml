@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Glyptotheka</Name>
+  <Repository>ghcr.io/steffenfriedrich0481/glyptotheka:latest</Repository>
+  <Registry>https://github.com/steffenfriedrich0481/Glyptotheka/pkgs/container/glyptotheka</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/steffenfriedrich0481/Glyptotheka/issues</Support>
+  <Project>https://github.com/steffenfriedrich0481/Glyptotheka</Project>
+  <Overview>Glyptotheka is a 3D print model library web application. It scans your STL files and provides a beautiful UI to browse and organize them.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/steffenfriedrich0481/Glyptotheka/main/docs/icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Description>Glyptotheka is a 3D print model library web application.</Description>
+  <Networking>
+    <Mode>bridge</Mode>
+    <Publish>
+      <Port>
+        <HostPort>3000</HostPort>
+        <ContainerPort>3000</ContainerPort>
+        <Protocol>tcp</Protocol>
+      </Port>
+    </Publish>
+  </Networking>
+  <Data>
+    <Volume>
+      <HostDir>/mnt/user/isos/3d-models/</HostDir>
+      <ContainerDir>/projects</ContainerDir>
+      <Mode>ro</Mode>
+    </Volume>
+    <Volume>
+      <HostDir>/mnt/user/appdata/glyptotheka/data</HostDir>
+      <ContainerDir>/app/data</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+    <Volume>
+      <HostDir>/mnt/user/appdata/glyptotheka/cache</HostDir>
+      <ContainerDir>/app/cache</ContainerDir>
+      <Mode>rw</Mode>
+    </Volume>
+  </Data>
+  <Environment>
+    <Variable>
+      <Value>/projects</Value>
+      <Name>ROOT_PATH</Name>
+      <Mode/>
+    </Variable>
+    <Variable>
+      <Value>PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported</Value>
+      <Name>IGNORED_KEYWORDS</Name>
+      <Mode/>
+    </Variable>
+  </Environment>
+  <Config Name="Web UI" Target="3000" Default="3000" Mode="tcp" Description="Container Port: 3000" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="3D Models Path" Target="/projects" Default="/mnt/user/isos/3d-models/" Mode="ro" Description="Path to your 3D models (STL files)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/isos/3d-models/</Config>
+  <Config Name="Data Path" Target="/app/data" Default="/mnt/user/appdata/glyptotheka/data" Mode="rw" Description="Path to store database" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/glyptotheka/data</Config>
+  <Config Name="Cache Path" Target="/app/cache" Default="/mnt/user/appdata/glyptotheka/cache" Mode="rw" Description="Path to store generated previews" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/glyptotheka/cache</Config>
+  <Config Name="Root Path (Internal)" Target="ROOT_PATH" Default="/projects" Mode="" Description="Internal path to projects (should match container path of 3D Models)" Type="Variable" Display="advanced" Required="true" Mask="false">/projects</Config>
+  <Config Name="Ignored Keywords" Target="IGNORED_KEYWORDS" Default="PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported" Mode="" Description="Comma-separated list of folder names to treat as file categories instead of sub-projects" Type="Variable" Display="advanced" Required="false" Mask="false">PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported</Config>
+</Container>
