@@ -13,8 +13,8 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
   const [isPaused, setIsPaused] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const pauseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Reset error and loaded state when image changes
