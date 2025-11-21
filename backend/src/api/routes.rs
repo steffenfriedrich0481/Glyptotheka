@@ -36,7 +36,7 @@ pub struct AppState {
     pub scan_state: Arc<Mutex<ScanState>>,
 }
 
-pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
+pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<String>) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir.clone(), pool.clone()));
 
     let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
@@ -67,7 +67,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf) -> Router {
         scanner_service,
         rescan_service,
         image_cache_service: image_cache,
-        search_service: Arc::new(SearchService::new(pool.clone())),
+        search_service: Arc::new(SearchService::new(pool.clone(), ignored_keywords)),
         download_service: Arc::new(DownloadService::new(pool.clone())),
         stl_preview_service: stl_preview,
         scan_state: Arc::new(Mutex::new(ScanState {

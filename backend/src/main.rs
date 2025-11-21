@@ -65,8 +65,20 @@ async fn main() {
 
     tracing::info!(cache_dir = %cache_dir, "Cache directory initialized");
 
+    // Initialize ignored keywords for search
+    let ignored_keywords_str = std::env::var("IGNORED_KEYWORDS")
+        .unwrap_or_else(|_| "PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported".to_string());
+    
+    let ignored_keywords: Vec<String> = ignored_keywords_str
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+        
+    tracing::info!(keywords = ?ignored_keywords, "Initialized ignored keywords for search");
+
     // Build application with routes and middleware
-    let api_routes = api::routes::create_router(pool, cache_path);
+    let api_routes = api::routes::create_router(pool, cache_path, ignored_keywords);
 
     let app = Router::new()
         .route("/health", get(|| async { "OK" }))

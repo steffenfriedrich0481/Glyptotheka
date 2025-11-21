@@ -5,6 +5,7 @@ use crate::utils::error::AppError;
 
 pub struct SearchService {
     pool: DbPool,
+    ignored_keywords: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -26,8 +27,36 @@ pub struct SearchResult {
 }
 
 impl SearchService {
-    pub fn new(pool: DbPool) -> Self {
-        Self { pool }
+    pub fn new(pool: DbPool, ignored_keywords: Vec<String>) -> Self {
+        Self { 
+            pool,
+            ignored_keywords: ignored_keywords.iter().map(|k| k.to_lowercase()).collect(),
+        }
+    }
+
+    fn resolve_display_name(&self, project: &Project) -> String {
+        let name_lower = project.name.trim().to_lowercase();
+        
+        // If current name is not a keyword, return it
+        if !self.ignored_keywords.contains(&name_lower) {
+            return project.name.clone();
+        }
+
+        // Otherwise, traverse up the path
+        let path = std::path::Path::new(&project.full_path);
+        
+        // Iterate components in reverse
+        for component in path.components().rev() {
+            if let Some(comp_str) = component.as_os_str().to_str() {
+                let comp_lower = comp_str.trim().to_lowercase();
+                if !self.ignored_keywords.contains(&comp_lower) {
+                    return comp_str.to_string();
+                }
+            }
+        }
+
+        // Fallback to original name if everything is ignored (unlikely)
+        project.name.clone()
     }
 
     pub fn search(&self, params: &SearchParams) -> Result<SearchResult, AppError> {
@@ -119,7 +148,7 @@ impl SearchService {
 
         let mut stmt = conn.prepare(&sql)?;
 
-        let projects = stmt
+        let mut projects = stmt
             .query_map(
                 rusqlite::params![&fts_query, per_page_i64, offset_i64],
                 |row| {
@@ -141,6 +170,11 @@ impl SearchService {
                 },
             )?
             .collect::<Result<Vec<_>, _>>()?;
+
+        // Update display names based on ignored keywords
+        for p in &mut projects {
+            p.project.name = self.resolve_display_name(&p.project);
+        }
 
         Ok((projects, total))
     }
@@ -217,7 +251,7 @@ impl SearchService {
         query_params.push(&offset_i64);
 
         let mut stmt = conn.prepare(&query)?;
-        let projects = stmt
+        let mut projects = stmt
             .query_map(rusqlite::params_from_iter(query_params.iter()), |row| {
                 Ok(SearchResultProject {
                     project: Project {
@@ -236,6 +270,11 @@ impl SearchService {
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
+
+        // Update display names based on ignored keywords
+        for p in &mut projects {
+            p.project.name = self.resolve_display_name(&p.project);
+        }
 
         Ok((projects, total))
     }
@@ -316,7 +355,7 @@ impl SearchService {
         query_params.push(&offset_i64);
 
         let mut stmt = conn.prepare(&query)?;
-        let projects = stmt
+        let mut projects = stmt
             .query_map(rusqlite::params_from_iter(query_params.iter()), |row| {
                 Ok(SearchResultProject {
                     project: Project {
@@ -335,6 +374,11 @@ impl SearchService {
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
+
+        // Update display names based on ignored keywords
+        for p in &mut projects {
+            p.project.name = self.resolve_display_name(&p.project);
+        }
 
         Ok((projects, total))
     }
@@ -370,7 +414,7 @@ impl SearchService {
         let per_page_i64 = params.per_page as i64;
         let offset_i64 = offset as i64;
 
-        let projects = stmt
+        let mut projects = stmt
             .query_map([per_page_i64, offset_i64], |row| {
                 Ok(SearchResultProject {
                     project: Project {
@@ -389,6 +433,11 @@ impl SearchService {
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
+
+        // Update display names based on ignored keywords
+        for p in &mut projects {
+            p.project.name = self.resolve_display_name(&p.project);
+        }
 
         Ok((projects, total))
     }
