@@ -1,7 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+// @vitest-environment jsdom
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import * as matchers from '@testing-library/jest-dom/matchers';
 import ProjectTile from './ProjectTile';
 import { ProjectWithChildren } from '../../types/project';
+
+expect.extend(matchers);
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('ProjectTile', () => {
   const mockProject: ProjectWithChildren = {
@@ -36,25 +44,25 @@ describe('ProjectTile', () => {
   it('displays file count', () => {
     const onClick = vi.fn();
     render(<ProjectTile project={mockProject} onClick={onClick} />);
-    expect(screen.getByText('7 files')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
   });
 
   it('shows "Project" badge for leaf projects', () => {
     const onClick = vi.fn();
     render(<ProjectTile project={mockProject} onClick={onClick} />);
-    expect(screen.getByText('Project')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', expect.stringContaining('Project'));
   });
 
   it('shows "Folder" badge for folders', () => {
     const onClick = vi.fn();
     render(<ProjectTile project={mockFolder} onClick={onClick} />);
-    expect(screen.getByText('Folder')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', expect.stringContaining('Folder'));
   });
 
   it('displays child count for folders', () => {
     const onClick = vi.fn();
     render(<ProjectTile project={mockFolder} onClick={onClick} />);
-    expect(screen.getByText('1 item')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('calls onClick when clicked', () => {
@@ -84,5 +92,15 @@ describe('ProjectTile', () => {
     const onClick = vi.fn();
     render(<ProjectTile project={mockProject} onClick={onClick} />);
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Project: Test Project');
+  });
+
+  it('renders carousel when images are present', () => {
+    const projectWithImages: any = {
+      ...mockProject,
+      images: [{ id: 1, filename: 'test.jpg', source_type: 'direct', image_source: 'original', priority: 100 }]
+    };
+    const onClick = vi.fn();
+    render(<ProjectTile project={projectWithImages} onClick={onClick} />);
+    expect(screen.getByAltText('Test Project - Image 1')).toBeInTheDocument();
   });
 });

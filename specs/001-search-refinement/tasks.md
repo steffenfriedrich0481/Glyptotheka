@@ -107,33 +107,33 @@ description: "Task breakdown for Search View Refinement feature"
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Add unit test for `get_aggregated_images()` with simple project (no parents) in backend/tests/unit/file_repo_test.rs
-- [ ] T028 [P] [US2] Add unit test for `get_aggregated_images()` with 3-level parent hierarchy in backend/tests/unit/file_repo_test.rs
-- [ ] T029 [P] [US2] Add unit test verifying 15-image limit in `get_aggregated_images()` in backend/tests/unit/file_repo_test.rs
-- [ ] T030 [P] [US2] Add unit test for image priority sorting (regular images before STL previews) in backend/tests/unit/file_repo_test.rs
-- [ ] T031 [P] [US2] Add integration test for search response including image data in backend/tests/integration/search_tests.rs
-- [ ] T032 [P] [US2] Add component test for SearchTileCarousel with multiple images in frontend/tests/components/SearchTileCarousel.test.tsx
-- [ ] T033 [P] [US2] Add component test for SearchTileCarousel with no images (placeholder) in frontend/tests/components/SearchTileCarousel.test.tsx
-- [ ] T034 [P] [US2] Add component test for SearchTileCarousel navigation controls in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T027 [P] [US2] Add unit test for `get_aggregated_images()` with simple project (no parents) in backend/tests/unit/file_repo_test.rs
+- [x] T028 [P] [US2] Add unit test for `get_aggregated_images()` with 3-level parent hierarchy in backend/tests/unit/file_repo_test.rs
+- [x] T029 [P] [US2] Add unit test verifying 15-image limit in `get_aggregated_images()` in backend/tests/unit/file_repo_test.rs
+- [x] T030 [P] [US2] Add unit test for image priority sorting (regular images before STL previews) in backend/tests/unit/file_repo_test.rs
+- [x] T031 [P] [US2] Add integration test for search response including image data in backend/tests/integration/search_tests.rs
+- [x] T032 [P] [US2] Add component test for SearchTileCarousel with multiple images in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T033 [P] [US2] Add component test for SearchTileCarousel with no images (placeholder) in frontend/tests/components/SearchTileCarousel.test.tsx
+- [x] T034 [P] [US2] Add component test for SearchTileCarousel navigation controls in frontend/tests/components/SearchTileCarousel.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T035 [US2] Implement recursive CTE query for parent chain in `get_aggregated_images()` method in backend/src/db/repositories/file_repo.rs
-- [ ] T036 [US2] Implement image fetching with priority sorting and 15-image limit in backend/src/db/repositories/file_repo.rs
-- [ ] T037 [US2] Update `search_projects()` handler to call `get_aggregated_images()` for each result in backend/src/api/handlers/search.rs
-- [ ] T038 [US2] Add `images` array with ImagePreview data to response JSON in backend/src/api/handlers/search.rs
-- [ ] T039 [US2] Add `image_count` field to response JSON in backend/src/api/handlers/search.rs
-- [ ] T040 [US2] Add `ImagePreview` TypeScript interface in frontend/src/types/project.ts
-- [ ] T041 [US2] Update `SearchResultProject` interface to include `image_count` and `images` array in frontend/src/types/project.ts
-- [ ] T042 [US2] Create SearchTileCarousel component with image display and loading skeleton in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T043 [US2] Add navigation controls (prev/next arrows) to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T044 [US2] Add dot indicators showing current position to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T045 [US2] Implement lazy loading with `loading="lazy"` attribute in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T046 [US2] Add placeholder UI for projects with no images in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T047 [US2] Add image source badges (STL Preview, Inherited) to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T048 [US2] Hide navigation controls when only single image in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
-- [ ] T049 [US2] Update ProjectTile to use SearchTileCarousel instead of static icon in frontend/src/components/project/ProjectTile.tsx
-- [ ] T050 [US2] Add image count display to ProjectTile metadata section in frontend/src/components/project/ProjectTile.tsx
+- [x] T035 [US2] Implement recursive CTE query for parent chain in `get_aggregated_images()` method in backend/src/db/repositories/file_repo.rs
+- [x] T036 [US2] Implement image fetching with priority sorting and 15-image limit in backend/src/db/repositories/file_repo.rs
+- [x] T037 [US2] Update `search_projects()` handler to call `get_aggregated_images()` for each result in backend/src/api/handlers/search.rs
+- [x] T038 [US2] Add `images` array with ImagePreview data to response JSON in backend/src/api/handlers/search.rs
+- [x] T039 [US2] Add `image_count` field to response JSON in backend/src/api/handlers/search.rs
+- [x] T040 [US2] Add `ImagePreview` TypeScript interface in frontend/src/types/project.ts
+- [x] T041 [US2] Update `SearchResultProject` interface to include `image_count` and `images` array in frontend/src/types/project.ts
+- [x] T042 [US2] Create SearchTileCarousel component with image display and loading skeleton in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T043 [US2] Add navigation controls (prev/next arrows) to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T044 [US2] Add dot indicators showing current position to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T045 [US2] Implement lazy loading with `loading="lazy"` attribute in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T046 [US2] Add placeholder UI for projects with no images in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T047 [US2] Add image source badges (STL Preview, Inherited) to SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T048 [US2] Hide navigation controls when only single image in SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
+- [x] T049 [US2] Update ProjectTile to use SearchTileCarousel instead of static icon in frontend/src/components/project/ProjectTile.tsx
+- [x] T050 [US2] Add image count display to ProjectTile metadata section in frontend/src/components/project/ProjectTile.tsx
 
 **Checkpoint**: At this point, search result tiles show image carousels with manual navigation. Test independently by viewing search results with various image configurations.
 

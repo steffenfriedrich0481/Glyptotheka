@@ -1,4 +1,5 @@
 use crate::db::connection::DbPool;
+use crate::db::repositories::file_repo::FileRepository;
 use crate::models::project::{Project, SearchResultProject};
 use crate::utils::error::AppError;
 
@@ -34,7 +35,7 @@ impl SearchService {
         let offset = (params.page.saturating_sub(1)) * params.per_page;
 
         // Build query based on search parameters
-        let (projects, total) = if params.query.is_some() && !params.tags.is_empty() {
+        let (mut projects, total) = if params.query.is_some() && !params.tags.is_empty() {
             // Search by both name and tags
             self.search_combined(&conn, params, offset)?
         } else if params.query.is_some() {
@@ -47,6 +48,14 @@ impl SearchService {
             // No filters - return all leaf projects
             self.search_all(&conn, params, offset)?
         };
+
+        // Populate images for each project
+        let file_repo = FileRepository::new(self.pool.clone());
+        for project in &mut projects {
+            let images = file_repo.get_aggregated_images(project.project.id, 15)?;
+            project.image_count = images.len();
+            project.images = images;
+        }
 
         let total_pages = if total > 0 {
             total.div_ceil(params.per_page)

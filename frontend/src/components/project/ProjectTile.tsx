@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProjectWithChildren, SearchResultProject } from '../../types/project';
 import { calculateTileMetadata } from '../../utils/tileMetadata';
+import { SearchTileCarousel } from './SearchTileCarousel';
 import './ProjectTile.css';
 
 interface Props {
@@ -30,7 +31,9 @@ const ProjectTile: React.FC<Props> = ({ project, onClick }) => {
     >
       {/* Preview Image/Icon */}
       <div className="project-tile__preview aspect-square bg-white flex items-center justify-center relative group-hover:bg-gray-50">
-        {isFolder ? (
+        {'images' in project && project.images && project.images.length > 0 ? (
+          <SearchTileCarousel images={project.images} projectName={project.name} />
+        ) : isFolder ? (
           <svg className="w-20 h-20 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>

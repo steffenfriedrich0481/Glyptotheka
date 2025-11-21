@@ -305,3 +305,106 @@ impl FileRepository {
         Ok(images)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use r2d2_sqlite::SqliteConnectionManager;
+
+    fn setup_db() -> DbPool {
+        let manager = SqliteConnectionManager::memory();
+        let pool = r2d2::Pool::new(manager).unwrap();
+        let conn = pool.get().unwrap();
+        
+        conn.execute(
+            "CREATE TABLE projects (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                full_path TEXT NOT NULL,
+                parent_id INTEGER,
+                is_leaf BOOLEAN NOT NULL,
+                description TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            )",
+            [],
+        ).unwrap();
+
+        conn.execute(
+            "CREATE TABLE image_files (
+                id INTEGER PRIMARY KEY,
+                project_id INTEGER NOT NULL,
+                filename TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                file_size INTEGER NOT NULL,
+                source_type TEXT NOT NULL,
+                source_project_id INTEGER,
+                display_order INTEGER NOT NULL,
+                image_priority INTEGER NOT NULL,
+                image_source TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                FOREIGN KEY(project_id) REFERENCES projects(id)
+            )",
+            [],
+        ).unwrap();
+
+        pool
+    }
+
+    #[test]
+    fn test_get_aggregated_images() {
+        let pool = setup_db();
+        let repo = FileRepository::new(pool.clone());
+        let conn = pool.get().unwrap();
+
+        // Create project hierarchy: Root -> Child -> Leaf
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (1, 'Root', '/root', NULL, 0, 0, 0)", []).unwrap();
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (2, 'Child', '/root/child', 1, 0, 0, 0)", []).unwrap();
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (3, 'Leaf', '/root/child/leaf', 2, 1, 0, 0)", []).unwrap();
+
+        // Add images
+        // Root image (inherited)
+        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0).unwrap();
+        
+        // Child image (inherited)
+        repo.add_image_file(2, "child.jpg", "/root/child/child.jpg", 100, "direct", None, 0).unwrap();
+
+        // Leaf image (direct)
+        repo.add_image_file(3, "leaf.jpg", "/root/child/leaf/leaf.jpg", 100, "direct", None, 0).unwrap();
+
+        // Get aggregated images for Leaf
+        let images = repo.get_aggregated_images(3, 15).unwrap();
+
+        assert_eq!(images.len(), 3);
+        // Order should be: Leaf (level 0), Child (level 1), Root (level 2)
+        // Note: The query orders by image_priority DESC, pc.level ASC, img.display_order ASC
+        // All have priority 100.
+        // Leaf is level 0. Child is level 1. Root is level 2.
+        assert_eq!(images[0].filename, "leaf.jpg");
+        assert_eq!(images[1].filename, "child.jpg");
+        assert_eq!(images[2].filename, "root.jpg");
+    }
+    
+    #[test]
+    fn test_image_priority() {
+        let pool = setup_db();
+        let repo = FileRepository::new(pool.clone());
+        let conn = pool.get().unwrap();
+
+        conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (1, 'P1', '/p1', NULL, 1, 0, 0)", []).unwrap();
+
+        // Regular image (priority 100)
+        repo.add_image_file(1, "regular.jpg", "/p1/regular.jpg", 100, "direct", None, 1).unwrap();
+        
+        // STL preview (priority 50) - using insert_stl_preview_image
+        repo.insert_stl_preview_image(1, "preview.png", "/p1/preview.png", 100).unwrap();
+
+        let images = repo.get_aggregated_images(1, 15).unwrap();
+        
+        assert_eq!(images.len(), 2);
+        // Regular image (100) should come before preview (50)
+        assert_eq!(images[0].filename, "regular.jpg");
+        assert_eq!(images[1].filename, "preview.png");
+    }
+}
