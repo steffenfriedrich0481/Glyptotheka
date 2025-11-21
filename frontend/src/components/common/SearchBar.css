@@ -25,6 +25,7 @@
   font-size: 1rem;
   padding: 0.25rem;
   background: transparent;
+  color: #333;
 }
 
 .search-bar__input::placeholder {

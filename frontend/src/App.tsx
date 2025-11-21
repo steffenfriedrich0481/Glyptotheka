@@ -21,6 +21,7 @@ function App() {
                 <main className="app">
                   <Routes>
                     <Route path="/" element={<SearchPage />} />
+                    <Route path="/search" element={<SearchPage />} />
                     <Route path="/browse" element={<BrowsePage />} />
                     <Route path="/project/:id" element={<ProjectPage />} />
                     <Route path="/projects/:id" element={<ProjectPage />} />
