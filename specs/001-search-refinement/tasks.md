@@ -181,9 +181,9 @@ description: "Task breakdown for Search View Refinement feature"
 - [ ] T070 [P] Add frontend component documentation for SearchTileCarousel in frontend/src/components/project/SearchTileCarousel.tsx
 - [x] T071 Run all backend tests with `cargo test` and verify passing
 - [x] T072 Run all frontend tests with `npm test` and verify passing
-- [ ] T073 Run quickstart.md validation end-to-end with real database
-- [ ] T074 Perform manual testing of all acceptance scenarios from spec.md
-- [ ] T075 Run Lighthouse audit on search page and verify performance score > 90
+- [x] T073 Run quickstart.md validation end-to-end with real database
+- [x] T074 Perform manual testing of all acceptance scenarios from spec.md
+- [x] T075 Run Lighthouse audit on search page and verify performance score > 90
 
 ---
 
