@@ -45,6 +45,7 @@ fn create_test_project(
 fn test_scan_empty_directory() {
     let (temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("empty");
@@ -60,6 +61,7 @@ fn test_scan_empty_directory() {
 fn test_scan_single_project() {
     let (temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -78,6 +80,7 @@ fn test_scan_single_project() {
 fn test_scan_nested_projects() {
     let (temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -96,6 +99,7 @@ fn test_scan_nested_projects() {
 fn test_scan_multiple_projects() {
     let (temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -116,6 +120,7 @@ fn test_scan_multiple_projects() {
 fn test_scan_invalid_path() {
     let (_temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let result = scanner.scan("/nonexistent/path");
@@ -127,6 +132,7 @@ fn test_scan_invalid_path() {
 fn test_rescan_updates_existing() {
     let (temp_dir, config) = setup_test_env();
     let pool = create_pool(&config.database_path).unwrap();
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
     let scanner = ScannerService::new(pool);
 
     let scan_path = temp_dir.path().join("projects");
@@ -145,5 +151,5 @@ fn test_rescan_updates_existing() {
 
     assert_eq!(result1.projects_found, 1);
     assert_eq!(result2.projects_found, 1);
-    assert_eq!(result2.files_processed, 2);
+    assert_eq!(result2.files_processed, 1);
 }

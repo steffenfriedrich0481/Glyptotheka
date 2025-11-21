@@ -21,6 +21,7 @@ mod rescan_tests {
     fn test_rescan_detects_new_files() {
         let (_temp_dir, test_root) = setup_test_env();
         let pool = create_pool(":memory:").unwrap();
+        glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
         let rescan_service = RescanService::new(pool);
 
         // Create initial project
@@ -44,6 +45,7 @@ mod rescan_tests {
     fn test_rescan_detects_deleted_projects() {
         let (_temp_dir, test_root) = setup_test_env();
         let pool = create_pool(":memory:").unwrap();
+        glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
         let rescan_service = RescanService::new(pool);
 
         // Create and remove project directory
@@ -64,6 +66,7 @@ mod rescan_tests {
     fn test_rescan_preserves_structure() {
         let (_temp_dir, test_root) = setup_test_env();
         let pool = create_pool(":memory:").unwrap();
+        glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
         let rescan_service = RescanService::new(pool);
 
         // Create nested structure

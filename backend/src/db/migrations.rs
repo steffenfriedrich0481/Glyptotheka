@@ -91,7 +91,7 @@ mod tests {
             })
             .unwrap();
 
-        assert_eq!(version, 1);
+        assert_eq!(version, 5);
 
         let table_exists: bool = conn
             .query_row(

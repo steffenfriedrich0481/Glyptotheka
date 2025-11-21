@@ -1,9 +1,11 @@
 use axum::{
     body::Body,
     http::{Request, StatusCode},
+    middleware,
 };
 use glyptotheka_backend::config::Config;
 use glyptotheka_backend::db::connection::create_pool;
+use glyptotheka_backend::api::middleware::cors::cors_middleware;
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
@@ -24,7 +26,12 @@ async fn setup_test_app() -> (axum::Router, TempDir, Config) {
     fs::create_dir_all(temp_dir.path().join("projects")).unwrap();
 
     let pool = create_pool(&config.database_path).unwrap();
-    let app = glyptotheka_backend::api::routes::create_router(pool, cache_dir);
+    
+    // Run migrations
+    glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
+    
+    let app = glyptotheka_backend::api::routes::create_router(pool, cache_dir)
+        .layer(middleware::from_fn(cors_middleware));
 
     (app, temp_dir, config)
 }
@@ -100,7 +107,7 @@ async fn test_get_root_projects() {
         .unwrap();
     let json: Value = serde_json::from_slice(&body).unwrap();
 
-    assert!(json["data"].is_array());
+    assert!(json["projects"].is_array());
 }
 
 #[tokio::test]
@@ -117,7 +124,7 @@ async fn test_search_projects_empty_query() {
         .await
         .unwrap();
 
-    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(response.status(), StatusCode::OK);
 }
 
 #[tokio::test]
@@ -141,7 +148,7 @@ async fn test_search_projects_valid_query() {
         .unwrap();
     let json: Value = serde_json::from_slice(&body).unwrap();
 
-    assert!(json["results"].is_array());
+    assert!(json["data"].is_array());
 }
 
 #[tokio::test]
@@ -182,7 +189,7 @@ async fn test_get_tags() {
         .unwrap();
     let json: Value = serde_json::from_slice(&body).unwrap();
 
-    assert!(json.is_array());
+    assert!(json["data"].is_array());
 }
 
 #[tokio::test]

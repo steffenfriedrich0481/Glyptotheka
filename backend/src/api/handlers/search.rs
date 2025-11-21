@@ -60,8 +60,10 @@ pub async fn search_projects(
         Vec::new()
     };
 
+    let query_str = query.q.filter(|s| !s.trim().is_empty());
+
     let params = SearchParams {
-        query: query.q,
+        query: query_str,
         tags,
         page: query.page,
         per_page: query.per_page.min(100),
