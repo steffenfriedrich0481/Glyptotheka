@@ -96,11 +96,11 @@ impl CompositePreviewService {
     /// Create a preview with a single image (800x800)
     fn create_single_preview(&self, img: &RgbaImage) -> RgbaImage {
         let mut canvas = RgbaImage::from_pixel(800, 800, Rgba([255, 255, 255, 255]));
-        
+
         // Resize to 800x800 and place in center
         let resized = imageops::resize(img, 800, 800, imageops::FilterType::Lanczos3);
         imageops::replace(&mut canvas, &resized, 0, 0);
-        
+
         canvas
     }
 

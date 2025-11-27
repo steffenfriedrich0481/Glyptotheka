@@ -3,9 +3,9 @@ use axum::{
     http::{Request, StatusCode},
     middleware,
 };
+use glyptotheka_backend::api::middleware::cors::cors_middleware;
 use glyptotheka_backend::config::Config;
 use glyptotheka_backend::db::connection::create_pool;
-use glyptotheka_backend::api::middleware::cors::cors_middleware;
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
@@ -26,10 +26,10 @@ async fn setup_test_app() -> (axum::Router, TempDir, Config) {
     fs::create_dir_all(temp_dir.path().join("projects")).unwrap();
 
     let pool = create_pool(&config.database_path).unwrap();
-    
+
     // Run migrations
     glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
-    
+
     let app = glyptotheka_backend::api::routes::create_router(pool, cache_dir)
         .layer(middleware::from_fn(cors_middleware));
 

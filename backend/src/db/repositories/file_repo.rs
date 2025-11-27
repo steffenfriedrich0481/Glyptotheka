@@ -288,7 +288,7 @@ impl FileRepository {
             FROM image_files img
             JOIN parent_chain pc ON img.project_id = pc.id
             ORDER BY img.image_priority DESC, pc.level ASC, img.display_order ASC
-            LIMIT ?2"
+            LIMIT ?2",
         )?;
 
         let images = stmt
@@ -316,9 +316,13 @@ impl FileRepository {
         }
 
         let conn = self.pool.get()?;
-        
-        let placeholders = project_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        
+
+        let placeholders = project_ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
+
         let sql = format!(
             "WITH RECURSIVE parent_chain AS (
                 SELECT id, parent_id, id as original_project_id, 0 as level
@@ -360,7 +364,7 @@ impl FileRepository {
         params.push(&limit_per_project);
 
         let mut stmt = conn.prepare(&sql)?;
-        
+
         let rows = stmt.query_map(rusqlite::params_from_iter(params.iter()), |row| {
             let original_project_id: i64 = row.get(0)?;
             let image = crate::models::project::ImagePreview {
@@ -374,7 +378,7 @@ impl FileRepository {
         })?;
 
         let mut result: HashMap<i64, Vec<crate::models::project::ImagePreview>> = HashMap::new();
-        
+
         for row in rows {
             let (project_id, image) = row?;
             result.entry(project_id).or_default().push(image);
@@ -393,7 +397,7 @@ mod tests {
         let manager = SqliteConnectionManager::memory();
         let pool = r2d2::Pool::new(manager).unwrap();
         let conn = pool.get().unwrap();
-        
+
         conn.execute(
             "CREATE TABLE projects (
                 id INTEGER PRIMARY KEY,
@@ -406,7 +410,8 @@ mod tests {
                 updated_at INTEGER NOT NULL
             )",
             [],
-        ).unwrap();
+        )
+        .unwrap();
 
         conn.execute(
             "CREATE TABLE image_files (
@@ -425,7 +430,8 @@ mod tests {
                 FOREIGN KEY(project_id) REFERENCES projects(id)
             )",
             [],
-        ).unwrap();
+        )
+        .unwrap();
 
         pool
     }
@@ -443,13 +449,32 @@ mod tests {
 
         // Add images
         // Root image (inherited)
-        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0).unwrap();
-        
+        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0)
+            .unwrap();
+
         // Child image (inherited)
-        repo.add_image_file(2, "child.jpg", "/root/child/child.jpg", 100, "direct", None, 0).unwrap();
+        repo.add_image_file(
+            2,
+            "child.jpg",
+            "/root/child/child.jpg",
+            100,
+            "direct",
+            None,
+            0,
+        )
+        .unwrap();
 
         // Leaf image (direct)
-        repo.add_image_file(3, "leaf.jpg", "/root/child/leaf/leaf.jpg", 100, "direct", None, 0).unwrap();
+        repo.add_image_file(
+            3,
+            "leaf.jpg",
+            "/root/child/leaf/leaf.jpg",
+            100,
+            "direct",
+            None,
+            0,
+        )
+        .unwrap();
 
         // Get aggregated images for Leaf
         let images = repo.get_aggregated_images(3, 15).unwrap();
@@ -463,7 +488,7 @@ mod tests {
         assert_eq!(images[1].filename, "child.jpg");
         assert_eq!(images[2].filename, "root.jpg");
     }
-    
+
     #[test]
     fn test_image_priority() {
         let pool = setup_db();
@@ -473,13 +498,15 @@ mod tests {
         conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (1, 'P1', '/p1', NULL, 1, 0, 0)", []).unwrap();
 
         // Regular image (priority 100)
-        repo.add_image_file(1, "regular.jpg", "/p1/regular.jpg", 100, "direct", None, 1).unwrap();
-        
+        repo.add_image_file(1, "regular.jpg", "/p1/regular.jpg", 100, "direct", None, 1)
+            .unwrap();
+
         // STL preview (priority 50) - using insert_stl_preview_image
-        repo.insert_stl_preview_image(1, "preview.png", "/p1/preview.png", 100).unwrap();
+        repo.insert_stl_preview_image(1, "preview.png", "/p1/preview.png", 100)
+            .unwrap();
 
         let images = repo.get_aggregated_images(1, 15).unwrap();
-        
+
         assert_eq!(images.len(), 2);
         // Regular image (100) should come before preview (50)
         assert_eq!(images[0].filename, "regular.jpg");
@@ -498,15 +525,34 @@ mod tests {
         conn.execute("INSERT INTO projects (id, name, full_path, parent_id, is_leaf, created_at, updated_at) VALUES (3, 'Child2', '/root/child2', 1, 1, 0, 0)", []).unwrap();
 
         // Add images
-        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0).unwrap();
-        repo.add_image_file(2, "child1.jpg", "/root/child1/child1.jpg", 100, "direct", None, 0).unwrap();
-        repo.add_image_file(3, "child2.jpg", "/root/child2/child2.jpg", 100, "direct", None, 0).unwrap();
+        repo.add_image_file(1, "root.jpg", "/root/root.jpg", 100, "direct", None, 0)
+            .unwrap();
+        repo.add_image_file(
+            2,
+            "child1.jpg",
+            "/root/child1/child1.jpg",
+            100,
+            "direct",
+            None,
+            0,
+        )
+        .unwrap();
+        repo.add_image_file(
+            3,
+            "child2.jpg",
+            "/root/child2/child2.jpg",
+            100,
+            "direct",
+            None,
+            0,
+        )
+        .unwrap();
 
         // Get batch images for Child1 and Child2
         let images_map = repo.get_aggregated_images_batch(&[2, 3], 15).unwrap();
 
         assert_eq!(images_map.len(), 2);
-        
+
         // Child1 should have child1.jpg and root.jpg
         let child1_images = images_map.get(&2).unwrap();
         assert_eq!(child1_images.len(), 2);

@@ -42,10 +42,13 @@ impl StlPreviewService {
     }
 
     // T005: Generate preview with smart cache
-    pub async fn generate_preview_with_smart_cache(&self, stl_path: &str) -> Result<PreviewResult, AppError> {
+    pub async fn generate_preview_with_smart_cache(
+        &self,
+        stl_path: &str,
+    ) -> Result<PreviewResult, AppError> {
         // T048: Log preview generation operations
         info!("Generating STL preview for: {}", stl_path);
-        
+
         // T008: Validate file size (100MB limit)
         let stl_path_buf = PathBuf::from(stl_path);
         if !stl_path_buf.exists() {
@@ -59,8 +62,14 @@ impl StlPreviewService {
         let metadata = std::fs::metadata(&stl_path_buf)?;
         let file_size = metadata.len();
         if file_size > 100 * 1024 * 1024 {
-            warn!("Skipping STL file (>100MB): {} ({}MB)", stl_path, file_size / (1024 * 1024));
-            return Ok(PreviewResult::Skipped("File too large (>100MB)".to_string()));
+            warn!(
+                "Skipping STL file (>100MB): {} ({}MB)",
+                stl_path,
+                file_size / (1024 * 1024)
+            );
+            return Ok(PreviewResult::Skipped(
+                "File too large (>100MB)".to_string(),
+            ));
         }
 
         // T050: Basic disk space check (ensure at least 100MB free)
@@ -78,17 +87,27 @@ impl StlPreviewService {
         // Generate new preview with timeout
         let preview_data = match timeout(
             Duration::from_secs(30), // T011: 30 second timeout
-            self.render_stl_preview(&stl_path_buf)
-        ).await {
+            self.render_stl_preview(&stl_path_buf),
+        )
+        .await
+        {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
                 // T012, T048, T049: Graceful error handling with detailed logging
-                warn!("Failed to render STL preview for {}: {} (possibly corrupted STL file)", stl_path, e);
+                warn!(
+                    "Failed to render STL preview for {}: {} (possibly corrupted STL file)",
+                    stl_path, e
+                );
                 return Err(e);
             }
             Err(_) => {
-                warn!("STL preview generation timed out after 30s for {}", stl_path);
-                return Err(AppError::InternalServer("Preview generation timed out".to_string()));
+                warn!(
+                    "STL preview generation timed out after 30s for {}",
+                    stl_path
+                );
+                return Err(AppError::InternalServer(
+                    "Preview generation timed out".to_string(),
+                ));
             }
         };
 
@@ -109,9 +128,10 @@ impl StlPreviewService {
         if !stl_path_buf.exists() {
             return Ok(false);
         }
-        
+
         let stl_metadata = std::fs::metadata(&stl_path_buf)?;
-        let stl_mtime = stl_metadata.modified()?
+        let stl_mtime = stl_metadata
+            .modified()?
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs() as i64;
 
@@ -144,9 +164,10 @@ impl StlPreviewService {
     pub async fn generate_preview(&self, stl_path: &str) -> Result<PathBuf, AppError> {
         match self.generate_preview_with_smart_cache(stl_path).await? {
             PreviewResult::Generated(path) | PreviewResult::CacheHit(path) => Ok(path),
-            PreviewResult::Skipped(reason) => {
-                Err(AppError::InternalServer(format!("Preview generation skipped: {}", reason)))
-            }
+            PreviewResult::Skipped(reason) => Err(AppError::InternalServer(format!(
+                "Preview generation skipped: {}",
+                reason
+            ))),
         }
     }
 
@@ -164,7 +185,14 @@ impl StlPreviewService {
             let result = (|| {
                 // Generate temporary output path
                 let temp_dir = std::env::temp_dir();
-                let temp_filename = format!("stl_preview_{}_{}.png", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
+                let temp_filename = format!(
+                    "stl_preview_{}_{}.png",
+                    std::process::id(),
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis()
+                );
                 let output_path = temp_dir.join(temp_filename);
 
                 // Configure stl-thumb to render at 512x512
@@ -200,7 +228,9 @@ impl StlPreviewService {
         match rx.recv().await {
             Some(Ok(data)) => Ok(data),
             Some(Err(e)) => Err(AppError::InternalServer(e)),
-            None => Err(AppError::InternalServer("Render thread terminated unexpectedly".to_string())),
+            None => Err(AppError::InternalServer(
+                "Render thread terminated unexpectedly".to_string(),
+            )),
         }
     }
 

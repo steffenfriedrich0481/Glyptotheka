@@ -1,7 +1,7 @@
 use axum::{middleware, routing::get, Router};
-use tower_http::services::{ServeDir, ServeFile};
 use std::net::SocketAddr;
 use std::path::PathBuf;
+use tower_http::services::{ServeDir, ServeFile};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 // Re-export library modules
@@ -54,7 +54,9 @@ async fn main() {
                     cache_max_size_mb: None,
                     images_per_page: None,
                 };
-                config_service.update_config(&update).expect("Failed to initialize root_path");
+                config_service
+                    .update_config(&update)
+                    .expect("Failed to initialize root_path");
             }
         }
     }
@@ -69,13 +71,13 @@ async fn main() {
     // Initialize ignored keywords for search
     let ignored_keywords_str = std::env::var("IGNORED_KEYWORDS")
         .unwrap_or_else(|_| "PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported".to_string());
-    
+
     let ignored_keywords: Vec<String> = ignored_keywords_str
         .split(',')
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
-        
+
     tracing::info!(keywords = ?ignored_keywords, "Initialized ignored keywords for search");
 
     // Build application with routes and middleware

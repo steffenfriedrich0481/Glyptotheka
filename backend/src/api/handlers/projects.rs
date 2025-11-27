@@ -90,9 +90,9 @@ pub async fn get_project_preview(
     State(state): State<AppState>,
     Path(id): Path<i64>,
 ) -> Result<impl axum::response::IntoResponse, AppError> {
-    use axum::response::Response;
     use axum::body::Body;
-    use axum::http::{StatusCode, header};
+    use axum::http::{header, StatusCode};
+    use axum::response::Response;
     use tokio::fs::File;
     use tokio_util::io::ReaderStream;
 
@@ -115,7 +115,7 @@ pub async fn get_project_preview(
     let file = File::open(preview_path)
         .await
         .map_err(|e| AppError::InternalServer(format!("Failed to open preview file: {}", e)))?;
-    
+
     let stream = ReaderStream::new(file);
     let body = Body::from_stream(stream);
 

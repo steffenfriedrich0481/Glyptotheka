@@ -28,7 +28,7 @@ pub struct SearchResult {
 
 impl SearchService {
     pub fn new(pool: DbPool, ignored_keywords: Vec<String>) -> Self {
-        Self { 
+        Self {
             pool,
             ignored_keywords: ignored_keywords.iter().map(|k| k.to_lowercase()).collect(),
         }
@@ -36,7 +36,7 @@ impl SearchService {
 
     fn resolve_display_name(&self, project: &Project) -> String {
         let name_lower = project.name.trim().to_lowercase();
-        
+
         // If current name is not a keyword, return it
         if !self.ignored_keywords.contains(&name_lower) {
             return project.name.clone();
@@ -44,7 +44,7 @@ impl SearchService {
 
         // Otherwise, traverse up the path
         let path = std::path::Path::new(&project.full_path);
-        
+
         // Iterate components in reverse
         for component in path.components().rev() {
             if let Some(comp_str) = component.as_os_str().to_str() {
@@ -82,7 +82,7 @@ impl SearchService {
         let file_repo = FileRepository::new(self.pool.clone());
         let project_ids: Vec<i64> = projects.iter().map(|p| p.project.id).collect();
         let mut images_map = file_repo.get_aggregated_images_batch(&project_ids, 15)?;
-        
+
         for project in &mut projects {
             if let Some(images) = images_map.remove(&project.project.id) {
                 project.image_count = images.len();
@@ -114,7 +114,11 @@ impl SearchService {
         let search_query = params.query.as_ref().unwrap();
         // Add wildcard for partial matching
         let fts_query = format!("{}*", search_query);
-        let leaf_filter = if params.leaf_only { "AND p.is_leaf = 1" } else { "" };
+        let leaf_filter = if params.leaf_only {
+            "AND p.is_leaf = 1"
+        } else {
+            ""
+        };
 
         // Get total count
         let count_sql = format!(
@@ -125,11 +129,7 @@ impl SearchService {
             leaf_filter
         );
 
-        let total: usize = conn.query_row(
-            &count_sql,
-            [&fts_query],
-            |row| row.get(0),
-        )?;
+        let total: usize = conn.query_row(&count_sql, [&fts_query], |row| row.get(0))?;
 
         // Get projects
         let per_page_i64 = params.per_page as i64;
@@ -192,8 +192,12 @@ impl SearchService {
             .map(|_| "?")
             .collect::<Vec<_>>()
             .join(", ");
-        
-        let leaf_filter = if params.leaf_only { "AND p.is_leaf = 1" } else { "" };
+
+        let leaf_filter = if params.leaf_only {
+            "AND p.is_leaf = 1"
+        } else {
+            ""
+        };
 
         let count_query = format!(
             "SELECT COUNT(*)
@@ -292,8 +296,12 @@ impl SearchService {
             .map(|_| "?")
             .collect::<Vec<_>>()
             .join(", ");
-        
-        let leaf_filter = if params.leaf_only { "AND p.is_leaf = 1" } else { "" };
+
+        let leaf_filter = if params.leaf_only {
+            "AND p.is_leaf = 1"
+        } else {
+            ""
+        };
 
         let count_query = format!(
             "SELECT COUNT(*)
@@ -389,15 +397,15 @@ impl SearchService {
         params: &SearchParams,
         offset: usize,
     ) -> Result<(Vec<SearchResultProject>, usize), AppError> {
-        let leaf_filter = if params.leaf_only { "WHERE is_leaf = 1" } else { "" };
-        
+        let leaf_filter = if params.leaf_only {
+            "WHERE is_leaf = 1"
+        } else {
+            ""
+        };
+
         let count_sql = format!("SELECT COUNT(*) FROM projects {}", leaf_filter);
-        
-        let total: usize = conn.query_row(
-            &count_sql,
-            [],
-            |row| row.get(0),
-        )?;
+
+        let total: usize = conn.query_row(&count_sql, [], |row| row.get(0))?;
 
         let sql = format!(
             "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at,

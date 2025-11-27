@@ -35,7 +35,7 @@ pub struct CreateProject {
 pub struct ImagePreview {
     pub id: i64,
     pub filename: String,
-    pub source_type: String, // "direct", "inherited", "stl_preview"
+    pub source_type: String,  // "direct", "inherited", "stl_preview"
     pub image_source: String, // "original", "stl_preview"
     pub priority: i32,
 }

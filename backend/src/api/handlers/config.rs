@@ -27,7 +27,7 @@ pub async fn update_config(
         "POST /api/config - Updating configuration with root_path: {:?}",
         request.root_path
     );
-    
+
     // Validate root_path if provided
     if let Some(ref root_path) = request.root_path {
         let path = Path::new(root_path);
@@ -46,7 +46,7 @@ pub async fn update_config(
             )));
         }
     }
-    
+
     match state.config_service.update_config(&request) {
         Ok(config) => {
             info!("Configuration updated successfully");

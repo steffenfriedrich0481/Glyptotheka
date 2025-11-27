@@ -40,21 +40,24 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<Str
     let image_cache = Arc::new(ImageCacheService::new(cache_dir.clone(), pool.clone()));
 
     let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
-    
+
     // Initialize preview queue for async STL preview generation (queue size: 100)
-    let preview_queue = Arc::new(crate::services::stl_preview::PreviewQueue::new((*stl_preview).clone(), 100));
+    let preview_queue = Arc::new(crate::services::stl_preview::PreviewQueue::new(
+        (*stl_preview).clone(),
+        100,
+    ));
 
     // Initialize services with composite preview and STL preview support
     let scanner_service = Arc::new(
         ScannerService::new(pool.clone())
             .with_composite_preview(cache_dir.clone())
-            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone()),
     );
-    
+
     let rescan_service = Arc::new(
         RescanService::with_cache(pool.clone(), (*image_cache).clone())
             .with_composite_preview(cache_dir.clone())
-            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone()),
     );
 
     let state = AppState {
@@ -62,7 +65,9 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<Str
         project_repo: Arc::new(ProjectRepository::new(pool.clone())),
         file_repo: Arc::new(FileRepository::new(pool.clone())),
         tag_repo: Arc::new(TagRepository::new(pool.clone())),
-        preview_repo: Arc::new(crate::db::repositories::preview_repo::PreviewRepository::new(pool.clone())),
+        preview_repo: Arc::new(
+            crate::db::repositories::preview_repo::PreviewRepository::new(pool.clone()),
+        ),
         config_service: Arc::new(ConfigService::new(pool.clone())),
         scanner_service,
         rescan_service,
@@ -91,7 +96,10 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<Str
             get(projects::get_project_children),
         )
         .route("/api/projects/:id/files", get(projects::get_project_files))
-        .route("/api/projects/:id/preview", get(projects::get_project_preview))
+        .route(
+            "/api/projects/:id/preview",
+            get(projects::get_project_preview),
+        )
         .route(
             "/api/projects/:id/download",
             get(files::download_project_zip),

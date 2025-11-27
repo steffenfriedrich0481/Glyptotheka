@@ -200,7 +200,11 @@ impl RescanService {
                             ) {
                                 Ok(_) => {}
                                 Err(e) => {
-                                    warn!("Failed to queue preview for {}: {}", stl_file.display(), e);
+                                    warn!(
+                                        "Failed to queue preview for {}: {}",
+                                        stl_file.display(),
+                                        e
+                                    );
                                 }
                             }
                         }
@@ -256,27 +260,28 @@ impl RescanService {
         // First-and-a-half pass: Scan parent folders for images
         info!("Scanning parent folders for images during rescan");
         let mut scanned_parent_folders = HashSet::new();
-        
+
         for (folder, _) in project_folders.iter() {
             let mut current: &Path = folder.as_path();
-            
+
             while let Some(parent_folder) = current.parent() {
                 if parent_folder < root {
                     break;
                 }
-                
+
                 // Skip if already scanned
                 if scanned_parent_folders.contains(parent_folder) {
                     current = parent_folder;
                     continue;
                 }
-                
+
                 // Ensure parent project exists
-                match self.ensure_project_exists(parent_folder, root, &path_to_id)
-                {
+                match self.ensure_project_exists(parent_folder, root, &path_to_id) {
                     Ok(parent_id) => {
                         // Process images in parent folder (checks for new/deleted images)
-                        if let Err(e) = self.process_images_for_project(parent_id, parent_folder, &mut result) {
+                        if let Err(e) =
+                            self.process_images_for_project(parent_id, parent_folder, &mut result)
+                        {
                             let error_msg = format!(
                                 "Error processing images for parent folder {}: {}",
                                 parent_folder.display(),
@@ -297,7 +302,7 @@ impl RescanService {
                         result.errors.push(error_msg);
                     }
                 }
-                
+
                 current = parent_folder;
             }
         }
@@ -306,7 +311,8 @@ impl RescanService {
         info!("Propagating images from parent folders to children");
         for (folder, _) in project_folders.iter() {
             if let Some(&project_id) = path_to_id.get(folder) {
-                if let Err(e) = self.inherit_images_from_parents(project_id, folder, root, &path_to_id)
+                if let Err(e) =
+                    self.inherit_images_from_parents(project_id, folder, root, &path_to_id)
                 {
                     let error_msg = format!(
                         "Error inheriting images for project {}: {}",
@@ -324,11 +330,11 @@ impl RescanService {
             info!("Generating composite previews for all projects during rescan");
             // Iterate over all projects, not just folders with STL files
             for (_folder, &project_id) in path_to_id.iter() {
-                if let Err(e) = self.generate_preview_for_project(project_id, composite_service, &mut result) {
-                    let error_msg = format!(
-                        "Error generating preview for project {}: {}",
-                        project_id, e
-                    );
+                if let Err(e) =
+                    self.generate_preview_for_project(project_id, composite_service, &mut result)
+                {
+                    let error_msg =
+                        format!("Error generating preview for project {}: {}", project_id, e);
                     warn!("{}", error_msg);
                     result.errors.push(error_msg);
                 }
@@ -557,7 +563,10 @@ impl RescanService {
     /// This is done at the start of rescan to rebuild inheritance fresh.
     fn clear_inherited_images(&self) -> Result<(), AppError> {
         let conn = self.file_repo.pool.get()?;
-        conn.execute("DELETE FROM image_files WHERE source_type = 'inherited'", [])?;
+        conn.execute(
+            "DELETE FROM image_files WHERE source_type = 'inherited'",
+            [],
+        )?;
         Ok(())
     }
 
@@ -635,10 +644,8 @@ impl RescanService {
                             if let Some(ext) = entry.path().extension() {
                                 if image_extensions.iter().any(|e| ext.eq_ignore_ascii_case(e)) {
                                     // Get the parent project ID
-                                    let source_project_id = path_to_id
-                                        .get(parent_folder)
-                                        .copied()
-                                        .or_else(|| {
+                                    let source_project_id =
+                                        path_to_id.get(parent_folder).copied().or_else(|| {
                                             self.ensure_project_exists(
                                                 parent_folder,
                                                 root,
@@ -656,12 +663,8 @@ impl RescanService {
                                             .map(|m| m.len() as i64)
                                             .unwrap_or(0);
 
-                                        inherited_images.push((
-                                            filename,
-                                            file_path,
-                                            file_size,
-                                            source_id,
-                                        ));
+                                        inherited_images
+                                            .push((filename, file_path, file_size, source_id));
                                     }
                                 }
                             }
@@ -702,13 +705,11 @@ impl RescanService {
             "SELECT id, file_path FROM image_files 
              WHERE project_id = ?1 AND source_type = 'direct'
              ORDER BY image_priority DESC, display_order ASC, created_at ASC
-             LIMIT 4"
+             LIMIT 4",
         )?;
 
         let images: Vec<(i64, String)> = stmt
-            .query_map([project_id], |row| {
-                Ok((row.get(0)?, row.get(1)?))
-            })?
+            .query_map([project_id], |row| Ok((row.get(0)?, row.get(1)?)))?
             .collect::<Result<Vec<_>, _>>()?;
 
         // Check if we had a previous preview
@@ -757,7 +758,7 @@ impl RescanService {
     ) -> Result<(), AppError> {
         if let Some(ref queue) = self.preview_queue {
             let stl_path = stl_file.to_str().unwrap().to_string();
-            
+
             // Queue preview generation - this happens asynchronously in the background
             // We can't use async methods from this sync context, so we use the queue's sender directly
             match queue.sender.try_send(stl_path.clone()) {

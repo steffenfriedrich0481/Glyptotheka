@@ -145,26 +145,23 @@ impl ScannerService {
                     // Generate STL previews if service available (US1)
                     if self.stl_preview_service.is_some() && !stl_files_vec.is_empty() {
                         // Split: first 2 sync, rest async
-                        let (sync_files, async_files) = stl_files_vec.split_at(
-                            std::cmp::min(2, stl_files_vec.len())
-                        );
+                        let (sync_files, async_files) =
+                            stl_files_vec.split_at(std::cmp::min(2, stl_files_vec.len()));
 
                         // Generate first 2 synchronously
                         for stl_file in sync_files {
-                            if let Err(e) = self.generate_stl_preview_sync(
-                                project_id,
-                                stl_file
-                            ) {
-                                warn!("Failed to generate preview for {}: {}", stl_file.display(), e);
+                            if let Err(e) = self.generate_stl_preview_sync(project_id, stl_file) {
+                                warn!(
+                                    "Failed to generate preview for {}: {}",
+                                    stl_file.display(),
+                                    e
+                                );
                             }
                         }
 
                         // Queue remaining for async generation
                         for stl_file in async_files {
-                            if let Err(e) = self.queue_stl_preview(
-                                project_id,
-                                stl_file
-                            ) {
+                            if let Err(e) = self.queue_stl_preview(project_id, stl_file) {
                                 warn!("Failed to queue preview for {}: {}", stl_file.display(), e);
                             }
                         }
@@ -193,21 +190,21 @@ impl ScannerService {
         // NEW: Scan parent folders for images
         info!("Scanning parent folders for images");
         let mut scanned_folders = HashSet::new();
-        
+
         for (folder, _) in project_folders.iter() {
             let mut current: &Path = folder.as_path();
-            
+
             while let Some(parent_folder) = current.parent() {
                 if parent_folder < root {
                     break;
                 }
-                
+
                 // Skip if already scanned
                 if scanned_folders.contains(parent_folder) {
                     current = parent_folder;
                     continue;
                 }
-                
+
                 // Ensure parent project exists
                 match self.ensure_project_exists(parent_folder, root, &mut path_to_id) {
                     Ok(parent_id) => {
@@ -233,7 +230,7 @@ impl ScannerService {
                         errors.push(error_msg);
                     }
                 }
-                
+
                 current = parent_folder;
             }
         }
@@ -242,7 +239,8 @@ impl ScannerService {
         info!("Propagating images from parent folders to children");
         for (folder, _) in project_folders.iter() {
             if let Some(&project_id) = path_to_id.get(folder) {
-                if let Err(e) = self.inherit_images_from_parents(project_id, folder, root, &mut path_to_id)
+                if let Err(e) =
+                    self.inherit_images_from_parents(project_id, folder, root, &mut path_to_id)
                 {
                     let error_msg = format!(
                         "Error inheriting images for project {}: {}",
@@ -261,10 +259,8 @@ impl ScannerService {
             // Iterate over all projects, not just folders with STL files
             for (_folder, &project_id) in path_to_id.iter() {
                 if let Err(e) = self.generate_preview_for_project(project_id, composite_service) {
-                    let error_msg = format!(
-                        "Error generating preview for project {}: {}",
-                        project_id, e
-                    );
+                    let error_msg =
+                        format!("Error generating preview for project {}: {}", project_id, e);
                     warn!("{}", error_msg);
                     errors.push(error_msg);
                 }
@@ -333,11 +329,7 @@ impl ScannerService {
             if let Some(parent) = folder.parent() {
                 if parent >= root {
                     // Use ensure_project_exists for parent (creates with is_leaf=false)
-                    Some(self.ensure_project_exists(
-                        parent,
-                        root,
-                        path_to_id,
-                    )?)
+                    Some(self.ensure_project_exists(parent, root, path_to_id)?)
                 } else {
                     None
                 }
@@ -382,7 +374,7 @@ impl ScannerService {
         // Get existing images for this project to avoid duplicates
         let conn = self.file_repo.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT file_path FROM image_files WHERE project_id = ?1 AND source_type = 'direct'"
+            "SELECT file_path FROM image_files WHERE project_id = ?1 AND source_type = 'direct'",
         )?;
         let existing_images: HashSet<String> = stmt
             .query_map([project_id], |row| row.get::<_, String>(0))?
@@ -468,10 +460,10 @@ impl ScannerService {
         };
 
         let project_id = self.project_repo.create(&create_project)?;
-        
+
         // Add to cache
         path_to_id.insert(folder.to_path_buf(), project_id);
-        
+
         Ok(project_id)
     }
 
@@ -503,10 +495,8 @@ impl ScannerService {
                             if let Some(ext) = entry.path().extension() {
                                 if image_extensions.iter().any(|e| ext.eq_ignore_ascii_case(e)) {
                                     // Get the parent project ID
-                                    let source_project_id = path_to_id
-                                        .get(parent_folder)
-                                        .copied()
-                                        .or_else(|| {
+                                    let source_project_id =
+                                        path_to_id.get(parent_folder).copied().or_else(|| {
                                             self.ensure_project_exists(
                                                 parent_folder,
                                                 root,
@@ -524,12 +514,8 @@ impl ScannerService {
                                             .map(|m| m.len() as i64)
                                             .unwrap_or(0);
 
-                                        inherited_images.push((
-                                            filename,
-                                            file_path,
-                                            file_size,
-                                            source_id,
-                                        ));
+                                        inherited_images
+                                            .push((filename, file_path, file_size, source_id));
                                     }
                                 }
                             }
@@ -569,13 +555,11 @@ impl ScannerService {
             "SELECT id, file_path FROM image_files 
              WHERE project_id = ?1 AND source_type = 'direct'
              ORDER BY image_priority DESC, display_order ASC, created_at ASC
-             LIMIT 4"
+             LIMIT 4",
         )?;
 
         let images: Vec<(i64, String)> = stmt
-            .query_map([project_id], |row| {
-                Ok((row.get(0)?, row.get(1)?))
-            })?
+            .query_map([project_id], |row| Ok((row.get(0)?, row.get(1)?)))?
             .collect::<Result<Vec<_>, _>>()?;
 
         if images.len() < 2 {
@@ -603,22 +587,36 @@ impl ScannerService {
     }
 
     // T021: Generate STL preview synchronously
-    fn generate_stl_preview_sync(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn generate_stl_preview_sync(
+        &self,
+        project_id: i64,
+        stl_file: &PathBuf,
+    ) -> Result<(), AppError> {
         if let Some(ref service) = self.stl_preview_service {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let service_clone = service.clone();
             let stl_file_clone = stl_file.clone();
             let file_repo_clone = self.file_repo.clone();
-            
+
             // Spawn async task without blocking
             tokio::spawn(async move {
-                match service_clone.generate_preview_with_smart_cache(&stl_path).await {
-                    Ok(crate::services::stl_preview::PreviewResult::Generated(preview_path)) | 
-                    Ok(crate::services::stl_preview::PreviewResult::CacheHit(preview_path)) => {
-                        info!("Generated preview for {}: {}", stl_path, preview_path.display());
-                        
+                match service_clone
+                    .generate_preview_with_smart_cache(&stl_path)
+                    .await
+                {
+                    Ok(crate::services::stl_preview::PreviewResult::Generated(preview_path))
+                    | Ok(crate::services::stl_preview::PreviewResult::CacheHit(preview_path)) => {
+                        info!(
+                            "Generated preview for {}: {}",
+                            stl_path,
+                            preview_path.display()
+                        );
+
                         // Add preview to image_files database
-                        let filename = format!("{}.png", stl_file_clone.file_name().unwrap().to_str().unwrap());
+                        let filename = format!(
+                            "{}.png",
+                            stl_file_clone.file_name().unwrap().to_str().unwrap()
+                        );
                         let preview_path_str = preview_path.to_str().unwrap();
                         let file_size = std::fs::metadata(&preview_path)
                             .map(|m| m.len() as i64)
@@ -630,7 +628,10 @@ impl ScannerService {
                             preview_path_str,
                             file_size,
                         ) {
-                            warn!("Failed to add STL preview to database for {}: {}", stl_path, e);
+                            warn!(
+                                "Failed to add STL preview to database for {}: {}",
+                                stl_path, e
+                            );
                         } else {
                             info!("Added STL preview to database for {}", stl_path);
                         }
@@ -639,7 +640,11 @@ impl ScannerService {
                         warn!("Skipped preview for {}: {}", stl_path, reason);
                     }
                     Err(e) => {
-                        warn!("Failed to generate preview for {}: {}", stl_file_clone.display(), e);
+                        warn!(
+                            "Failed to generate preview for {}: {}",
+                            stl_file_clone.display(),
+                            e
+                        );
                     }
                 }
             });
@@ -655,20 +660,23 @@ impl ScannerService {
             let stl_file_clone = stl_file.clone();
             let file_repo_clone = self.file_repo.clone();
             let service_clone = self.stl_preview_service.as_ref().unwrap().clone();
-            
+
             // Spawn async task to queue the preview
             tokio::spawn(async move {
                 if let Err(e) = queue_clone.queue_preview(stl_path.clone()).await {
                     warn!("Failed to queue preview for {}: {}", stl_path, e);
                 } else {
                     info!("Queued preview generation for {}", stl_path);
-                    
+
                     // Wait a bit and check if preview was generated, then add to DB
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-                    
+
                     // Check if preview exists and add to database
                     if let Ok(Some(preview_path)) = service_clone.get_preview(&stl_path) {
-                        let filename = format!("{}.png", stl_file_clone.file_name().unwrap().to_str().unwrap());
+                        let filename = format!(
+                            "{}.png",
+                            stl_file_clone.file_name().unwrap().to_str().unwrap()
+                        );
                         let preview_path_str = preview_path.to_str().unwrap();
                         let file_size = std::fs::metadata(&preview_path)
                             .map(|m| m.len() as i64)
@@ -680,7 +688,10 @@ impl ScannerService {
                             preview_path_str,
                             file_size,
                         ) {
-                            warn!("Failed to add queued STL preview to database for {}: {}", stl_path, e);
+                            warn!(
+                                "Failed to add queued STL preview to database for {}: {}",
+                                stl_path, e
+                            );
                         } else {
                             info!("Added queued STL preview to database for {}", stl_path);
                         }
@@ -724,17 +735,12 @@ impl ScannerService {
         let mut stmt = conn.prepare(
             "SELECT s.id, s.project_id, s.file_path, s.preview_path 
              FROM stl_files s
-             ORDER BY s.project_id"
+             ORDER BY s.project_id",
         )?;
 
         let stl_files: Vec<(i64, i64, String, Option<String>)> = stmt
             .query_map([], |row| {
-                Ok((
-                    row.get(0)?,
-                    row.get(1)?,
-                    row.get(2)?,
-                    row.get(3)?,
-                ))
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
             })?
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -746,7 +752,7 @@ impl ScannerService {
         // Check which ones need preview generation
         for (_file_id, project_id, stl_path, existing_preview) in stl_files {
             let stl_path_buf = PathBuf::from(&stl_path);
-            
+
             // Skip if file doesn't exist
             if !stl_path_buf.exists() {
                 warn!("STL file not found, skipping preview: {}", stl_path);
@@ -777,14 +783,14 @@ impl ScannerService {
                                             [preview_path],
                                             |row| row.get(0)
                                         )?;
-                                        
+
                                         if count == 0 {
                                             info!("Preview exists but not in image_files for {}, will add", stl_path);
                                             // Add existing preview to image_files
                                             if let Err(e) = self.add_stl_preview_to_db(
                                                 project_id,
                                                 &stl_path_buf,
-                                                &preview_path_buf
+                                                &preview_path_buf,
                                             ) {
                                                 let error_msg = format!(
                                                     "Error adding existing STL preview to database for {}: {}",
@@ -799,10 +805,10 @@ impl ScannerService {
                                         false
                                     }
                                 }
-                                _ => true
+                                _ => true,
                             }
                         }
-                        _ => true
+                        _ => true,
                     }
                 }
             } else {
@@ -814,7 +820,8 @@ impl ScannerService {
                 // Generate first 5 synchronously, rest async
                 if generated < 5 {
                     if let Err(e) = self.generate_stl_preview_sync(project_id, &stl_path_buf) {
-                        let error_msg = format!("Error generating STL preview for {}: {}", stl_path, e);
+                        let error_msg =
+                            format!("Error generating STL preview for {}: {}", stl_path, e);
                         warn!("{}", error_msg);
                         errors.push(error_msg);
                     } else {
@@ -822,7 +829,8 @@ impl ScannerService {
                     }
                 } else {
                     if let Err(e) = self.queue_stl_preview(project_id, &stl_path_buf) {
-                        let error_msg = format!("Error queuing STL preview for {}: {}", stl_path, e);
+                        let error_msg =
+                            format!("Error queuing STL preview for {}: {}", stl_path, e);
                         warn!("{}", error_msg);
                         errors.push(error_msg);
                     } else {
@@ -832,7 +840,10 @@ impl ScannerService {
             }
         }
 
-        info!("Backfill complete: {} previews generated, {} queued", generated, queued);
+        info!(
+            "Backfill complete: {} previews generated, {} queued",
+            generated, queued
+        );
         Ok((generated, queued))
     }
 }

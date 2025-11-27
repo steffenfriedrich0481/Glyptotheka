@@ -37,8 +37,9 @@ impl PreviewRepository {
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs() as i64;
 
-        let source_ids_json = serde_json::to_string(&preview.source_image_ids)
-            .map_err(|e| AppError::InternalServer(format!("Failed to serialize image IDs: {}", e)))?;
+        let source_ids_json = serde_json::to_string(&preview.source_image_ids).map_err(|e| {
+            AppError::InternalServer(format!("Failed to serialize image IDs: {}", e))
+        })?;
 
         // Delete existing preview for this project
         conn.execute(
