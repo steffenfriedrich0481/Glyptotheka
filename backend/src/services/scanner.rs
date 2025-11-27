@@ -587,11 +587,7 @@ impl ScannerService {
     }
 
     // T021: Generate STL preview synchronously
-    fn generate_stl_preview_sync(
-        &self,
-        project_id: i64,
-        stl_file: &Path,
-    ) -> Result<(), AppError> {
+    fn generate_stl_preview_sync(&self, project_id: i64, stl_file: &Path) -> Result<(), AppError> {
         if let Some(ref service) = self.stl_preview_service {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let service_clone = service.clone();
@@ -828,8 +824,7 @@ impl ScannerService {
                         generated += 1;
                     }
                 } else if let Err(e) = self.queue_stl_preview(project_id, &stl_path_buf) {
-                    let error_msg =
-                        format!("Error queuing STL preview for {}: {}", stl_path, e);
+                    let error_msg = format!("Error queuing STL preview for {}: {}", stl_path, e);
                     warn!("{}", error_msg);
                     errors.push(error_msg);
                 } else {
