@@ -590,12 +590,12 @@ impl ScannerService {
     fn generate_stl_preview_sync(
         &self,
         project_id: i64,
-        stl_file: &PathBuf,
+        stl_file: &Path,
     ) -> Result<(), AppError> {
         if let Some(ref service) = self.stl_preview_service {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let service_clone = service.clone();
-            let stl_file_clone = stl_file.clone();
+            let stl_file_clone = stl_file.to_path_buf();
             let file_repo_clone = self.file_repo.clone();
 
             // Spawn async task without blocking
@@ -653,11 +653,11 @@ impl ScannerService {
     }
 
     // T022: Queue STL preview for async generation
-    fn queue_stl_preview(&self, project_id: i64, stl_file: &PathBuf) -> Result<(), AppError> {
+    fn queue_stl_preview(&self, project_id: i64, stl_file: &Path) -> Result<(), AppError> {
         if let Some(ref queue) = self.preview_queue {
             let stl_path = stl_file.to_str().unwrap().to_string();
             let queue_clone = queue.clone();
-            let stl_file_clone = stl_file.clone();
+            let stl_file_clone = stl_file.to_path_buf();
             let file_repo_clone = self.file_repo.clone();
             let service_clone = self.stl_preview_service.as_ref().unwrap().clone();
 
@@ -706,8 +706,8 @@ impl ScannerService {
     fn add_stl_preview_to_db(
         &self,
         project_id: i64,
-        stl_file: &PathBuf,
-        preview_path: &PathBuf,
+        stl_file: &Path,
+        preview_path: &Path,
     ) -> Result<(), AppError> {
         let filename = format!("{}.png", stl_file.file_name().unwrap().to_str().unwrap());
         let preview_path_str = preview_path.to_str().unwrap();
@@ -827,15 +827,13 @@ impl ScannerService {
                     } else {
                         generated += 1;
                     }
+                } else if let Err(e) = self.queue_stl_preview(project_id, &stl_path_buf) {
+                    let error_msg =
+                        format!("Error queuing STL preview for {}: {}", stl_path, e);
+                    warn!("{}", error_msg);
+                    errors.push(error_msg);
                 } else {
-                    if let Err(e) = self.queue_stl_preview(project_id, &stl_path_buf) {
-                        let error_msg =
-                            format!("Error queuing STL preview for {}: {}", stl_path, e);
-                        warn!("{}", error_msg);
-                        errors.push(error_msg);
-                    } else {
-                        queued += 1;
-                    }
+                    queued += 1;
                 }
             }
         }

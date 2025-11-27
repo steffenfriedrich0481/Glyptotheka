@@ -753,7 +753,7 @@ impl RescanService {
     fn queue_stl_preview_generation(
         &self,
         _project_id: i64,
-        stl_file: &PathBuf,
+        stl_file: &Path,
         result: &mut RescanResult,
     ) -> Result<(), AppError> {
         if let Some(ref queue) = self.preview_queue {
@@ -775,11 +775,12 @@ impl RescanService {
     }
 
     // T043: Add STL preview to database (helper for rescan)
+    #[allow(dead_code)]
     fn add_stl_preview_to_db(
         &self,
         project_id: i64,
-        stl_file: &PathBuf,
-        preview_path: &PathBuf,
+        stl_file: &Path,
+        preview_path: &Path,
     ) -> Result<(), AppError> {
         let filename = format!("{}.png", stl_file.file_name().unwrap().to_str().unwrap());
         let preview_path_str = preview_path.to_str().unwrap();

@@ -5,7 +5,6 @@ use rusqlite::params;
 use std::path::{Path, PathBuf};
 use stl_thumb::config::Config as StlConfig;
 use tokio::sync::mpsc;
-use tokio::task;
 use tokio::time::{timeout, Duration};
 use tracing::{info, warn};
 

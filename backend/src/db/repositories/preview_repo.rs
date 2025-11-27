@@ -126,10 +126,8 @@ impl PreviewRepository {
         })?;
 
         let mut preview_ids = Vec::new();
-        for row in rows {
-            if let Ok(Some(id)) = row {
-                preview_ids.push(id);
-            }
+        for id in rows.flatten().flatten() {
+            preview_ids.push(id);
         }
 
         Ok(preview_ids)
