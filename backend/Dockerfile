@@ -22,16 +22,15 @@ ENV CARGO_HTTP_SSL_VERSION=tlsv1.3
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 ENV CARGO_HTTP_CHECK_REVOKE=false
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+ENV GIT_SSL_NO_VERIFY=1
+ENV CARGO_HTTP_CAINFO=/etc/ssl/certs/ca-certificates.crt
 
 # Copy manifests
 COPY backend/Cargo.toml backend/Cargo.lock ./
 COPY backend/.cargo ./.cargo
 
 # Build dependencies (cached layer)
-RUN mkdir src && \
-    echo "fn main() {}" > src/main.rs && \
-    cargo build --release && \
-    rm -rf src
+# Skip dependency caching due to git dependencies requiring source code
 
 # Copy source code
 COPY backend/src ./src
