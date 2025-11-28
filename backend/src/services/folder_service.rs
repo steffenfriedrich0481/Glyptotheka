@@ -36,11 +36,29 @@ pub struct BreadcrumbItem {
 pub struct FolderService {
     pool: DbPool,
     root_path: PathBuf,
+    ignored_keywords: Vec<String>,
 }
 
 impl FolderService {
     pub fn new(pool: DbPool, root_path: PathBuf) -> Self {
-        Self { pool, root_path }
+        Self {
+            pool,
+            root_path,
+            ignored_keywords: Vec::new(),
+        }
+    }
+
+    pub fn with_ignored_keywords(mut self, keywords: Vec<String>) -> Self {
+        self.ignored_keywords = keywords;
+        self
+    }
+
+    /// Check if a folder name contains any ignored keyword (case-insensitive substring match)
+    fn is_stl_category_folder(&self, folder_name: &str) -> bool {
+        let normalized_name = folder_name.trim().to_lowercase();
+        self.ignored_keywords
+            .iter()
+            .any(|keyword| normalized_name.contains(&keyword.trim().to_lowercase()))
     }
 
     /// Get contents of a folder at the given path
@@ -135,6 +153,11 @@ impl FolderService {
             let path = entry.path();
             if path.is_dir() {
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    // Skip folders that are STL category keywords
+                    if self.is_stl_category_folder(name) {
+                        continue;
+                    }
+
                     let relative_path = path
                         .strip_prefix(&self.root_path)
                         .unwrap_or(&path)

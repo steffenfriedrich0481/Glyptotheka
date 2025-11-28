@@ -68,10 +68,10 @@ pub fn create_router(
     );
 
     // Initialize folder service for browse functionality
-    let folder_service = Arc::new(crate::services::folder_service::FolderService::new(
-        pool.clone(),
-        root_path,
-    ));
+    let folder_service = Arc::new(
+        crate::services::folder_service::FolderService::new(pool.clone(), root_path)
+            .with_ignored_keywords(ignored_keywords.clone()),
+    );
 
     let state = AppState {
         pool: pool.clone(),
