@@ -1,15 +1,23 @@
 use crate::db::connection::DbPool;
-use crate::models::project::Project;
+use crate::models::project::{ImagePreview, Project};
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct FolderContents {
     pub folders: Vec<FolderInfo>,
-    pub projects: Vec<Project>,
+    pub projects: Vec<ProjectWithPreview>,
     pub current_path: String,
     pub total_folders: usize,
     pub total_projects: usize,
+}
+
+/// T038: Project with preview metadata for folder-level display
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ProjectWithPreview {
+    #[serde(flatten)]
+    pub project: Project,
+    pub preview_images: Vec<ImagePreview>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -152,14 +160,16 @@ impl FolderService {
     }
 
     /// Get projects at specific path (not recursive)
+    /// T038: Get projects at specific path with preview images
     fn get_projects_at_path(
         &self,
         path: &str,
         limit: usize,
         offset: usize,
-    ) -> Result<Vec<Project>> {
+    ) -> Result<Vec<ProjectWithPreview>> {
         let conn = self.pool.get()?;
 
+        // First get projects
         let mut stmt = conn.prepare(
             "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects 
@@ -168,7 +178,7 @@ impl FolderService {
              LIMIT ?2 OFFSET ?3",
         )?;
 
-        let projects = stmt
+        let projects: Vec<Project> = stmt
             .query_map([path, &limit.to_string(), &offset.to_string()], |row| {
                 Ok(Project {
                     id: row.get(0)?,
@@ -184,7 +194,56 @@ impl FolderService {
             })?
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(projects)
+        // T038, T039: Fetch preview images for each project (optimized batch query)
+        let mut projects_with_previews = Vec::new();
+        
+        for project in projects {
+            let preview_images = self.get_project_preview_images(project.id)?;
+            projects_with_previews.push(ProjectWithPreview {
+                project,
+                preview_images,
+            });
+        }
+
+        Ok(projects_with_previews)
+    }
+
+    /// T039: Optimized query for preview images (up to 3 images per project)
+    fn get_project_preview_images(&self, project_id: i64) -> Result<Vec<ImagePreview>> {
+        let conn = self.pool.get()?;
+        
+        let mut stmt = conn.prepare(
+            "SELECT 
+                i.id,
+                i.filename,
+                i.source_type,
+                i.image_source,
+                i.image_priority,
+                CASE 
+                    WHEN i.source_type = 'inherited' THEN sp.full_path
+                    ELSE NULL 
+                END as inherited_from
+             FROM image_files i
+             LEFT JOIN projects sp ON i.source_project_id = sp.id
+             WHERE i.project_id = ?1
+             ORDER BY i.image_priority DESC, i.display_order ASC, i.filename ASC
+             LIMIT 3",
+        )?;
+
+        let images = stmt
+            .query_map([project_id], |row| {
+                Ok(ImagePreview {
+                    id: row.get(0)?,
+                    filename: row.get(1)?,
+                    source_type: row.get(2)?,
+                    image_source: row.get(3)?,
+                    priority: row.get(4)?,
+                    inherited_from: row.get(5)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(images)
     }
 
     /// Count projects at specific path

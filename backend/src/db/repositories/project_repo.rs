@@ -181,14 +181,60 @@ impl ProjectRepository {
             })?
             .collect::<Result<Vec<_>, _>>()?;
 
+        // T037: Fetch inherited images with preview metadata
+        let inherited_images = self.get_project_preview_images(id)?;
+
         Ok(Some(ProjectWithRelations {
             project,
             children,
             stl_count,
             image_count,
-            inherited_images: vec![],
+            inherited_images,
             tags,
         }))
+    }
+
+    /// T037, T039: Get preview images for a project (optimized for folder-level display)
+    /// Returns up to 5 images prioritized: direct images > inherited > STL previews
+    pub fn get_project_preview_images(&self, id: i64) -> Result<Vec<crate::models::project::ImagePreview>, AppError> {
+        use crate::models::project::ImagePreview;
+        
+        let conn = self.pool.get()?;
+        
+        // Query combines direct images, inherited images, and STL previews
+        // Prioritizes: image_priority (10 for regular, 1 for STL preview)
+        let mut stmt = conn.prepare(
+            "SELECT 
+                i.id,
+                i.filename,
+                i.source_type,
+                i.image_source,
+                i.image_priority,
+                CASE 
+                    WHEN i.source_type = 'inherited' THEN sp.full_path
+                    ELSE NULL 
+                END as inherited_from
+             FROM image_files i
+             LEFT JOIN projects sp ON i.source_project_id = sp.id
+             WHERE i.project_id = ?1
+             ORDER BY i.image_priority DESC, i.display_order ASC, i.filename ASC
+             LIMIT 5",
+        )?;
+
+        let images = stmt
+            .query_map(params![id], |row| {
+                Ok(ImagePreview {
+                    id: row.get(0)?,
+                    filename: row.get(1)?,
+                    source_type: row.get(2)?,
+                    image_source: row.get(3)?,
+                    priority: row.get(4)?,
+                    inherited_from: row.get(5)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(images)
     }
 
     pub fn update_is_leaf(&self, id: i64, is_leaf: bool) -> Result<(), AppError> {

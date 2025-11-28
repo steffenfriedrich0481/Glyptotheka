@@ -106,16 +106,16 @@ This is a web application with:
 
 #### Backend Project Preview Support
 
-- [ ] T037 [US2] Update GET /api/projects/:id endpoint to include images in backend/src/api/project_routes.rs
-- [ ] T038 [US2] Add project preview metadata to folder contents response in FolderService
-- [ ] T039 [US2] Optimize image path queries for folder-level display in backend/src/db/queries.rs
+- [x] T037 [US2] Update GET /api/projects/:id endpoint to include images in backend/src/api/project_routes.rs
+- [x] T038 [US2] Add project preview metadata to folder contents response in FolderService
+- [x] T039 [US2] Optimize image path queries for folder-level display in backend/src/db/queries.rs
 - [ ] T040 [US2] Add caching for frequently accessed project previews in FolderService
 
 #### Frontend Project Preview Components
 
-- [ ] T041 [US2] Update ProjectPreview component to display images in frontend/src/components/ProjectPreview.tsx
-- [ ] T042 [US2] Add image carousel functionality to ProjectPreview component
-- [ ] T043 [US2] Implement placeholder/default icon for projects without images in ProjectPreview.tsx
+- [x] T041 [US2] Update ProjectPreview component to display images in frontend/src/components/ProjectPreview.tsx
+- [x] T042 [US2] Add image carousel functionality to ProjectPreview component
+- [x] T043 [US2] Implement placeholder/default icon for projects without images in ProjectPreview.tsx
 - [ ] T044 [US2] Add responsive grid layout for projects in FolderView.tsx
 - [ ] T045 [US2] Handle loading and error states for project previews in FolderView.tsx
 - [ ] T046 [US2] Test project preview display with various image scenarios

@@ -16,6 +16,7 @@ export interface ImagePreview {
   source_type: string;
   image_source: string;
   priority: number;
+  inherited_from?: string | null;  // T041: Add inherited_from path
 }
 
 export interface SearchResultProject extends Project {
@@ -29,6 +30,7 @@ export interface ProjectWithChildren extends Project {
   stl_count: number;
   image_count: number;
   tags: Tag[];
+  preview_images?: ImagePreview[];  // T041: Add preview images for folder view
 }
 
 export interface ProjectWithRelations extends Project {
@@ -36,6 +38,7 @@ export interface ProjectWithRelations extends Project {
   stl_count: number;
   image_count: number;
   tags: Tag[];
+  inherited_images: ImagePreview[];  // T037: Add inherited images
 }
 
 // File types
