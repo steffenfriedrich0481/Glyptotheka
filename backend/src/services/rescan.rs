@@ -33,6 +33,7 @@ pub struct RescanService {
     composite_service: Option<crate::services::composite_preview::CompositePreviewService>,
     stl_preview_service: Option<crate::services::stl_preview::StlPreviewService>,
     preview_queue: Option<std::sync::Arc<crate::services::stl_preview::PreviewQueue>>,
+    ignored_keywords: Vec<String>,
 }
 
 impl RescanService {
@@ -45,6 +46,7 @@ impl RescanService {
             composite_service: None,
             stl_preview_service: None,
             preview_queue: None,
+            ignored_keywords: Vec::new(),
         }
     }
 
@@ -57,6 +59,7 @@ impl RescanService {
             composite_service: None,
             stl_preview_service: None,
             preview_queue: None,
+            ignored_keywords: Vec::new(),
         }
     }
 
@@ -74,6 +77,40 @@ impl RescanService {
         self.stl_preview_service = Some(stl_preview_service);
         self.preview_queue = Some(preview_queue);
         self
+    }
+
+    pub fn with_ignored_keywords(mut self, keywords: Vec<String>) -> Self {
+        self.ignored_keywords = keywords;
+        self
+    }
+
+    /// Check if a folder name contains any ignored keyword (case-insensitive substring match)
+    fn is_stl_category_folder(&self, folder_name: &str) -> bool {
+        let normalized_name = folder_name.trim().to_lowercase();
+        self.ignored_keywords
+            .iter()
+            .any(|keyword| normalized_name.contains(&keyword.trim().to_lowercase()))
+    }
+
+    /// Find the actual project folder by traversing up past STL category folders
+    fn find_project_folder(&self, start_folder: &Path, root: &Path) -> PathBuf {
+        let mut current = start_folder;
+
+        // Traverse up while the current folder name matches an ignored keyword
+        while let Some(folder_name) = current.file_name().and_then(|n| n.to_str()) {
+            if self.is_stl_category_folder(folder_name) {
+                // This is an STL category folder, go up one level
+                if let Some(parent) = current.parent() {
+                    if parent >= root {
+                        current = parent;
+                        continue;
+                    }
+                }
+            }
+            break;
+        }
+
+        current.to_path_buf()
     }
 
     pub fn rescan(&self, root_path: &str) -> Result<RescanResult, AppError> {
@@ -130,8 +167,11 @@ impl RescanService {
                         if let Some(ext) = e.path().extension() {
                             if ext.eq_ignore_ascii_case("stl") {
                                 if let Some(parent) = e.path().parent() {
+                                    // Find the actual project folder by traversing up
+                                    // past any STL category folders
+                                    let project_folder = self.find_project_folder(parent, root);
                                     project_folders
-                                        .entry(parent.to_path_buf())
+                                        .entry(project_folder)
                                         .or_insert_with(Vec::new)
                                         .push(e.path().to_path_buf());
                                 }

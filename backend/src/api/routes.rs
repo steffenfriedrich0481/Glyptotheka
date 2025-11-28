@@ -56,13 +56,15 @@ pub fn create_router(
     let scanner_service = Arc::new(
         ScannerService::new(pool.clone())
             .with_composite_preview(cache_dir.clone())
-            .with_stl_preview((*stl_preview).clone(), preview_queue.clone()),
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
+            .with_ignored_keywords(ignored_keywords.clone()),
     );
 
     let rescan_service = Arc::new(
         RescanService::with_cache(pool.clone(), (*image_cache).clone())
             .with_composite_preview(cache_dir.clone())
-            .with_stl_preview((*stl_preview).clone(), preview_queue.clone()),
+            .with_stl_preview((*stl_preview).clone(), preview_queue.clone())
+            .with_ignored_keywords(ignored_keywords.clone()),
     );
 
     // Initialize folder service for browse functionality

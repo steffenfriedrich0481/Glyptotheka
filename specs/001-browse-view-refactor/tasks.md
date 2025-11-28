@@ -166,10 +166,10 @@ This is a web application with:
 
 #### Backend Substring Keyword Matching
 
-- [ ] T061 [US4] Refactor scanner keyword matching to use substring matching in backend/src/services/scanner.rs
-- [ ] T062 [US4] Implement case-insensitive substring comparison in scanner.rs
-- [ ] T063 [US4] Add string trimming and normalization in scanner.rs
-- [ ] T064 [US4] Update project vs. STL container detection logic in scanner.rs
+- [x] T061 [US4] Refactor scanner keyword matching to use substring matching in backend/src/services/scanner.rs
+- [x] T062 [US4] Implement case-insensitive substring comparison in scanner.rs
+- [x] T063 [US4] Add string trimming and normalization in scanner.rs
+- [x] T064 [US4] Update project vs. STL container detection logic in scanner.rs
 - [ ] T065 [US4] Update FolderService to handle STL category folders in backend/src/services/folder_service.rs
 - [ ] T066 [US4] Add STL file grouping by category to project response in backend/src/services/project_service.rs
 
