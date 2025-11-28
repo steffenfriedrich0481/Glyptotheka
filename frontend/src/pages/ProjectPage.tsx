@@ -15,7 +15,7 @@ const ProjectPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [files, setFiles] = useState<{ stl_files: any[], images: any[] } | null>(null);
+  const [files, setFiles] = useState<{ stl_categories: any[], images: any[] } | null>(null);
   const [images, setImages] = useState<any[]>([]);
   const [childPreviews, setChildPreviews] = useState<Map<number, any>>(new Map());
   const navigate = useNavigate();
@@ -231,9 +231,9 @@ const ProjectPage: React.FC = () => {
         </div>
       )}
 
-      {files && (files.stl_files.length > 0 || files.images.length > 0) && (
+      {files && (files.stl_categories.length > 0 || files.images.length > 0) && (
         <div className="mb-8">
-          <FileList files={files.stl_files} images={files.images} />
+          <FileList categories={files.stl_categories} images={files.images} />
         </div>
       )}
 

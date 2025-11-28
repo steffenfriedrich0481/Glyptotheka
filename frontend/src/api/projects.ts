@@ -1,12 +1,12 @@
 import axios from './client';
-import { Project, ProjectWithRelations, StlFile, ImageFile } from '../types/project';
+import { Project, ProjectWithRelations, StlCategory, ImageFile } from '../types/project';
 
 export interface ProjectListResponse {
   projects: Project[];
 }
 
 export interface FilesResponse {
-  stl_files: StlFile[];
+  stl_categories: StlCategory[];
   images: ImageFile[];
   total_images: number;
   page: number;

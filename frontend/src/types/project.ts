@@ -48,8 +48,14 @@ export interface StlFile {
   filename: string;
   file_path: string;
   file_size: number;
+  category: string | null;
   preview_path: string | null;
   preview_generated_at: number | null;
+}
+
+export interface StlCategory {
+  category: string | null;
+  files: StlFile[];
 }
 
 export interface ImageFile {
