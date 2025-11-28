@@ -116,8 +116,8 @@ This is a web application with:
 - [x] T041 [US2] Update ProjectPreview component to display images in frontend/src/components/ProjectPreview.tsx
 - [x] T042 [US2] Add image carousel functionality to ProjectPreview component
 - [x] T043 [US2] Implement placeholder/default icon for projects without images in ProjectPreview.tsx
-- [ ] T044 [US2] Add responsive grid layout for projects in FolderView.tsx
-- [ ] T045 [US2] Handle loading and error states for project previews in FolderView.tsx
+- [x] T044 [US2] Add responsive grid layout for projects in FolderView.tsx
+- [x] T045 [US2] Handle loading and error states for project previews in FolderView.tsx
 - [ ] T046 [US2] Test project preview display with various image scenarios
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Navigation works and project previews display correctly with their own images.
