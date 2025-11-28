@@ -23,9 +23,9 @@ impl FileRepository {
             .as_secs() as i64;
 
         conn.execute(
-            "INSERT INTO stl_files (project_id, filename, file_path, file_size, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            params![file.project_id, file.filename, file.file_path, file.file_size, now, now],
+            "INSERT INTO stl_files (project_id, filename, file_path, file_size, category, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![file.project_id, file.filename, file.file_path, file.file_size, file.category, now, now],
         )?;
 
         Ok(conn.last_insert_rowid())
@@ -34,9 +34,9 @@ impl FileRepository {
     pub fn get_stl_files_by_project(&self, project_id: i64) -> Result<Vec<StlFile>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, project_id, filename, file_path, file_size, preview_path, 
+            "SELECT id, project_id, filename, file_path, file_size, category, preview_path, 
                     preview_generated_at, created_at, updated_at
-             FROM stl_files WHERE project_id = ?1 ORDER BY filename",
+             FROM stl_files WHERE project_id = ?1 ORDER BY category NULLS FIRST, filename",
         )?;
 
         let files = stmt
@@ -47,10 +47,11 @@ impl FileRepository {
                     filename: row.get(2)?,
                     file_path: row.get(3)?,
                     file_size: row.get(4)?,
-                    preview_path: row.get(5)?,
-                    preview_generated_at: row.get(6)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
+                    category: row.get(5)?,
+                    preview_path: row.get(6)?,
+                    preview_generated_at: row.get(7)?,
+                    created_at: row.get(8)?,
+                    updated_at: row.get(9)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -135,11 +136,23 @@ impl FileRepository {
         file_path: &str,
         file_size: i64,
     ) -> Result<i64, AppError> {
+        self.add_stl_file_with_category(project_id, filename, file_path, file_size, None)
+    }
+
+    pub fn add_stl_file_with_category(
+        &self,
+        project_id: i64,
+        filename: &str,
+        file_path: &str,
+        file_size: i64,
+        category: Option<&str>,
+    ) -> Result<i64, AppError> {
         let file = CreateStlFile {
             project_id,
             filename: filename.to_string(),
             file_path: file_path.to_string(),
             file_size,
+            category: category.map(|s| s.to_string()),
         };
         self.create_stl_file(&file)
     }

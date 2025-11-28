@@ -37,6 +37,11 @@ pub const MIGRATIONS: &[Migration] = &[
         description: "Image inheritance tracking",
         sql: include_str!("../../migrations/006_image_inheritance.sql"),
     },
+    Migration {
+        version: 7,
+        description: "Add STL file categories",
+        sql: include_str!("../../migrations/007_stl_categories.sql"),
+    },
 ];
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
@@ -96,7 +101,7 @@ mod tests {
             })
             .unwrap();
 
-        assert_eq!(version, 6);
+        assert_eq!(version, 7);
 
         let table_exists: bool = conn
             .query_row(

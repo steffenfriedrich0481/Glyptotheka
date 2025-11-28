@@ -513,14 +513,27 @@ impl RescanService {
         let metadata = fs::metadata(stl_file)?;
         let file_size = metadata.len() as i64;
 
+        // Determine category from parent folder name
+        let category = stl_file
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|n| n.to_str())
+            .filter(|name| self.is_stl_category_folder(name))
+            .map(|s| s.to_string());
+
         if let Some(&_file_id) = existing_files.get(file_path) {
             // File exists - check if modified (size or timestamp changed)
             // For now, just count as processed
             // TODO: Could add modification detection based on size/mtime
         } else {
             // New file - add it
-            self.file_repo
-                .add_stl_file(project_id, filename, file_path, file_size)?;
+            self.file_repo.add_stl_file_with_category(
+                project_id,
+                filename,
+                file_path,
+                file_size,
+                category.as_deref(),
+            )?;
             result.files_added += 1;
         }
 

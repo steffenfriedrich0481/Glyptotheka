@@ -25,7 +25,7 @@ impl DownloadService {
         let stl_files = {
             let conn = self.pool.get()?;
             let mut stmt = conn.prepare(
-                "SELECT id, project_id, filename, file_path, file_size, preview_path, preview_generated_at, created_at, updated_at
+                "SELECT id, project_id, filename, file_path, file_size, category, preview_path, preview_generated_at, created_at, updated_at
                  FROM stl_files
                  WHERE project_id = ?1
                  ORDER BY filename",
@@ -39,10 +39,11 @@ impl DownloadService {
                         filename: row.get(2)?,
                         file_path: row.get(3)?,
                         file_size: row.get(4)?,
-                        preview_path: row.get(5)?,
-                        preview_generated_at: row.get(6)?,
-                        created_at: row.get(7)?,
-                        updated_at: row.get(8)?,
+                        category: row.get(5)?,
+                        preview_path: row.get(6)?,
+                        preview_generated_at: row.get(7)?,
+                        created_at: row.get(8)?,
+                        updated_at: row.get(9)?,
                     })
                 })?
                 .collect();
