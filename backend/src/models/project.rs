@@ -1,4 +1,5 @@
 use crate::models::tag::Tag;
+use crate::models::stl_file::StlFile;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +51,12 @@ pub struct SearchResultProject {
     pub stl_count: usize,
     pub image_count: usize,
     pub images: Vec<ImagePreview>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StlCategory {
+    pub category: Option<String>,
+    pub files: Vec<StlFile>,
 }
 
 #[derive(Debug, Clone)]
