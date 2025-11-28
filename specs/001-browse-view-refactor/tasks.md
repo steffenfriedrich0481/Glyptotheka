@@ -84,11 +84,11 @@ This is a web application with:
 
 #### Frontend Routing & Integration
 
-- [ ] T030 [US1] Update React Router with /browse/:folderPath* route in frontend/src/App.tsx
-- [ ] T031 [US1] Refactor BrowsePage.tsx for folder-level navigation in frontend/src/pages/BrowsePage.tsx
-- [ ] T032 [US1] Integrate Breadcrumb component into BrowsePage.tsx
-- [ ] T033 [US1] Integrate FolderView component into BrowsePage.tsx
-- [ ] T034 [US1] Implement browser back/forward history support in BrowsePage.tsx
+- [x] T030 [US1] Update React Router with /browse/:folderPath* route in frontend/src/App.tsx
+- [x] T031 [US1] Refactor BrowsePage.tsx for folder-level navigation in frontend/src/pages/BrowsePage.tsx
+- [x] T032 [US1] Integrate Breadcrumb component into BrowsePage.tsx
+- [x] T033 [US1] Integrate FolderView component into BrowsePage.tsx
+- [x] T034 [US1] Implement browser back/forward history support in BrowsePage.tsx
 - [ ] T035 [US1] Add keyboard navigation support for folder tiles in FolderView.tsx
 - [ ] T036 [US1] Test navigation through example/Miniaturen folder structure
 
