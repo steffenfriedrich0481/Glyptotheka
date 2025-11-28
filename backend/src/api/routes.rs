@@ -36,7 +36,12 @@ pub struct AppState {
     pub scan_state: Arc<Mutex<ScanState>>,
 }
 
-pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<String>, root_path: PathBuf) -> Router {
+pub fn create_router(
+    pool: DbPool,
+    cache_dir: PathBuf,
+    ignored_keywords: Vec<String>,
+    root_path: PathBuf,
+) -> Router {
     let image_cache = Arc::new(ImageCacheService::new(cache_dir.clone(), pool.clone()));
 
     let stl_preview = Arc::new(StlPreviewService::new((*image_cache).clone(), pool.clone()));
@@ -59,7 +64,7 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<Str
             .with_composite_preview(cache_dir.clone())
             .with_stl_preview((*stl_preview).clone(), preview_queue.clone()),
     );
-    
+
     // Initialize folder service for browse functionality
     let folder_service = Arc::new(crate::services::folder_service::FolderService::new(
         pool.clone(),
@@ -86,18 +91,28 @@ pub fn create_router(pool: DbPool, cache_dir: PathBuf, ignored_keywords: Vec<Str
             result: None,
         })),
     };
-    
+
     // Create browse state for folder navigation routes
-    let browse_state = crate::api::browse_routes::BrowseState {
-        folder_service,
-    };
-    
+    let browse_state = crate::api::browse_routes::BrowseState { folder_service };
+
     // Create browse router with its own state
     let browse_router = Router::new()
-        .route("/api/browse", get(crate::api::browse_routes::get_folder_contents))
-        .route("/api/browse/*path", get(crate::api::browse_routes::get_folder_contents))
-        .route("/api/browse/breadcrumb", get(crate::api::browse_routes::get_breadcrumb))
-        .route("/api/browse/breadcrumb/*path", get(crate::api::browse_routes::get_breadcrumb))
+        .route(
+            "/api/browse",
+            get(crate::api::browse_routes::get_folder_contents),
+        )
+        .route(
+            "/api/browse/*path",
+            get(crate::api::browse_routes::get_folder_contents),
+        )
+        .route(
+            "/api/browse/breadcrumb",
+            get(crate::api::browse_routes::get_breadcrumb),
+        )
+        .route(
+            "/api/browse/breadcrumb/*path",
+            get(crate::api::browse_routes::get_breadcrumb),
+        )
         .with_state(browse_state);
 
     Router::new()

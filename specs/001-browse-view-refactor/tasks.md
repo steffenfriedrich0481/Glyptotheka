@@ -61,26 +61,26 @@ This is a web application with:
 
 #### Backend Navigation API
 
-- [ ] T013 [P] [US1] Create FolderService for navigation logic in backend/src/services/folder_service.rs
-- [ ] T014 [US1] Implement get_folder_contents(path) method in FolderService
-- [ ] T015 [US1] Implement get_breadcrumb_trail(path) method in FolderService
-- [ ] T016 [US1] Add pagination support for large folders in FolderService
-- [ ] T017 [US1] Create browse_routes.rs with folder navigation endpoints in backend/src/api/browse_routes.rs
-- [ ] T018 [US1] Implement GET /api/browse/:path endpoint in browse_routes.rs
-- [ ] T019 [US1] Implement GET /api/browse/:path/breadcrumb endpoint in browse_routes.rs
-- [ ] T020 [US1] Add path traversal security validation in browse_routes.rs
-- [ ] T021 [US1] Add error handling for non-existent paths in browse_routes.rs
-- [ ] T022 [P] [US1] Update project_service.rs to support folder-level queries in backend/src/services/project_service.rs
+- [x] T013 [P] [US1] Create FolderService for navigation logic in backend/src/services/folder_service.rs
+- [x] T014 [US1] Implement get_folder_contents(path) method in FolderService
+- [x] T015 [US1] Implement get_breadcrumb_trail(path) method in FolderService
+- [x] T016 [US1] Add pagination support for large folders in FolderService
+- [x] T017 [US1] Create browse_routes.rs with folder navigation endpoints in backend/src/api/browse_routes.rs
+- [x] T018 [US1] Implement GET /api/browse/:path endpoint in browse_routes.rs
+- [x] T019 [US1] Implement GET /api/browse/:path/breadcrumb endpoint in browse_routes.rs
+- [x] T020 [US1] Add path traversal security validation in browse_routes.rs
+- [x] T021 [US1] Add error handling for non-existent paths in browse_routes.rs
+- [x] T022 [P] [US1] Update project_service.rs to support folder-level queries in backend/src/services/project_service.rs
 
 #### Frontend Navigation Components
 
-- [ ] T023 [P] [US1] Create Breadcrumb component in frontend/src/components/Breadcrumb.tsx
-- [ ] T024 [P] [US1] Create FolderTile component in frontend/src/components/FolderTile.tsx
-- [ ] T025 [US1] Create FolderView component in frontend/src/pages/FolderView.tsx
-- [ ] T026 [US1] Add folder navigation API calls to frontend/src/api/client.ts
-- [ ] T027 [US1] Implement fetchFolderContents(path) in API client
-- [ ] T028 [US1] Implement fetchBreadcrumb(path) in API client
-- [ ] T029 [US1] Add request cancellation for rapid navigation in API client
+- [x] T023 [P] [US1] Create Breadcrumb component in frontend/src/components/Breadcrumb.tsx
+- [x] T024 [P] [US1] Create FolderTile component in frontend/src/components/FolderTile.tsx
+- [x] T025 [US1] Create FolderView component in frontend/src/pages/FolderView.tsx
+- [x] T026 [US1] Add folder navigation API calls to frontend/src/api/client.ts
+- [x] T027 [US1] Implement fetchFolderContents(path) in API client
+- [x] T028 [US1] Implement fetchBreadcrumb(path) in API client
+- [x] T029 [US1] Add request cancellation for rapid navigation in API client
 
 #### Frontend Routing & Integration
 
@@ -89,7 +89,7 @@ This is a web application with:
 - [x] T032 [US1] Integrate Breadcrumb component into BrowsePage.tsx
 - [x] T033 [US1] Integrate FolderView component into BrowsePage.tsx
 - [x] T034 [US1] Implement browser back/forward history support in BrowsePage.tsx
-- [ ] T035 [US1] Add keyboard navigation support for folder tiles in FolderView.tsx
+- [x] T035 [US1] Add keyboard navigation support for folder tiles in FolderView.tsx
 - [ ] T036 [US1] Test navigation through example/Miniaturen folder structure
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Users can navigate folder-by-folder through the entire hierarchy with breadcrumb navigation.

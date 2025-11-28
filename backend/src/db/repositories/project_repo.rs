@@ -196,11 +196,14 @@ impl ProjectRepository {
 
     /// T037, T039: Get preview images for a project (optimized for folder-level display)
     /// Returns up to 5 images prioritized: direct images > inherited > STL previews
-    pub fn get_project_preview_images(&self, id: i64) -> Result<Vec<crate::models::project::ImagePreview>, AppError> {
+    pub fn get_project_preview_images(
+        &self,
+        id: i64,
+    ) -> Result<Vec<crate::models::project::ImagePreview>, AppError> {
         use crate::models::project::ImagePreview;
-        
+
         let conn = self.pool.get()?;
-        
+
         // Query combines direct images, inherited images, and STL previews
         // Prioritizes: image_priority (10 for regular, 1 for STL preview)
         let mut stmt = conn.prepare(

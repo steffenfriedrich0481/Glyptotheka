@@ -196,7 +196,7 @@ impl FolderService {
 
         // T038, T039: Fetch preview images for each project (optimized batch query)
         let mut projects_with_previews = Vec::new();
-        
+
         for project in projects {
             let preview_images = self.get_project_preview_images(project.id)?;
             projects_with_previews.push(ProjectWithPreview {
@@ -211,7 +211,7 @@ impl FolderService {
     /// T039: Optimized query for preview images (up to 3 images per project)
     fn get_project_preview_images(&self, project_id: i64) -> Result<Vec<ImagePreview>> {
         let conn = self.pool.get()?;
-        
+
         let mut stmt = conn.prepare(
             "SELECT 
                 i.id,

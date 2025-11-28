@@ -24,7 +24,8 @@ fn setup_test_env() -> (TempDir, SearchService) {
     let fixture = include_str!("fixtures/hierarchical_projects.sql");
     conn.execute_batch(fixture).unwrap();
 
-    let service = SearchService::new(pool);
+    let ignored_keywords = vec!["STL".to_string(), "PRESUPPORTED_STL".to_string()];
+    let service = SearchService::new(pool, ignored_keywords);
     (temp_dir, service)
 }
 

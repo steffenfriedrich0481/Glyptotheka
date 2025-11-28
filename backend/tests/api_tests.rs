@@ -8,7 +8,7 @@ use glyptotheka_backend::config::Config;
 use glyptotheka_backend::db::connection::create_pool;
 use serde_json::Value;
 use std::fs;
-use std::path::PathBuf;
+
 use tempfile::TempDir;
 use tower::util::ServiceExt;
 
@@ -30,8 +30,15 @@ async fn setup_test_app() -> (axum::Router, TempDir, Config) {
     // Run migrations
     glyptotheka_backend::db::migrations::run_migrations(&pool).unwrap();
 
-    let app = glyptotheka_backend::api::routes::create_router(pool, cache_dir)
-        .layer(middleware::from_fn(cors_middleware));
+    let ignored_keywords = vec!["STL".to_string(), "PRESUPPORTED_STL".to_string()];
+    let root_path = temp_dir.path().join("projects");
+    let app = glyptotheka_backend::api::routes::create_router(
+        pool,
+        cache_dir,
+        ignored_keywords,
+        root_path,
+    )
+    .layer(middleware::from_fn(cors_middleware));
 
     (app, temp_dir, config)
 }

@@ -86,9 +86,7 @@ async fn main() {
         .get_config()
         .ok()
         .and_then(|c| c.root_path)
-        .unwrap_or_else(|| {
-            std::env::var("ROOT_PATH").unwrap_or_else(|_| "./example".to_string())
-        });
+        .unwrap_or_else(|| std::env::var("ROOT_PATH").unwrap_or_else(|_| "./example".to_string()));
     let root_path = PathBuf::from(root_path);
 
     tracing::info!(root_path = ?root_path, "Using root path for folder service");
