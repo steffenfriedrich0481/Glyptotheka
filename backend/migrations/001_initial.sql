@@ -12,6 +12,7 @@ CREATE TABLE projects (
     full_path TEXT NOT NULL UNIQUE,
     parent_id INTEGER,
     is_leaf BOOLEAN NOT NULL DEFAULT 0,
+    folder_level INTEGER NOT NULL DEFAULT 0,
     description TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
@@ -28,6 +29,7 @@ CREATE INDEX idx_projects_parent ON projects(parent_id);
 CREATE INDEX idx_projects_path ON projects(full_path);
 CREATE INDEX idx_projects_leaf ON projects(is_leaf);
 CREATE INDEX idx_projects_name ON projects(name);
+CREATE INDEX idx_projects_folder_level ON projects(folder_level);
 
 -- Full-text search virtual table for projects
 CREATE VIRTUAL TABLE projects_fts USING fts5(

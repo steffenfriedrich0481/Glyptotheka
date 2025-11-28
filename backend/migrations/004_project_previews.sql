@@ -13,3 +13,7 @@ CREATE TABLE IF NOT EXISTS project_previews (
 
 -- Index for fast lookups by project_id
 CREATE INDEX IF NOT EXISTS idx_project_previews_project_id ON project_previews(project_id);
+
+-- Record migration
+INSERT INTO schema_migrations (version, applied_at)
+VALUES (4, strftime('%s', 'now'));

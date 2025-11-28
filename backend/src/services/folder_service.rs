@@ -15,7 +15,6 @@ pub struct FolderContents {
 /// T038: Project with preview metadata for folder-level display
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ProjectWithPreview {
-    #[serde(flatten)]
     pub project: Project,
     pub preview_images: Vec<ImagePreview>,
 }

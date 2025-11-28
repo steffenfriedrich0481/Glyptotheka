@@ -32,10 +32,6 @@ services:
       - backend
     restart: unless-stopped
 
-volumes:
-  data:
-  cache:
-
 networks:
   default:
     name: glyptotheka-network

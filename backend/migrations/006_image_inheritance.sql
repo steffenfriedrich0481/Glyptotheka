@@ -2,12 +2,7 @@
 -- Version: 6
 -- Description: Add support for tracking image inheritance down the folder hierarchy
 -- This enables images found at any level to be inherited by all descendant projects
-
--- Add folder_level column to projects table to track depth in hierarchy
-ALTER TABLE projects ADD COLUMN folder_level INTEGER NOT NULL DEFAULT 0;
-
--- Create index for efficient folder level queries
-CREATE INDEX idx_projects_folder_level ON projects(folder_level);
+-- Note: folder_level column is now in migration 001
 
 -- Create image_inheritance table to track which images are inherited by which projects
 CREATE TABLE image_inheritance (
@@ -32,5 +27,5 @@ CREATE INDEX idx_image_inheritance_image ON image_inheritance(image_id);
 CREATE INDEX idx_image_inheritance_source ON image_inheritance(source_project_id);
 
 -- Insert migration record
-INSERT INTO schema_migrations (version, description) 
-VALUES (6, 'Image inheritance tracking');
+INSERT INTO schema_migrations (version, applied_at) 
+VALUES (6, strftime('%s', 'now'));

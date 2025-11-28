@@ -25,4 +25,8 @@ DROP TABLE config;
 -- Rename new table to config
 ALTER TABLE config_new RENAME TO config;
 
+-- Record migration
+INSERT INTO schema_migrations (version, applied_at)
+VALUES (3, strftime('%s', 'now'));
+
 COMMIT;
