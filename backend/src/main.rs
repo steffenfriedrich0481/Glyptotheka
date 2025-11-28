@@ -80,8 +80,21 @@ async fn main() {
 
     tracing::info!(keywords = ?ignored_keywords, "Initialized ignored keywords for search");
 
+    // Get root_path from config for folder service
+    let config_service = config::ConfigService::new(pool.clone());
+    let root_path = config_service
+        .get_config()
+        .ok()
+        .and_then(|c| c.root_path)
+        .unwrap_or_else(|| {
+            std::env::var("ROOT_PATH").unwrap_or_else(|_| "./example".to_string())
+        });
+    let root_path = PathBuf::from(root_path);
+
+    tracing::info!(root_path = ?root_path, "Using root path for folder service");
+
     // Build application with routes and middleware
-    let api_routes = api::routes::create_router(pool, cache_path, ignored_keywords);
+    let api_routes = api::routes::create_router(pool, cache_path, ignored_keywords, root_path);
 
     let frontend_path = std::env::var("FRONTEND_PATH").unwrap_or_else(|_| "frontend".to_string());
     let serve_dir = ServeDir::new(&frontend_path)

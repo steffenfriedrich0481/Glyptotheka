@@ -161,10 +161,9 @@ impl FolderService {
         let conn = self.pool.get()?;
 
         let mut stmt = conn.prepare(
-            "SELECT id, name, path, description, tags, file_count, image_count, 
-                    stl_file_count, created_at, updated_at
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects 
-             WHERE path LIKE ?1 || '/%' AND path NOT LIKE ?1 || '/%/%'
+             WHERE full_path LIKE ?1 || '/%' AND full_path NOT LIKE ?1 || '/%/%'
              ORDER BY name COLLATE NOCASE
              LIMIT ?2 OFFSET ?3",
         )?;
@@ -174,14 +173,13 @@ impl FolderService {
                 Ok(Project {
                     id: row.get(0)?,
                     name: row.get(1)?,
-                    path: row.get(2)?,
-                    description: row.get(3)?,
-                    tags: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                    file_count: row.get(5)?,
-                    image_count: row.get(6)?,
-                    stl_file_count: row.get(7)?,
-                    created_at: row.get(8)?,
-                    updated_at: row.get(9)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -195,7 +193,7 @@ impl FolderService {
 
         let count: usize = conn.query_row(
             "SELECT COUNT(*) FROM projects 
-             WHERE path LIKE ?1 || '/%' AND path NOT LIKE ?1 || '/%/%'",
+             WHERE full_path LIKE ?1 || '/%' AND full_path NOT LIKE ?1 || '/%/%'",
             [path],
             |row| row.get(0),
         )?;
