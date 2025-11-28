@@ -38,7 +38,7 @@ impl ProjectRepository {
     pub fn get_by_id(&self, id: i64) -> Result<Option<Project>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects WHERE id = ?1",
         )?;
 
@@ -51,8 +51,9 @@ impl ProjectRepository {
                     parent_id: row.get(3)?,
                     is_leaf: row.get(4)?,
                     description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })
             .optional()?;
@@ -63,7 +64,7 @@ impl ProjectRepository {
     pub fn get_by_path(&self, path: &str) -> Result<Option<Project>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects WHERE full_path = ?1",
         )?;
 
@@ -76,8 +77,9 @@ impl ProjectRepository {
                     parent_id: row.get(3)?,
                     is_leaf: row.get(4)?,
                     description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })
             .optional()?;
@@ -88,7 +90,7 @@ impl ProjectRepository {
     pub fn list_root(&self) -> Result<Vec<Project>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects WHERE parent_id IS NULL ORDER BY name",
         )?;
 
@@ -101,8 +103,9 @@ impl ProjectRepository {
                     parent_id: row.get(3)?,
                     is_leaf: row.get(4)?,
                     description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -113,7 +116,7 @@ impl ProjectRepository {
     pub fn list_children(&self, parent_id: i64) -> Result<Vec<Project>, AppError> {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects WHERE parent_id = ?1 ORDER BY name",
         )?;
 
@@ -126,8 +129,9 @@ impl ProjectRepository {
                     parent_id: row.get(3)?,
                     is_leaf: row.get(4)?,
                     description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -182,6 +186,7 @@ impl ProjectRepository {
             children,
             stl_count,
             image_count,
+            inherited_images: vec![],
             tags,
         }))
     }
@@ -209,7 +214,7 @@ impl ProjectRepository {
         let conn = self.pool.get()?;
         let mut stmt = conn.prepare(
             "WITH RECURSIVE parent_chain AS (
-                SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at, 0 as level
+                SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at, 0 as level
                 FROM projects
                 WHERE id = ?1
                 UNION ALL
@@ -217,7 +222,7 @@ impl ProjectRepository {
                 FROM projects p
                 JOIN parent_chain pc ON p.id = pc.parent_id
             )
-            SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at
+            SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
             FROM parent_chain
             ORDER BY level DESC"
         )?;
@@ -231,8 +236,9 @@ impl ProjectRepository {
                     parent_id: row.get(3)?,
                     is_leaf: row.get(4)?,
                     description: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;

@@ -136,7 +136,7 @@ impl SearchService {
         let offset_i64 = offset as i64;
 
         let sql = format!(
-            "SELECT DISTINCT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at,
+            "SELECT DISTINCT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.folder_level, p.created_at, p.updated_at,
              (SELECT COUNT(*) FROM stl_files WHERE project_id = p.id) as stl_count
              FROM projects p
              INNER JOIN projects_fts fts ON p.id = fts.project_id
@@ -160,10 +160,11 @@ impl SearchService {
                             parent_id: row.get(3)?,
                             is_leaf: row.get(4)?,
                             description: row.get(5)?,
-                            created_at: row.get(6)?,
-                            updated_at: row.get(7)?,
+                            folder_level: row.get(6)?,
+                            created_at: row.get(7)?,
+                            updated_at: row.get(8)?,
                         },
-                        stl_count: row.get(8)?,
+                        stl_count: row.get(9)?,
                         image_count: 0,
                         images: vec![],
                     })
@@ -265,10 +266,11 @@ impl SearchService {
                         parent_id: row.get(3)?,
                         is_leaf: row.get(4)?,
                         description: row.get(5)?,
-                        created_at: row.get(6)?,
-                        updated_at: row.get(7)?,
+                        folder_level: row.get(6)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
                     },
-                    stl_count: row.get(8)?,
+                    stl_count: row.get(9)?,
                     image_count: 0,
                     images: vec![],
                 })
@@ -373,10 +375,11 @@ impl SearchService {
                         parent_id: row.get(3)?,
                         is_leaf: row.get(4)?,
                         description: row.get(5)?,
-                        created_at: row.get(6)?,
-                        updated_at: row.get(7)?,
+                        folder_level: row.get(6)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
                     },
-                    stl_count: row.get(8)?,
+                    stl_count: row.get(9)?,
                     image_count: 0,
                     images: vec![],
                 })
@@ -432,10 +435,11 @@ impl SearchService {
                         parent_id: row.get(3)?,
                         is_leaf: row.get(4)?,
                         description: row.get(5)?,
-                        created_at: row.get(6)?,
-                        updated_at: row.get(7)?,
+                        folder_level: row.get(6)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
                     },
-                    stl_count: row.get(8)?,
+                    stl_count: row.get(9)?,
                     image_count: 0,
                     images: vec![],
                 })

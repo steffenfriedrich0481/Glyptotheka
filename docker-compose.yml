@@ -18,7 +18,7 @@ services:
       - CACHE_DIR=/app/cache
       - ROOT_PATH=/projects
       - RUST_LOG=info,glyptotheka_backend=debug
-      - IGNORED_KEYWORDS=${IGNORED_KEYWORDS:-PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported}
+      - IGNORED_KEYWORDS=${IGNORED_KEYWORDS:-PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported,inch,Inches,32,32mm,ReadyToSlice}
     restart: unless-stopped
 
   frontend:

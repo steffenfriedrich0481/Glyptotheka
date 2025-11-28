@@ -40,12 +40,12 @@ This is a web application with:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create database migration for image inheritance tracking in backend/src/db/migrations.rs
-- [ ] T008 Add folder_level column/tracking to projects table in migration
-- [ ] T009 [P] Create Folder model in backend/src/models/folder.rs
-- [ ] T010 [P] Update Project model to include inherited_images field in backend/src/models/project.rs
-- [ ] T011 Add image inheritance queries to backend/src/db/queries.rs
-- [ ] T012 Apply database migration and verify schema changes
+- [x] T007 Create database migration for image inheritance tracking in backend/src/db/migrations.rs
+- [x] T008 Add folder_level column/tracking to projects table in migration
+- [x] T009 [P] Create Folder model in backend/src/models/folder.rs
+- [x] T010 [P] Update Project model to include inherited_images field in backend/src/models/project.rs
+- [x] T011 Add image inheritance queries to backend/src/db/queries.rs
+- [x] T012 Apply database migration and verify schema changes
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

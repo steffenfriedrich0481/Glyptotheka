@@ -32,6 +32,11 @@ pub const MIGRATIONS: &[Migration] = &[
         description: "Add image priority and source columns",
         sql: include_str!("../../migrations/005_stl_preview_priority.sql"),
     },
+    Migration {
+        version: 6,
+        description: "Image inheritance tracking",
+        sql: include_str!("../../migrations/006_image_inheritance.sql"),
+    },
 ];
 
 pub fn run_migrations(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
@@ -91,7 +96,7 @@ mod tests {
             })
             .unwrap();
 
-        assert_eq!(version, 5);
+        assert_eq!(version, 6);
 
         let table_exists: bool = conn
             .query_row(

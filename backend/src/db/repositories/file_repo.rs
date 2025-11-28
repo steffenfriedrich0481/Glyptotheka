@@ -299,6 +299,7 @@ impl FileRepository {
                     source_type: row.get(2)?,
                     image_source: row.get(3)?,
                     priority: row.get(4)?,
+                    inherited_from: None,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -373,6 +374,7 @@ impl FileRepository {
                 source_type: row.get(3)?,
                 image_source: row.get(4)?,
                 priority: row.get(5)?,
+                inherited_from: None,
             };
             Ok((original_project_id, image))
         })?;
