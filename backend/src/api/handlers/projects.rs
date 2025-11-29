@@ -78,7 +78,7 @@ pub async fn get_project_files(
     for file in stl_files {
         category_map
             .entry(file.category.clone())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(file);
     }
 
