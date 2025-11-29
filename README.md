@@ -5,9 +5,11 @@ A modern web-based application for managing and browsing your 3D print model col
 ## Features
 
 ### Core Functionality
-- 📁 Hierarchical folder-based organization with breadcrumb navigation
+- 📁 **Folder-by-folder navigation** - Browse like a file explorer with hierarchical organization
 - 🖼️ **Automatic STL preview generation** with smart caching
+- 🌊 **Image inheritance** - Parent folder images flow down to all child projects
 - 🎯 **Priority-based image sorting** (regular images, STL previews, composite previews)
+- 📦 **STL category grouping** - Organize files by size/type (e.g., "1 inch", "2 inch", "40 mm")
 - 🔍 Full-text search with tag filtering
 - 🏷️ Custom tagging system
 - ⬇️ Individual file and ZIP archive downloads
