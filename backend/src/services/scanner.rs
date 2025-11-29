@@ -130,6 +130,11 @@ impl ScannerService {
             project_folders.len()
         );
 
+        // Log some example project folders
+        for (folder, stl_files) in project_folders.iter().take(5) {
+            info!("  Example project folder: {} ({} STL files)", folder.display(), stl_files.len());
+        }
+
         // Build project hierarchy
         let mut path_to_id = HashMap::new();
         let mut processed_paths = HashSet::new();

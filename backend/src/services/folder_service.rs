@@ -236,14 +236,22 @@ impl FolderService {
             format!("/projects/{}", path)
         };
 
-        // First get projects - look for immediate children only
-        let mut stmt = conn.prepare(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
+        let query = "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects 
              WHERE full_path LIKE ?1 || '/%' AND full_path NOT LIKE ?1 || '/%/%'
              ORDER BY name COLLATE NOCASE
-             LIMIT ?2 OFFSET ?3",
-        )?;
+             LIMIT ?2 OFFSET ?3";
+
+        tracing::info!(
+            "Querying projects at path: db_path='{}', limit={}, offset={}, query='{}'",
+            db_path,
+            limit,
+            offset,
+            query
+        );
+
+        // First get projects - look for immediate children only
+        let mut stmt = conn.prepare(query)?;
 
         let projects: Vec<Project> = stmt
             .query_map([&db_path, &limit.to_string(), &offset.to_string()], |row| {
@@ -260,6 +268,12 @@ impl FolderService {
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
+
+        tracing::info!("Found {} projects at path '{}'", projects.len(), db_path);
+        for project in &projects {
+            tracing::debug!("  - Project: id={}, name='{}', full_path='{}'", 
+                project.id, project.name, project.full_path);
+        }
 
         // T038, T039: Fetch preview images for each project (optimized batch query)
         let mut projects_with_previews = Vec::new();
