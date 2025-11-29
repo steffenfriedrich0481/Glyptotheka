@@ -81,3 +81,5 @@ jobs:
       - name: Run tests
         working-directory: ./frontend
         run: npm test -- --run
+        env:
+          NODE_OPTIONS: --no-experimental-fetch
