@@ -216,7 +216,7 @@ impl SearchService {
         );
 
         let query = format!(
-            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at,
+            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.folder_level, p.created_at, p.updated_at,
              (SELECT COUNT(*) FROM stl_files WHERE project_id = p.id) as stl_count
              FROM projects p
              INNER JOIN project_tags pt ON p.id = pt.project_id
@@ -323,7 +323,7 @@ impl SearchService {
         );
 
         let query = format!(
-            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.created_at, p.updated_at,
+            "SELECT p.id, p.name, p.full_path, p.parent_id, p.is_leaf, p.description, p.folder_level, p.created_at, p.updated_at,
              (SELECT COUNT(*) FROM stl_files WHERE project_id = p.id) as stl_count
              FROM projects p
              INNER JOIN projects_fts fts ON p.id = fts.project_id
@@ -411,7 +411,7 @@ impl SearchService {
         let total: usize = conn.query_row(&count_sql, [], |row| row.get(0))?;
 
         let sql = format!(
-            "SELECT id, name, full_path, parent_id, is_leaf, description, created_at, updated_at,
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at,
              (SELECT COUNT(*) FROM stl_files WHERE project_id = projects.id) as stl_count
              FROM projects
              {}
