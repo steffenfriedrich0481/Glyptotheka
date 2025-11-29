@@ -9,8 +9,16 @@
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(15, 23, 42, 0.9);
-    background-color: #f8fafc;
+    
+    /* Default theme colors as CSS variables */
+    --color-primary: #3b82f6;
+    --color-primary-dark: #2563eb;
+    --color-secondary: #6b7280;
+    --color-background: #111827;
+    --color-background-lighter: #1f2937;
+    --color-text: #f9fafb;
+    --color-text-muted: #9ca3af;
+    --color-accent: #10b981;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -18,15 +26,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color: rgba(255, 255, 255, 0.87);
-      background-color: #0f172a;
-    }
-  }
-
   body {
     @apply m-0 min-w-[320px] min-h-screen;
+    background-color: var(--color-background);
+    color: var(--color-text);
   }
 
   h1 {

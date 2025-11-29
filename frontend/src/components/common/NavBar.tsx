@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ScanButton } from '../scan/ScanButton';
+import { ThemeSelector } from './ThemeSelector';
 
 export const NavBar: React.FC = () => {
   const location = useLocation();
@@ -53,6 +54,9 @@ export const NavBar: React.FC = () => {
               >
                 Search
               </Link>
+
+              {/* Theme Selector */}
+              <ThemeSelector />
 
               {/* Scan Button */}
               <div className="relative">

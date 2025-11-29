@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { NavigationProvider } from './store/navigationContext';
 import { SearchProvider } from './store/searchContext';
 import { ToastProvider } from './components/common/Toast';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavBar } from './components/common/NavBar';
 import BrowsePage from './pages/BrowsePage';
@@ -12,27 +13,29 @@ import './index.css';
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <ToastProvider>
-          <NavigationProvider>
-            <SearchProvider>
-              <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <NavBar />
-                <main className="app">
-                  <Routes>
-                    <Route path="/" element={<BrowsePage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/browse" element={<BrowsePage />} />
-                    <Route path="/browse/*" element={<BrowsePage />} />
-                    <Route path="/project/:id" element={<ProjectPage />} />
-                    <Route path="/projects/:id" element={<ProjectPage />} />
-                  </Routes>
-                </main>
-              </div>
-            </SearchProvider>
-          </NavigationProvider>
-        </ToastProvider>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <ToastProvider>
+            <NavigationProvider>
+              <SearchProvider>
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                  <NavBar />
+                  <main className="app">
+                    <Routes>
+                      <Route path="/" element={<BrowsePage />} />
+                      <Route path="/search" element={<SearchPage />} />
+                      <Route path="/browse" element={<BrowsePage />} />
+                      <Route path="/browse/*" element={<BrowsePage />} />
+                      <Route path="/project/:id" element={<ProjectPage />} />
+                      <Route path="/projects/:id" element={<ProjectPage />} />
+                    </Routes>
+                  </main>
+                </div>
+              </SearchProvider>
+            </NavigationProvider>
+          </ToastProvider>
+        </Router>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
