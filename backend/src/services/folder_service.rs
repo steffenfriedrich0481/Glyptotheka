@@ -10,6 +10,7 @@ pub struct FolderContents {
     pub current_path: String,
     pub total_folders: usize,
     pub total_projects: usize,
+    pub is_leaf_project: bool, // T042: Indicates if current path is a leaf project (should show project view, not browse view)
 }
 
 /// T038: Project with preview metadata for folder-level display
@@ -74,10 +75,9 @@ impl FolderService {
         let full_path = self.root_path.join(relative_path);
 
         // Check if this path itself is a project (leaf node)
-        // If so, we should not look for children - this should be handled by project view
-        let is_project = self.is_path_a_project(relative_path)?;
+        let is_leaf_project = self.is_path_a_project(relative_path)?;
 
-        let folders = if !is_project {
+        let folders = if !is_leaf_project {
             // Get immediate child folders only if this is not a project
             self.get_child_folders(&full_path)?
         } else {
@@ -98,6 +98,7 @@ impl FolderService {
             current_path: relative_path.to_string(),
             total_folders: folders.len(),
             total_projects,
+            is_leaf_project,
         })
     }
 

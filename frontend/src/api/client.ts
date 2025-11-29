@@ -89,6 +89,7 @@ export interface FolderContents {
   current_path: string;
   total_folders: number;
   total_projects: number;
+  is_leaf_project: boolean; // T042: Indicates if current path is a leaf project
 }
 
 // T027: Fetch folder contents with cancellation support
