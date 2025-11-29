@@ -7,7 +7,7 @@ use crate::utils::error::AppError;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 use walkdir::WalkDir;
 
 #[derive(Debug, Clone)]
@@ -87,9 +87,11 @@ impl RescanService {
     /// Check if a folder name contains any ignored keyword (case-insensitive substring match)
     fn is_stl_category_folder(&self, folder_name: &str) -> bool {
         let normalized_name = folder_name.trim().to_lowercase();
-        self.ignored_keywords
+        let result = self.ignored_keywords
             .iter()
-            .any(|keyword| normalized_name.contains(&keyword.trim().to_lowercase()))
+            .any(|keyword| normalized_name.contains(&keyword.trim().to_lowercase()));
+        debug!("🔍 Checking if '{}' is STL category: {} (keywords: {:?})", folder_name, result, self.ignored_keywords);
+        result
     }
 
     /// Find the actual project folder by traversing up past STL category folders
@@ -514,12 +516,23 @@ impl RescanService {
         let file_size = metadata.len() as i64;
 
         // Determine category from parent folder name
-        let category = stl_file
+        let parent_folder_name = stl_file
             .parent()
             .and_then(|p| p.file_name())
-            .and_then(|n| n.to_str())
-            .filter(|name| self.is_stl_category_folder(name))
+            .and_then(|n| n.to_str());
+        
+        info!("🔍 Processing STL file: {}", filename);
+        info!("   Parent folder: {:?}", parent_folder_name);
+        
+        let category = parent_folder_name
+            .filter(|name| {
+                let is_category = self.is_stl_category_folder(name);
+                info!("   Is category folder '{}': {}", name, is_category);
+                is_category
+            })
             .map(|s| s.to_string());
+        
+        info!("   Final category: {:?}", category);
 
         if let Some(&_file_id) = existing_files.get(file_path) {
             // File exists - check if modified (size or timestamp changed)
@@ -534,6 +547,7 @@ impl RescanService {
                 file_size,
                 category.as_deref(),
             )?;
+            info!("✅ Added STL file '{}' with category: {:?}", filename, category);
             result.files_added += 1;
         }
 
