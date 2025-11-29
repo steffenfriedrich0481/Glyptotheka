@@ -78,13 +78,63 @@ const BrowsePage: React.FC = () => {
         <Breadcrumb items={breadcrumbs} currentPath={currentPath} />
       </div>
 
-      {/* T033: Integrate FolderView component */}
-      <FolderView
-        folders={folderContents?.folders || []}
-        projects={folderContents?.projects || []}
-        loading={loading}
-        error={error}
-      />
+      {/* Show project details if this path IS a project */}
+      {folderContents?.is_leaf_project && folderContents?.project_details ? (
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            {folderContents.project_details.project.name}
+          </h2>
+          
+          {/* STL Categories */}
+          {folderContents.project_details.stl_categories.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">STL Files</h3>
+              {folderContents.project_details.stl_categories.map((category, idx) => (
+                <div key={idx} className="mb-6">
+                  <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {category.category || 'Uncategorized'}
+                  </h4>
+                  <ul className="space-y-2">
+                    {category.files.map((file) => (
+                      <li key={file.id} className="text-gray-600 dark:text-gray-400">
+                        {file.filename} ({(file.file_size / 1024 / 1024).toFixed(2)} MB)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Images */}
+          {folderContents.project_details.images.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Images ({folderContents.project_details.total_images})
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {folderContents.project_details.images.slice(0, 12).map((image) => (
+                  <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    <img
+                      src={`/api/files/images/${image.id}`}
+                      alt={image.filename}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* T033: Integrate FolderView component for normal folder browsing */
+        <FolderView
+          folders={folderContents?.folders || []}
+          projects={folderContents?.projects || []}
+          loading={loading}
+          error={error}
+        />
+      )}
     </div>
   );
 };

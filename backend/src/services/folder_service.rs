@@ -1,6 +1,9 @@
 use crate::db::connection::DbPool;
-use crate::models::project::{ImagePreview, Project};
+use crate::models::project::{ImagePreview, Project, StlCategory};
+use crate::models::stl_file::StlFile;
+use crate::models::image_file::ImageFile;
 use anyhow::Result;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -11,6 +14,7 @@ pub struct FolderContents {
     pub total_folders: usize,
     pub total_projects: usize,
     pub is_leaf_project: bool, // T042: Indicates if current path is a leaf project (should show project view, not browse view)
+    pub project_details: Option<ProjectDetails>, // Project details when path IS a project
 }
 
 /// T038: Project with preview metadata for folder-level display
@@ -18,6 +22,15 @@ pub struct FolderContents {
 pub struct ProjectWithPreview {
     pub project: Project,
     pub preview_images: Vec<ImagePreview>,
+}
+
+/// Project details with files and categories when viewing a project
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ProjectDetails {
+    pub project: Project,
+    pub stl_categories: Vec<StlCategory>,
+    pub images: Vec<ImageFile>,
+    pub total_images: i64,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -77,6 +90,13 @@ impl FolderService {
         // Check if this path itself is a project (leaf node)
         let is_leaf_project = self.is_path_a_project(relative_path)?;
 
+        let project_details = if is_leaf_project {
+            // This path is a project - fetch its details
+            Some(self.get_project_details_by_path(relative_path)?)
+        } else {
+            None
+        };
+
         let folders = if !is_leaf_project {
             // Get immediate child folders only if this is not a project
             self.get_child_folders(&full_path)?
@@ -89,8 +109,17 @@ impl FolderService {
         let per_page = per_page.unwrap_or(50);
         let offset = (page - 1) * per_page;
 
-        let projects = self.get_projects_at_path(relative_path, per_page, offset)?;
-        let total_projects = self.count_projects_at_path(relative_path)?;
+        let projects = if !is_leaf_project {
+            self.get_projects_at_path(relative_path, per_page, offset)?
+        } else {
+            Vec::new()
+        };
+        
+        let total_projects = if !is_leaf_project {
+            self.count_projects_at_path(relative_path)?
+        } else {
+            0
+        };
 
         Ok(FolderContents {
             folders: folders.clone(),
@@ -99,6 +128,7 @@ impl FolderService {
             total_folders: folders.len(),
             total_projects,
             is_leaf_project,
+            project_details,
         })
     }
 
@@ -363,5 +393,122 @@ impl FolderService {
         )?;
 
         Ok(count > 0)
+    }
+
+    /// Get full project details by path (for when browse path IS a project)
+    fn get_project_details_by_path(&self, relative_path: &str) -> Result<ProjectDetails> {
+        let conn = self.pool.get()?;
+
+        // Build the full database path with /projects prefix
+        let db_path = if relative_path.is_empty() {
+            "/projects".to_string()
+        } else {
+            format!("/projects/{}", relative_path)
+        };
+
+        // Get the project
+        let project: Project = conn.query_row(
+            "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
+             FROM projects 
+             WHERE full_path = ?1",
+            [&db_path],
+            |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    full_path: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    is_leaf: row.get(4)?,
+                    description: row.get(5)?,
+                    folder_level: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                })
+            },
+        )?;
+
+        // Get STL files and group by category
+        let mut stmt = conn.prepare(
+            "SELECT id, filename, file_path, file_size, category, project_id, created_at, updated_at, preview_path, preview_generated_at
+             FROM stl_files
+             WHERE project_id = ?1
+             ORDER BY category, filename",
+        )?;
+
+        let stl_files: Vec<StlFile> = stmt
+            .query_map([project.id], |row| {
+                Ok(StlFile {
+                    id: row.get(0)?,
+                    filename: row.get(1)?,
+                    file_path: row.get(2)?,
+                    file_size: row.get(3)?,
+                    category: row.get(4)?,
+                    project_id: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                    preview_path: row.get(8)?,
+                    preview_generated_at: row.get(9)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Group STL files by category
+        let mut category_map: HashMap<Option<String>, Vec<StlFile>> = HashMap::new();
+        for file in stl_files {
+            category_map
+                .entry(file.category.clone())
+                .or_insert_with(Vec::new)
+                .push(file);
+        }
+
+        // Convert to Vec<StlCategory>, with uncategorized files first
+        let mut stl_categories: Vec<StlCategory> = category_map
+            .into_iter()
+            .map(|(category, files)| StlCategory { category, files })
+            .collect();
+
+        // Sort: uncategorized (None) first, then alphabetically by category name
+        stl_categories.sort_by(|a, b| match (&a.category, &b.category) {
+            (None, None) => std::cmp::Ordering::Equal,
+            (None, Some(_)) => std::cmp::Ordering::Less,
+            (Some(_), None) => std::cmp::Ordering::Greater,
+            (Some(a_cat), Some(b_cat)) => a_cat.cmp(b_cat),
+        });
+
+        // Get images (priority-sorted)
+        let mut stmt = conn.prepare(
+            "SELECT id, filename, file_path, file_size, project_id, source_type, image_source, image_priority, source_project_id, display_order, created_at, updated_at
+             FROM image_files
+             WHERE project_id = ?1
+             ORDER BY image_priority DESC, display_order ASC, filename ASC",
+        )?;
+
+        let images: Vec<ImageFile> = stmt
+            .query_map([project.id], |row| {
+                Ok(ImageFile {
+                    id: row.get(0)?,
+                    filename: row.get(1)?,
+                    file_path: row.get(2)?,
+                    file_size: row.get(3)?,
+                    project_id: row.get(4)?,
+                    source_type: row.get(5)?,
+                    image_source: row.get(6)?,
+                    image_priority: row.get(7)?,
+                    source_project_id: row.get(8)?,
+                    display_order: row.get(9)?,
+                    created_at: row.get(10)?,
+                    updated_at: row.get(11)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let total_images = images.len() as i64;
+
+        Ok(ProjectDetails {
+            project,
+            stl_categories,
+            images,
+            total_images,
+        })
     }
 }

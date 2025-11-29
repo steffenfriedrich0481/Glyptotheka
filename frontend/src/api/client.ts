@@ -83,6 +83,56 @@ export interface ProjectWithPreview {
   }>;
 }
 
+export interface StlFile {
+  id: number;
+  filename: string;
+  file_path: string;
+  file_size: number;
+  category: string | null;
+  project_id: number;
+  preview_path: string | null;
+  preview_generated_at: number | null;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface StlCategory {
+  category: string | null;
+  files: StlFile[];
+}
+
+export interface ImageFile {
+  id: number;
+  filename: string;
+  file_path: string;
+  file_size: number;
+  project_id: number;
+  source_type: string;
+  image_source: string;
+  image_priority: number;
+  source_project_id: number | null;
+  display_order: number;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ProjectDetails {
+  project: {
+    id: number;
+    name: string;
+    full_path: string;
+    parent_id: number | null;
+    is_leaf: boolean;
+    description: string | null;
+    folder_level: number;
+    created_at: string;
+    updated_at: string;
+  };
+  stl_categories: StlCategory[];
+  images: ImageFile[];
+  total_images: number;
+}
+
 export interface FolderContents {
   folders: FolderInfo[];
   projects: ProjectWithPreview[];
@@ -90,6 +140,7 @@ export interface FolderContents {
   total_folders: number;
   total_projects: number;
   is_leaf_project: boolean; // T042: Indicates if current path is a leaf project
+  project_details: ProjectDetails | null; // Project details when path IS a project
 }
 
 // T027: Fetch folder contents with cancellation support
