@@ -1,5 +1,5 @@
-use crate::models::tag::Tag;
 use crate::models::stl_file::StlFile;
+use crate::models::tag::Tag;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

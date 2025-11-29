@@ -72,29 +72,30 @@ pub async fn get_project_files(
     let offset = (page - 1) * per_page;
 
     let stl_files = state.file_repo.get_stl_files_by_project(id)?;
-    
+
     // Group STL files by category
     let mut category_map: HashMap<Option<String>, Vec<StlFile>> = HashMap::new();
     for file in stl_files {
-        category_map.entry(file.category.clone()).or_insert_with(Vec::new).push(file);
+        category_map
+            .entry(file.category.clone())
+            .or_insert_with(Vec::new)
+            .push(file);
     }
-    
+
     // Convert to Vec<StlCategory>, with uncategorized files first
     let mut stl_categories: Vec<StlCategory> = category_map
         .into_iter()
         .map(|(category, files)| StlCategory { category, files })
         .collect();
-    
+
     // Sort: uncategorized (None) first, then alphabetically by category name
-    stl_categories.sort_by(|a, b| {
-        match (&a.category, &b.category) {
-            (None, None) => std::cmp::Ordering::Equal,
-            (None, Some(_)) => std::cmp::Ordering::Less,
-            (Some(_), None) => std::cmp::Ordering::Greater,
-            (Some(a_cat), Some(b_cat)) => a_cat.cmp(b_cat),
-        }
+    stl_categories.sort_by(|a, b| match (&a.category, &b.category) {
+        (None, None) => std::cmp::Ordering::Equal,
+        (None, Some(_)) => std::cmp::Ordering::Less,
+        (Some(_), None) => std::cmp::Ordering::Greater,
+        (Some(a_cat), Some(b_cat)) => a_cat.cmp(b_cat),
     });
-    
+
     // T030: Use priority-sorted images (regular images before STL previews)
     let images = state
         .file_repo

@@ -472,10 +472,12 @@ impl ScannerService {
         }
 
         // Create project for this folder
+        // Recursively ensure parent exists first
         let parent_id = if folder != root {
             folder.parent().and_then(|p| {
                 if p >= root {
-                    path_to_id.get(p).copied()
+                    // Recursively ensure parent exists
+                    self.ensure_project_exists(p, root, path_to_id).ok()
                 } else {
                     None
                 }

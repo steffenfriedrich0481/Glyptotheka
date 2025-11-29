@@ -19,14 +19,30 @@ impl ProjectRepository {
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs() as i64;
 
+        // Calculate folder_level based on parent
+        let folder_level = if let Some(parent_id) = project.parent_id {
+            // Get parent's folder_level and add 1
+            let parent_level: i32 = conn
+                .query_row(
+                    "SELECT folder_level FROM projects WHERE id = ?1",
+                    params![parent_id],
+                    |row| row.get(0),
+                )
+                .unwrap_or(0);
+            parent_level + 1
+        } else {
+            0
+        };
+
         conn.execute(
-            "INSERT INTO projects (name, full_path, parent_id, is_leaf, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO projects (name, full_path, parent_id, is_leaf, folder_level, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
                 project.name,
                 project.full_path,
                 project.parent_id,
                 project.is_leaf,
+                folder_level,
                 now,
                 now
             ],
