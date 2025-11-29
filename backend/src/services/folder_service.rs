@@ -73,8 +73,16 @@ impl FolderService {
 
         let full_path = self.root_path.join(relative_path);
 
-        // Get immediate child folders
-        let folders = self.get_child_folders(&full_path)?;
+        // Check if this path itself is a project (leaf node)
+        // If so, we should not look for children - this should be handled by project view
+        let is_project = self.is_path_a_project(relative_path)?;
+
+        let folders = if !is_project {
+            // Get immediate child folders only if this is not a project
+            self.get_child_folders(&full_path)?
+        } else {
+            Vec::new()
+        };
 
         // Get projects at this level
         let page = page.unwrap_or(1);
@@ -123,6 +131,36 @@ impl FolderService {
     }
 
     /// Validate path to prevent directory traversal attacks
+    /// Check if the given path corresponds to an existing project
+    fn is_path_a_project(&self, relative_path: &str) -> Result<bool> {
+        let conn = self.pool.get()?;
+
+        // Build the full database path with /projects prefix
+        let db_path = if relative_path.is_empty() {
+            "/projects".to_string()
+        } else {
+            format!("/projects/{}", relative_path)
+        };
+
+        tracing::debug!(
+            "Checking if path is a project: relative='{}', db_path='{}'",
+            relative_path,
+            db_path
+        );
+
+        let exists: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM projects WHERE full_path = ?1 AND is_leaf = 1)",
+                [&db_path],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+
+        tracing::debug!("Path '{}' is_project: {}", db_path, exists);
+
+        Ok(exists)
+    }
+
     fn validate_path(&self, relative_path: &str) -> Result<()> {
         if relative_path.contains("..") {
             anyhow::bail!("Path contains invalid '..' sequence");
@@ -191,7 +229,14 @@ impl FolderService {
     ) -> Result<Vec<ProjectWithPreview>> {
         let conn = self.pool.get()?;
 
-        // First get projects
+        // Build the full database path with /projects prefix
+        let db_path = if path.is_empty() {
+            "/projects".to_string()
+        } else {
+            format!("/projects/{}", path)
+        };
+
+        // First get projects - look for immediate children only
         let mut stmt = conn.prepare(
             "SELECT id, name, full_path, parent_id, is_leaf, description, folder_level, created_at, updated_at
              FROM projects 
@@ -201,7 +246,7 @@ impl FolderService {
         )?;
 
         let projects: Vec<Project> = stmt
-            .query_map([path, &limit.to_string(), &offset.to_string()], |row| {
+            .query_map([&db_path, &limit.to_string(), &offset.to_string()], |row| {
                 Ok(Project {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -272,10 +317,17 @@ impl FolderService {
     fn count_projects_at_path(&self, path: &str) -> Result<usize> {
         let conn = self.pool.get()?;
 
+        // Build the full database path with /projects prefix
+        let db_path = if path.is_empty() {
+            "/projects".to_string()
+        } else {
+            format!("/projects/{}", path)
+        };
+
         let count: usize = conn.query_row(
             "SELECT COUNT(*) FROM projects 
              WHERE full_path LIKE ?1 || '/%' AND full_path NOT LIKE ?1 || '/%/%'",
-            [path],
+            [&db_path],
             |row| row.get(0),
         )?;
 
