@@ -149,11 +149,25 @@ impl ScannerService {
                     // Add STL files and generate previews
                     let stl_files_vec: Vec<_> = stl_files.to_vec();
                     for stl_file in &stl_files_vec {
-                        match self.file_repo.add_stl_file(
+                        // Extract category from the immediate parent folder if it's an STL category folder
+                        let category = stl_file
+                            .parent()
+                            .and_then(|parent| parent.file_name())
+                            .and_then(|name| name.to_str())
+                            .and_then(|name_str| {
+                                if self.is_stl_category_folder(name_str) {
+                                    Some(name_str)
+                                } else {
+                                    None
+                                }
+                            });
+
+                        match self.file_repo.add_stl_file_with_category(
                             project_id,
                             stl_file.file_name().unwrap().to_str().unwrap(),
                             stl_file.to_str().unwrap(),
                             fs::metadata(stl_file).map(|m| m.len() as i64).unwrap_or(0),
+                            category,
                         ) {
                             Ok(_) => files_processed += 1,
                             Err(e) => {
