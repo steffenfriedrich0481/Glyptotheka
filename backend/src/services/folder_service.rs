@@ -1,7 +1,7 @@
 use crate::db::connection::DbPool;
+use crate::models::image_file::ImageFile;
 use crate::models::project::{ImagePreview, Project, StlCategory};
 use crate::models::stl_file::StlFile;
-use crate::models::image_file::ImageFile;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -114,7 +114,7 @@ impl FolderService {
         } else {
             Vec::new()
         };
-        
+
         let total_projects = if !is_leaf_project {
             self.count_projects_at_path(relative_path)?
         } else {
@@ -302,8 +302,12 @@ impl FolderService {
 
         tracing::info!("Found {} projects at path '{}'", projects.len(), db_path);
         for project in &projects {
-            tracing::debug!("  - Project: id={}, name='{}', full_path='{}'", 
-                project.id, project.name, project.full_path);
+            tracing::debug!(
+                "  - Project: id={}, name='{}', full_path='{}'",
+                project.id,
+                project.name,
+                project.full_path
+            );
         }
 
         // T038, T039: Fetch preview images for each project (optimized batch query)

@@ -210,8 +210,8 @@ impl ProjectRepository {
         }))
     }
 
-    /// T037, T039: Get preview images for a project (optimized for folder-level display)
-    /// Returns up to 5 images prioritized: direct images > inherited > STL previews
+    /// T037, T039: Get preview images for a project (all images for carousel)
+    /// Returns all images prioritized: direct images > inherited > STL previews
     pub fn get_project_preview_images(
         &self,
         id: i64,
@@ -222,6 +222,7 @@ impl ProjectRepository {
 
         // Query combines direct images, inherited images, and STL previews
         // Prioritizes: image_priority (10 for regular, 1 for STL preview)
+        // Ordered so most specific images (direct) appear first
         let mut stmt = conn.prepare(
             "SELECT 
                 i.id,
@@ -236,8 +237,7 @@ impl ProjectRepository {
              FROM image_files i
              LEFT JOIN projects sp ON i.source_project_id = sp.id
              WHERE i.project_id = ?1
-             ORDER BY i.image_priority DESC, i.display_order ASC, i.filename ASC
-             LIMIT 5",
+             ORDER BY i.image_priority DESC, i.display_order ASC, i.filename ASC",
         )?;
 
         let images = stmt

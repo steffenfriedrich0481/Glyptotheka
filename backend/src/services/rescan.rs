@@ -87,10 +87,14 @@ impl RescanService {
     /// Check if a folder name contains any ignored keyword (case-insensitive substring match)
     fn is_stl_category_folder(&self, folder_name: &str) -> bool {
         let normalized_name = folder_name.trim().to_lowercase();
-        let result = self.ignored_keywords
+        let result = self
+            .ignored_keywords
             .iter()
             .any(|keyword| normalized_name.contains(&keyword.trim().to_lowercase()));
-        debug!("🔍 Checking if '{}' is STL category: {} (keywords: {:?})", folder_name, result, self.ignored_keywords);
+        debug!(
+            "🔍 Checking if '{}' is STL category: {} (keywords: {:?})",
+            folder_name, result, self.ignored_keywords
+        );
         result
     }
 
@@ -520,10 +524,10 @@ impl RescanService {
             .parent()
             .and_then(|p| p.file_name())
             .and_then(|n| n.to_str());
-        
+
         info!("🔍 Processing STL file: {}", filename);
         info!("   Parent folder: {:?}", parent_folder_name);
-        
+
         let category = parent_folder_name
             .filter(|name| {
                 let is_category = self.is_stl_category_folder(name);
@@ -531,7 +535,7 @@ impl RescanService {
                 is_category
             })
             .map(|s| s.to_string());
-        
+
         info!("   Final category: {:?}", category);
 
         if let Some(&_file_id) = existing_files.get(file_path) {
@@ -547,7 +551,10 @@ impl RescanService {
                 file_size,
                 category.as_deref(),
             )?;
-            info!("✅ Added STL file '{}' with category: {:?}", filename, category);
+            info!(
+                "✅ Added STL file '{}' with category: {:?}",
+                filename, category
+            );
             result.files_added += 1;
         }
 
@@ -697,11 +704,15 @@ impl RescanService {
         let mut inherited_images = Vec::new();
 
         // Walk up the tree from current folder to root
+        // Track depth: 1 = immediate parent, 2 = grandparent, etc.
         let mut current_folder = folder;
+        let mut depth = 0;
         while let Some(parent_folder) = current_folder.parent() {
             if parent_folder < root {
                 break;
             }
+
+            depth += 1;
 
             // Scan parent folder for images
             if let Ok(entries) = fs::read_dir(parent_folder) {
@@ -730,8 +741,9 @@ impl RescanService {
                                             .map(|m| m.len() as i64)
                                             .unwrap_or(0);
 
-                                        inherited_images
-                                            .push((filename, file_path, file_size, source_id));
+                                        inherited_images.push((
+                                            filename, file_path, file_size, source_id, depth,
+                                        ));
                                     }
                                 }
                             }
@@ -744,7 +756,8 @@ impl RescanService {
         }
 
         // Add all inherited images to this project
-        for (filename, file_path, file_size, source_id) in inherited_images {
+        // display_order = depth (closer images have lower order, appear first)
+        for (filename, file_path, file_size, source_id, depth) in inherited_images {
             self.file_repo.add_image_file(
                 project_id,
                 &filename,
@@ -752,7 +765,7 @@ impl RescanService {
                 file_size,
                 "inherited",
                 Some(source_id),
-                0,
+                depth,
             )?;
         }
 

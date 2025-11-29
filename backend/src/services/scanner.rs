@@ -132,7 +132,11 @@ impl ScannerService {
 
         // Log some example project folders
         for (folder, stl_files) in project_folders.iter().take(5) {
-            info!("  Example project folder: {} ({} STL files)", folder.display(), stl_files.len());
+            info!(
+                "  Example project folder: {} ({} STL files)",
+                folder.display(),
+                stl_files.len()
+            );
         }
 
         // Build project hierarchy
@@ -541,11 +545,15 @@ impl ScannerService {
         let mut inherited_images = Vec::new();
 
         // Walk up the tree from current folder to root
+        // Track depth: 1 = immediate parent, 2 = grandparent, etc.
         let mut current_folder = folder;
+        let mut depth = 0;
         while let Some(parent_folder) = current_folder.parent() {
             if parent_folder < root {
                 break;
             }
+
+            depth += 1;
 
             // Scan parent folder for images
             if let Ok(entries) = fs::read_dir(parent_folder) {
@@ -574,8 +582,9 @@ impl ScannerService {
                                             .map(|m| m.len() as i64)
                                             .unwrap_or(0);
 
-                                        inherited_images
-                                            .push((filename, file_path, file_size, source_id));
+                                        inherited_images.push((
+                                            filename, file_path, file_size, source_id, depth,
+                                        ));
                                     }
                                 }
                             }
@@ -588,7 +597,8 @@ impl ScannerService {
         }
 
         // Add all inherited images to this project
-        for (filename, file_path, file_size, source_id) in inherited_images {
+        // display_order = depth (closer images have lower order, appear first)
+        for (filename, file_path, file_size, source_id, depth) in inherited_images {
             self.file_repo.add_image_file(
                 project_id,
                 &filename,
@@ -596,7 +606,7 @@ impl ScannerService {
                 file_size,
                 "inherited",
                 Some(source_id),
-                0,
+                depth,
             )?;
         }
 
