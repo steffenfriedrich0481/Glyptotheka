@@ -24,7 +24,6 @@ const ProjectPage: React.FC = () => {
     if (id) {
       loadProject(parseInt(id));
       loadFiles(parseInt(id));
-      loadImages(parseInt(id), 1);
     }
   }, [id]);
 
@@ -38,6 +37,12 @@ const ProjectPage: React.FC = () => {
     try {
       const data = await projectsAPI.getProject(projectId);
       setProject(data);
+      
+      // Merge inherited images with direct images for carousel display
+      // inherited_images already contains all images (direct + inherited) sorted by priority
+      if (data.inherited_images && data.inherited_images.length > 0) {
+        setImages(data.inherited_images);
+      }
     } catch (err) {
       console.error('Failed to load project:', err);
     } finally {
@@ -57,15 +62,6 @@ const ProjectPage: React.FC = () => {
       setFiles(data);
     } catch (err) {
       console.error('Failed to load files:', err);
-    }
-  };
-
-  const loadImages = async (projectId: number, page: number) => {
-    try {
-      const data = await projectsAPI.getProjectFiles(projectId, page, 20);
-      setImages(data.images || []);
-    } catch (err) {
-      console.error('Failed to load images:', err);
     }
   };
 

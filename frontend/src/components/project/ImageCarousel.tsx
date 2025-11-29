@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ImageFile } from '../../types/project';
+import { ImagePreview } from '../../types/project';
 
 interface Props {
-  images: ImageFile[];
+  images: ImagePreview[];
 }
 
 const ImageCarousel: React.FC<Props> = ({ images }) => {
