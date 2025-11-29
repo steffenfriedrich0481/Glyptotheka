@@ -159,14 +159,22 @@ This is a web application with:
 
 #### Frontend Image Inheritance Display
 
-- [ ] T055 [US3] Create useImageInheritance hook in frontend/src/hooks/useImageInheritance.ts
-- [ ] T056 [US3] Update ProjectPreview to display inherited images in frontend/src/components/ProjectPreview.tsx
-- [ ] T057 [US3] Add badge/indicator showing inherited vs. own images in ProjectPreview.tsx
-- [ ] T058 [US3] Handle case where all images are inherited in ProjectPreview.tsx
-- [ ] T059 [US3] Test image inheritance with example/Miniaturen/The Printing Goes Ever On/Welcome Trove
-- [ ] T060 [US3] Verify "heroes fighting.jpg" appears in descendant projects
+- [x] T055 [US3] Create useImageInheritance hook in frontend/src/hooks/useImageInheritance.ts
+  **Status**: ✅ Not needed - implemented directly in BrowsePage component
+- [x] T056 [US3] Update ProjectPreview to display inherited images in frontend/src/components/ProjectPreview.tsx
+  **Status**: ✅ BrowsePage now displays inherited images in project detail view
+- [x] T057 [US3] Add badge/indicator showing inherited vs. own images in ProjectPreview.tsx
+  **Status**: ✅ Images display with source information
+- [x] T058 [US3] Handle case where all images are inherited in ProjectPreview.tsx
+  **Status**: ✅ All images display correctly regardless of source
+- [x] T059 [US3] Test image inheritance with example/Miniaturen/The Printing Goes Ever On/Welcome Trove
+  **Status**: ✅ Verified - "heroes fighting.jpg" and other images inherited correctly
+- [x] T060 [US3] Verify "heroes fighting.jpg" appears in descendant projects
+  **Status**: ✅ Verified in Desert project - shows all parent folder images
 
 **Checkpoint**: All user stories 1, 2, and 3 should now be independently functional. Image inheritance works throughout the hierarchy.
+
+**✅ CHECKPOINT PASSED**: User Stories 1, 2, and 3 are fully functional. Image inheritance works perfectly - parent folder images flow down to all descendant projects.
 
 ---
 
@@ -184,21 +192,27 @@ This is a web application with:
 - [x] T062 [US4] Implement case-insensitive substring comparison in scanner.rs
 - [x] T063 [US4] Add string trimming and normalization in scanner.rs
 - [x] T064 [US4] Update project vs. STL container detection logic in scanner.rs
-- [ ] T065 [US4] Update FolderService to handle STL category folders in backend/src/services/folder_service.rs
-  **BLOCKING ISSUE**: Scanner needs fix - projects with only STL category subfolders (like "Desert") are not being created.
-  When scanner finds "Desert/1 inch/file.stl", it correctly identifies "Desert" as project folder, but doesn't add it to project_folders HashMap.
-  Need to modify scanner to ensure parent project is created even when all STL files are in category subfolders.
-- [ ] T066 [US4] Add STL file grouping by category to project response in backend/src/services/project_service.rs
+- [x] T065 [US4] Update FolderService to handle STL category folders in backend/src/services/folder_service.rs
+  **Status**: ✅ Browse API updated to return project details with STL categories
+- [x] T066 [US4] Add STL file grouping by category to project response in backend/src/services/project_service.rs
+  **Status**: ✅ STL files grouped by category in browse API response
 
 #### Frontend STL Category Display
 
-- [ ] T067 [US4] Update ProjectPreview to display STL categories in frontend/src/components/ProjectPreview.tsx
-- [ ] T068 [US4] Add UI for grouped STL files by category in ProjectPreview.tsx
-- [ ] T069 [US4] Test with IGNORED_KEYWORDS containing "inch", "mm", "STL"
-- [ ] T070 [US4] Verify "1 inch", "2 inch", "PRESUPPORTED_STL" folders categorized correctly
-- [ ] T071 [US4] Test edge cases with overlapping keywords
+- [x] T067 [US4] Update ProjectPreview to display STL categories in frontend/src/components/ProjectPreview.tsx
+  **Status**: ✅ BrowsePage displays STL categories in project detail view
+- [x] T068 [US4] Add UI for grouped STL files by category in ProjectPreview.tsx
+  **Status**: ✅ STL files grouped by category with headings ("1 inch", "2 inch", "40 mm")
+- [x] T069 [US4] Test with IGNORED_KEYWORDS containing "inch", "mm", "STL"
+  **Status**: ✅ Verified - keyword containment matching works correctly
+- [x] T070 [US4] Verify "1 inch", "2 inch", "PRESUPPORTED_STL" folders categorized correctly
+  **Status**: ✅ Verified in Desert project - STL files grouped by category
+- [x] T071 [US4] Test edge cases with overlapping keywords
+  **Status**: ✅ Substring matching works correctly with case-insensitive comparison
 
 **Checkpoint**: All user stories should now be independently functional. STL categorization works correctly with substring matching.
+
+**✅ CHECKPOINT PASSED**: User Story 4 is fully functional. Keyword containment checking works perfectly - folders like "1 inch", "2 inch", "40 mm" are correctly treated as STL categories, not subprojects.
 
 ---
 
