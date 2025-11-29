@@ -20,7 +20,7 @@ function App() {
                 <NavBar />
                 <main className="app">
                   <Routes>
-                    <Route path="/" element={<SearchPage />} />
+                    <Route path="/" element={<BrowsePage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/browse" element={<BrowsePage />} />
                     <Route path="/browse/*" element={<BrowsePage />} />

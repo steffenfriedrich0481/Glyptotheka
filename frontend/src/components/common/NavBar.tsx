@@ -5,8 +5,6 @@ import { ScanButton } from '../scan/ScanButton';
 export const NavBar: React.FC = () => {
   const location = useLocation();
 
-  const isActive = (path: string) => location.pathname === path;
-
   return (
     <>
       {/* Skip to main content link for accessibility */}
@@ -35,13 +33,25 @@ export const NavBar: React.FC = () => {
               <Link
                 to="/browse"
                 className={`text-sm font-medium transition-colors ${
-                  isActive('/browse')
+                  location.pathname.startsWith('/browse')
                     ? 'text-white'
                     : 'text-gray-300 hover:text-white'
                 }`}
-                aria-current={isActive('/browse') ? 'page' : undefined}
+                aria-current={location.pathname.startsWith('/browse') ? 'page' : undefined}
               >
                 Browse
+              </Link>
+              
+              <Link
+                to="/search"
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === '/search' || location.pathname === '/'
+                    ? 'text-white'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+                aria-current={location.pathname === '/search' || location.pathname === '/' ? 'page' : undefined}
+              >
+                Search
               </Link>
 
               {/* Scan Button */}
