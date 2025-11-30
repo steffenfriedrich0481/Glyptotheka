@@ -12,7 +12,7 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ items, currentPath }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+    <nav className="flex items-center space-x-2 text-sm text-gray-600 dark:text-theme-muted mb-4">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
         const isCurrent = item.path === currentPath;
@@ -20,10 +20,10 @@ export function Breadcrumb({ items, currentPath }: BreadcrumbProps) {
         return (
           <div key={item.path} className="flex items-center">
             {index > 0 && (
-              <span className="mx-2 text-gray-400">/</span>
+              <span className="mx-2 text-theme-muted">/</span>
             )}
             {isLast || isCurrent ? (
-              <span className="font-medium text-gray-900 dark:text-gray-100">
+              <span className="font-medium text-gray-900 dark:text-theme">
                 {item.name}
               </span>
             ) : (

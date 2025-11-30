@@ -27,7 +27,7 @@ export function FolderTile({ folder }: FolderTileProps) {
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 dark:border-gray-700"
+      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 dark:border-theme"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
@@ -51,10 +51,10 @@ export function FolderTile({ folder }: FolderTileProps) {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-theme truncate">
             {folder.name}
           </h3>
-          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600 dark:text-theme-muted">
             <span>
               {folder.project_count} {folder.project_count === 1 ? 'project' : 'projects'}
             </span>

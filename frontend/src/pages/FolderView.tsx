@@ -52,7 +52,7 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
     return (
       <div className="text-center py-12">
         <svg
-          className="mx-auto h-16 w-16 text-gray-400"
+          className="mx-auto h-16 w-16 text-theme-muted"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -64,10 +64,10 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
           />
         </svg>
-        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-theme">
           No contents
         </h3>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-600 dark:text-theme-muted">
           This folder is empty.
         </p>
       </div>
@@ -79,7 +79,7 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
       {/* Folders Section */}
       {folders.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-theme mb-4">
             Folders
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,7 +96,7 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
       {/* Projects Section */}
       {projects.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-theme mb-4">
             Projects
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -104,9 +104,9 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
               <div
                 key={projectData.project.id}
                 onClick={() => navigate(`/project/${projectData.project.id}`)}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all p-4 border border-gray-200 dark:border-gray-700 cursor-pointer"
+                className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all p-4 border border-gray-200 dark:border-theme cursor-pointer"
               >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-theme truncate mb-2">
                   {projectData.project.name}
                 </h3>
                 
@@ -123,7 +123,7 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
                 )}
                 
                 {projectData.project.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-theme-muted line-clamp-2">
                     {projectData.project.description}
                   </p>
                 )}

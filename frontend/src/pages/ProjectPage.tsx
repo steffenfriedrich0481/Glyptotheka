@@ -137,7 +137,7 @@ const ProjectPage: React.FC = () => {
           <button
             onClick={handleDownloadAll}
             disabled={downloading}
-            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-green-500 text-theme rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {downloading ? 'Preparing Download...' : 'Download All as ZIP'}
           </button>
@@ -179,11 +179,11 @@ const ProjectPage: React.FC = () => {
               return (
                 <div
                   key={child.id}
-                  className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700"
+                  className="bg-white dark:bg-theme-lighter shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all border border-gray-200 dark:border-theme"
                   onClick={() => navigate(`/project/${child.id}`)}
                 >
                   {/* Preview Image */}
-                  <div className="aspect-video bg-gray-200 dark:bg-gray-700 relative">
+                  <div className="aspect-video bg-gray-200 dark:bg-theme-lighter relative">
                     {preview ? (
                       preview.type === 'composite' ? (
                         <img
@@ -205,7 +205,7 @@ const ProjectPage: React.FC = () => {
                         />
                       )
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-6xl text-theme-muted">
                         📁
                       </div>
                     )}
@@ -213,11 +213,11 @@ const ProjectPage: React.FC = () => {
                   
                   {/* Project Info */}
                   <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate" title={child.name}>
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-theme truncate" title={child.name}>
                       {child.name}
                     </h3>
                     {child.is_leaf && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Contains files</span>
+                      <span className="text-xs text-gray-500 dark:text-theme-muted">Contains files</span>
                     )}
                   </div>
                 </div>

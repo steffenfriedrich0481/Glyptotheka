@@ -61,7 +61,7 @@ const LazyImage: React.FC<{ image: ImageFile }> = ({ image }) => {
             />
           </>
         ) : (
-          <span className="text-gray-400">🖼️</span>
+          <span className="text-theme-muted">🖼️</span>
         )}
       </div>
       <div className="p-2">

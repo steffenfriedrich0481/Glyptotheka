@@ -63,10 +63,10 @@ function ToastContainer({ toasts, onClose }: { toasts: Toast[]; onClose: (id: st
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => void }) {
   const typeStyles = {
-    success: 'bg-green-600 text-white',
-    error: 'bg-red-600 text-white',
-    warning: 'bg-yellow-600 text-white',
-    info: 'bg-blue-600 text-white',
+    success: 'bg-green-600 text-theme',
+    error: 'bg-red-600 text-theme',
+    warning: 'bg-yellow-600 text-theme',
+    info: 'bg-blue-600 text-theme',
   };
 
   const icons = {
@@ -101,7 +101,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
       <button
         onClick={() => onClose(toast.id)}
-        className="flex-shrink-0 text-white/80 hover:text-white"
+        className="flex-shrink-0 text-theme/80 hover:text-theme"
         aria-label="Close notification"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

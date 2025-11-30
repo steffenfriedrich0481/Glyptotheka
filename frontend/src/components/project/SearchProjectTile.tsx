@@ -28,7 +28,7 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
       aria-label={`Project ${project.name}`}
     >
       {/* Image Carousel Container */}
-      <div className="relative aspect-square w-full mb-3 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+      <div className="relative aspect-square w-full mb-3 overflow-hidden rounded-lg bg-gray-100 dark:bg-theme-lighter">
         <SearchTileCarousel 
           images={project.images} 
           projectName={project.name}
@@ -37,7 +37,7 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
         
         {/* Keyword Badge */}
         {showKeyword && (
-          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm z-10 shadow-sm">
+          <div className="absolute top-2 right-2 bg-black/70 text-theme text-xs font-bold px-2 py-1 rounded backdrop-blur-sm z-10 shadow-sm">
             {keyword}
           </div>
         )}
@@ -45,14 +45,14 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
 
       {/* Project Info */}
       <div className="search-page__project-info flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate" title={project.name}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-theme mb-1 truncate" title={project.name}>
           {project.name}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 truncate mb-2" title={project.full_path}>
+        <p className="text-sm text-gray-500 dark:text-theme-muted truncate mb-2" title={project.full_path}>
           {project.full_path}
         </p>
         
-        <div className="mt-auto flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-auto flex items-center gap-3 text-xs text-gray-500 dark:text-theme-muted">
            <span className="flex items-center gap-1">
              <span className="font-medium">{project.stl_count}</span> STLs
            </span>

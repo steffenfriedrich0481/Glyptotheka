@@ -44,21 +44,21 @@ const HomePage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-theme mb-2">
           3D Print Model Library
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-theme-muted">
           Configure your library and browse your 3D print collection
         </p>
       </div>
 
       <div className="card p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-theme mb-4">
           Library Configuration
         </h2>
         
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-theme-muted mb-2">
             Root Folder Path
           </label>
           <input
@@ -68,8 +68,8 @@ const HomePage: React.FC = () => {
             value={rootPath}
             onChange={(e) => setRootPath(e.target.value)}
           />
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Enter the path to your 3D model collection. When running in Docker, use <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">/projects</code> which is mounted from your <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">PROJECTS_PATH</code> environment variable.
+          <p className="mt-2 text-sm text-gray-500 dark:text-theme-muted">
+            Enter the path to your 3D model collection. When running in Docker, use <code className="px-1 py-0.5 bg-gray-200 dark:bg-theme-lighter rounded">/projects</code> which is mounted from your <code className="px-1 py-0.5 bg-gray-200 dark:bg-theme-lighter rounded">PROJECTS_PATH</code> environment variable.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
           </button>
           
           {lastScanAt && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-theme-muted">
               Last scanned: {new Date(lastScanAt * 1000).toLocaleString()}
             </p>
           )}
@@ -105,13 +105,13 @@ const HomePage: React.FC = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-primary-600 dark:text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Browse Projects</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Explore your collection</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-theme">Browse Projects</h3>
+              <p className="text-sm text-gray-600 dark:text-theme-muted">Explore your collection</p>
             </div>
           </div>
         </Link>
@@ -122,13 +122,13 @@ const HomePage: React.FC = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-primary-600 dark:text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Search Projects</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Find specific models</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-theme">Search Projects</h3>
+              <p className="text-sm text-gray-600 dark:text-theme-muted">Find specific models</p>
             </div>
           </div>
         </Link>

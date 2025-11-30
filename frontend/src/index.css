@@ -50,20 +50,91 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
 
+  /* Theme-aware utility classes */
+  .bg-theme {
+    background-color: var(--color-background);
+  }
+
+  .bg-theme-lighter {
+    background-color: var(--color-background-lighter);
+  }
+
+  .text-theme {
+    color: var(--color-text);
+  }
+
+  .text-theme-muted {
+    color: var(--color-text-muted);
+  }
+
+  .bg-theme-primary {
+    background-color: var(--color-primary);
+  }
+
+  .bg-theme-primary-dark {
+    background-color: var(--color-primary-dark);
+  }
+
+  .text-theme-primary {
+    color: var(--color-primary);
+  }
+
+  .bg-theme-accent {
+    background-color: var(--color-accent);
+  }
+
+  .text-theme-accent {
+    color: var(--color-accent);
+  }
+
+  .border-theme {
+    border-color: var(--color-background-lighter);
+  }
+
+  .border-theme-primary {
+    border-color: var(--color-primary);
+  }
+
   .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors;
+    @apply px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+    background-color: var(--color-primary);
+    color: var(--color-text);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  .btn-primary:focus {
+    ring-color: var(--color-primary);
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
+    @apply px-4 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+  }
+
+  .btn-secondary:hover {
+    opacity: 0.9;
   }
 
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700;
+    @apply rounded-xl shadow-sm hover:shadow-md transition-shadow border;
+    background-color: var(--color-background-lighter);
+    border-color: var(--color-background-lighter);
+    color: var(--color-text);
   }
 
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100;
+    @apply w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent transition-colors;
+    background-color: var(--color-background-lighter);
+    border-color: var(--color-secondary);
+    color: var(--color-text);
+  }
+
+  .input-field:focus {
+    ring-color: var(--color-primary);
   }
 
   .sr-only {

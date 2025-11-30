@@ -69,7 +69,7 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
         </div>
       )}
       {progress && isScanning && (
-        <div className="absolute right-0 top-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-2 rounded shadow-lg z-50">
+        <div className="absolute right-0 top-12 bg-white dark:bg-theme-lighter border border-gray-300 dark:border-theme px-4 py-2 rounded shadow-lg z-50">
           <div className="text-sm">
             <div>Projects: {progress.projects_found || 0}</div>
             <div>Files: {progress.files_processed || 0}</div>

@@ -69,7 +69,7 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
   if (!images || images.length === 0) {
     return (
       <div className="w-full h-full bg-gray-200 flex items-center justify-center" aria-label={`No images for ${projectName}`}>
-        <span className="text-gray-400 text-4xl" aria-hidden="true">📦</span>
+        <span className="text-theme-muted text-4xl" aria-hidden="true">📦</span>
       </div>
     );
   }
@@ -137,7 +137,7 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
           onError={() => setImageError(true)}
         />
       ) : (
-        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-theme-muted">
           <span className="text-sm">Image unavailable</span>
         </div>
       )}
@@ -145,10 +145,10 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
       {/* Badges */}
       <div className="absolute top-2 right-2 flex gap-1">
         {currentImage.image_source === 'stl_preview' && (
-          <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded shadow">STL</span>
+          <span className="bg-blue-500 text-theme text-xs px-2 py-1 rounded shadow">STL</span>
         )}
         {currentImage.source_type === 'inherited' && (
-          <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded shadow">Inherited</span>
+          <span className="bg-purple-500 text-theme text-xs px-2 py-1 rounded shadow">Inherited</span>
         )}
       </div>
 
@@ -157,7 +157,7 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
         <>
           <button
             onClick={handlePrev}
-            className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'} focus:opacity-100`}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-theme p-1 rounded-full transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'} focus:opacity-100`}
             aria-label="Previous image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
@@ -165,7 +165,7 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
           
           <button
             onClick={handleNext}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'} focus:opacity-100`}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-theme p-1 rounded-full transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'} focus:opacity-100`}
             aria-label="Next image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>

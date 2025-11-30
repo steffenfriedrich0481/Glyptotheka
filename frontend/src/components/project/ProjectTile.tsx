@@ -41,12 +41,12 @@ const ProjectTile: React.FC<Props> = ({ project, onClick }) => {
           <SearchTileCarousel images={displayImages} projectName={project.name} autoAdvance={true} />
         ) : isFolder ? (
           /* T043: Placeholder for folders without images */
-          <svg className="w-20 h-20 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-20 h-20 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>
         ) : (
           /* T043: Placeholder for projects without images */
-          <svg className="w-20 h-20 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-20 h-20 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
         )}
@@ -54,12 +54,12 @@ const ProjectTile: React.FC<Props> = ({ project, onClick }) => {
 
       {/* Content */}
       <div className="p-4 space-y-3">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 leading-snug min-h-[2.5rem]" title={project.name}>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-theme line-clamp-2 leading-snug min-h-[2.5rem]" title={project.name}>
           {project.name}
         </h3>
         
         {/* Author & Stats */}
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-theme-muted">
           <div className="flex items-center gap-1.5 font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
