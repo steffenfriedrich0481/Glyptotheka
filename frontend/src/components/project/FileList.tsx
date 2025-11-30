@@ -43,7 +43,7 @@ const FileList: React.FC<Props> = ({ categories, images = [] }) => {
     const showPreview = previewHash && !failedPreviews.has(file.id);
     
     return (
-      <li key={file.id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-theme-lighter">
+      <li key={file.id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-theme-lightest rounded transition-colors">
         <div className="flex items-center gap-3 flex-1">
           {showPreview ? (
             <img 
@@ -95,7 +95,7 @@ const FileList: React.FC<Props> = ({ categories, images = [] }) => {
             <h3 className="font-bold text-lg mb-4 mt-6 text-gray-900 dark:text-theme">Image Files</h3>
             <ul className="space-y-2">
               {images.map((image) => (
-                <li key={image.id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-theme-lighter">
+                <li key={image.id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-theme-lightest rounded transition-colors">
                   <span className="truncate text-gray-900 dark:text-theme">{image.filename}</span>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-500 dark:text-theme-muted">
