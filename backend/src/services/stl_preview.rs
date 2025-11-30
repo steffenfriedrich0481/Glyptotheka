@@ -184,8 +184,9 @@ impl StlPreviewService {
         let stl_path_str = stl_path.to_string_lossy().to_string();
 
         // Acquire semaphore permit to limit concurrent renders
-        let _permit = self.render_semaphore.acquire().await
-            .map_err(|e| AppError::InternalServer(format!("Failed to acquire render permit: {}", e)))?;
+        let _permit = self.render_semaphore.acquire().await.map_err(|e| {
+            AppError::InternalServer(format!("Failed to acquire render permit: {}", e))
+        })?;
 
         // Use a channel to communicate between threads
         let (tx, mut rx) = mpsc::channel::<Result<Vec<u8>, String>>(1);
