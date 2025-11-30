@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { projectsAPI } from '../api/projects';
 import { downloadAPI } from '../api/download';
 import { downloadUtils } from '../utils/download';
@@ -18,7 +18,22 @@ const ProjectPage: React.FC = () => {
   const [files, setFiles] = useState<{ stl_categories: any[], images: any[] } | null>(null);
   const [images, setImages] = useState<any[]>([]);
   const [childPreviews, setChildPreviews] = useState<Map<number, any>>(new Map());
-  const navigate = useNavigate();
+
+  // Calculate back link based on project path
+  const getBackLink = (): string => {
+    if (!project) return '/browse';
+    
+    // Remove "/projects" prefix and get parent path
+    const path = project.full_path.replace(/^\/projects\/?/, '');
+    if (!path) return '/browse';
+    
+    // Get parent path by removing last segment
+    const segments = path.split('/');
+    segments.pop(); // Remove current folder
+    const parentPath = segments.join('/');
+    
+    return parentPath ? `/browse/${parentPath}` : '/browse';
+  };
 
   useEffect(() => {
     if (id) {
@@ -121,12 +136,12 @@ const ProjectPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="text-theme-accent hover:text-theme-accent-dark mb-4"
+      <Link
+        to={getBackLink()}
+        className="text-theme-accent hover:text-theme-accent-dark mb-4 inline-block"
       >
         ← Back
-      </button>
+      </Link>
 
       <div className="flex justify-between items-center mb-4">
         <div>
@@ -177,10 +192,10 @@ const ProjectPage: React.FC = () => {
               const preview = childPreviews.get(child.id);
               
               return (
-                <div
+                <Link
                   key={child.id}
-                  className="bg-white dark:bg-theme-lighter shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all border border-gray-200 dark:border-theme"
-                  onClick={() => navigate(`/project/${child.id}`)}
+                  to={`/project/${child.id}`}
+                  className="bg-white dark:bg-theme-lighter shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all border border-gray-200 dark:border-theme block"
                 >
                   {/* Preview Image */}
                   <div className="aspect-video bg-gray-200 dark:bg-theme-lighter relative">
@@ -220,7 +235,7 @@ const ProjectPage: React.FC = () => {
                       <span className="text-xs text-gray-500 dark:text-theme-muted">Contains files</span>
                     )}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

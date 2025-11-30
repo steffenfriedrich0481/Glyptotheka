@@ -1,13 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { SearchResultProject } from '../../types/project';
 import { SearchTileCarousel } from './SearchTileCarousel';
 
 interface SearchProjectTileProps {
   project: SearchResultProject;
-  onClick: (id: number) => void;
 }
 
-export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, onClick }) => {
+export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project }) => {
   // Logic to determine if we should show a keyword badge
   // We compare the project name with the last segment of the full path
   // If they are different, the last segment is likely a keyword/variant
@@ -21,17 +21,9 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
   const keyword = lastSegment;
 
   return (
-    <div 
-      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer overflow-hidden border border-gray-200 dark:border-theme flex flex-col h-full" 
-      onClick={() => onClick(project.id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick(project.id);
-        }
-      }}
+    <Link
+      to={`/project/${project.id}`}
+      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer overflow-hidden border border-gray-200 dark:border-theme flex flex-col h-full block" 
       aria-label={`Project ${project.name}`}
     >
       {/* Image Carousel Container */}
@@ -69,6 +61,6 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
            </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };

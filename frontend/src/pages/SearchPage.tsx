@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { searchApi } from '../api/search';
 import { tagsApi } from '../api/tags';
 import { SearchBar } from '../components/common/SearchBar';
@@ -11,7 +11,6 @@ import './SearchPage.css';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   
   const [projects, setProjects] = useState<SearchResultProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,10 +89,6 @@ export const SearchPage: React.FC = () => {
     setSearchParams(params);
   };
 
-  const handleProjectClick = (projectId: number) => {
-    navigate(`/projects/${projectId}`);
-  };
-
   return (
     <div className="search-page">
       <div className="search-page__header">
@@ -154,7 +149,6 @@ export const SearchPage: React.FC = () => {
                 <SearchProjectTile
                   key={project.id}
                   project={project}
-                  onClick={handleProjectClick}
                 />
               ))}
             </div>
