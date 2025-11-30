@@ -67,7 +67,7 @@ const FileList: React.FC<Props> = ({ categories, images = [] }) => {
           <button
             onClick={() => handleDownloadFile(file.id, file.filename, 'stl')}
             disabled={downloading === file.id}
-            className="px-3 py-1 bg-blue-500 text-theme rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+            className="px-3 py-1 bg-theme-accent text-white rounded hover:bg-theme-accent-dark disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-colors"
           >
             {downloading === file.id ? 'Downloading...' : 'Download'}
           </button>
@@ -104,7 +104,7 @@ const FileList: React.FC<Props> = ({ categories, images = [] }) => {
                     <button
                       onClick={() => handleDownloadFile(image.id, image.filename, 'image')}
                       disabled={downloading === image.id}
-                      className="px-3 py-1 bg-blue-500 text-theme rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                      className="px-3 py-1 bg-theme-accent text-white rounded hover:bg-theme-accent-dark disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-colors"
                     >
                       {downloading === image.id ? 'Downloading...' : 'Download'}
                     </button>
@@ -152,7 +152,7 @@ const FileList: React.FC<Props> = ({ categories, images = [] }) => {
                   <button
                     onClick={() => handleDownloadFile(previewModal.file.id, previewModal.file.filename, 'stl')}
                     disabled={downloading === previewModal.file.id}
-                    className="px-4 py-2 bg-blue-500 text-theme rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-theme-accent text-white rounded hover:bg-theme-accent-dark disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {downloading === previewModal.file.id ? 'Downloading...' : 'Download STL'}
                   </button>
