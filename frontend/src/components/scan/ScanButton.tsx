@@ -11,6 +11,7 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<ScanStatus | null>(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [forceRescan, setForceRescan] = useState(false);
 
   useEffect(() => {
     if (isScanning) {
@@ -35,7 +36,7 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
     setProgress(null);
     setShowLogs(true);
     try {
-      await scanAPI.startScan(false);
+      await scanAPI.startScan(forceRescan);
       setIsScanning(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to start scan');
@@ -45,12 +46,12 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
 
   return (
     <>
-      <div className={className}>
+      <div className={`${className} flex items-center gap-3`}>
         <button
           onClick={handleScan}
           disabled={isScanning}
           className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={isScanning ? 'Scanning in progress...' : 'Rescan library for new projects'}
+          title={isScanning ? 'Scanning in progress...' : forceRescan ? 'Force full rescan (applies keyword changes)' : 'Quick incremental rescan'}
         >
           {isScanning ? (
             <>
@@ -69,6 +70,19 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
             </>
           )}
         </button>
+        
+        {!isScanning && (
+          <label className="flex items-center gap-2 text-sm text-theme cursor-pointer" title="Force full rescan to apply keyword changes and migrate projects">
+            <input
+              type="checkbox"
+              checked={forceRescan}
+              onChange={(e) => setForceRescan(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span>Force full rescan</span>
+          </label>
+        )}
+        
         {error && (
           <div className="absolute right-0 top-12 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded shadow-lg z-50 max-w-xs">
             {error}
