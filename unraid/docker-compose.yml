@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     # REPLACE 'yourusername/glyptotheka' with your actual GitHub username and repo name
-    image: ghcr.io/yourusername/glyptotheka-backend:latest
+    image: ghcr.io/steffenfriedrich0481/glyptotheka-backend:latest
     container_name: glyptotheka-backend
     command: ["/app/glyptotheka-backend"]
     ports:
@@ -23,7 +23,7 @@ services:
 
   frontend:
     # REPLACE 'yourusername/glyptotheka' with your actual GitHub username and repo name
-    image: ghcr.io/yourusername/glyptotheka-frontend:latest
+    image: ghcr.io/steffenfriedrich0481/glyptotheka-frontend:latest
     container_name: glyptotheka-frontend
     ports:
       - "8080:80"

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FolderTile, FolderInfo } from '../components/FolderTile';
 import { ProjectWithPreview } from '../api/client';
 
@@ -11,8 +11,6 @@ interface FolderViewProps {
 }
 
 export function FolderView({ folders, projects, loading, error }: FolderViewProps) {
-  const navigate = useNavigate();
-  
   // T035: Keyboard navigation support for folder tiles
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -101,10 +99,10 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((projectData) => (
-              <div
+              <Link
                 key={projectData.project.id}
-                onClick={() => navigate(`/project/${projectData.project.id}`)}
-                className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all p-4 border border-gray-200 dark:border-theme cursor-pointer"
+                to={`/project/${projectData.project.id}`}
+                className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all p-4 border border-gray-200 dark:border-theme block"
               >
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-theme truncate mb-2">
                   {projectData.project.name}
@@ -127,7 +125,7 @@ export function FolderView({ folders, projects, loading, error }: FolderViewProp
                     {projectData.project.description}
                   </p>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>

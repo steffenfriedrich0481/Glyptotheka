@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export interface FolderInfo {
   name: string;
@@ -12,26 +12,10 @@ interface FolderTileProps {
 }
 
 export function FolderTile({ folder }: FolderTileProps) {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate(`/browse/${folder.path}`);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
-    <div
-      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 dark:border-theme"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
+    <Link
+      to={`/browse/${folder.path}`}
+      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 dark:border-theme block"
       aria-label={`Open folder ${folder.name}`}
     >
       <div className="flex items-center space-x-4">
@@ -73,6 +57,6 @@ export function FolderTile({ folder }: FolderTileProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
