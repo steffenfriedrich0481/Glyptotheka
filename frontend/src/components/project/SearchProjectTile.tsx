@@ -22,13 +22,20 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
 
   return (
     <div 
-      className="search-page__project group flex flex-col h-full" 
+      className="bg-white dark:bg-theme-lighter rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer overflow-hidden border border-gray-200 dark:border-theme flex flex-col h-full" 
       onClick={() => onClick(project.id)}
-      role="article"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(project.id);
+        }
+      }}
       aria-label={`Project ${project.name}`}
     >
       {/* Image Carousel Container */}
-      <div className="relative aspect-square w-full mb-3 overflow-hidden rounded-lg bg-gray-100 dark:bg-theme-lighter">
+      <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-theme">
         <SearchTileCarousel 
           images={project.images} 
           projectName={project.name}
@@ -37,18 +44,18 @@ export const SearchProjectTile: React.FC<SearchProjectTileProps> = ({ project, o
         
         {/* Keyword Badge */}
         {showKeyword && (
-          <div className="absolute top-2 right-2 bg-black/70 text-theme text-xs font-bold px-2 py-1 rounded backdrop-blur-sm z-10 shadow-sm">
+          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm z-10 shadow-sm">
             {keyword}
           </div>
         )}
       </div>
 
       {/* Project Info */}
-      <div className="search-page__project-info flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-theme mb-1 truncate" title={project.name}>
+      <div className="p-4 flex-1 flex flex-col space-y-3">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-theme line-clamp-2 leading-snug min-h-[2.5rem]" title={project.name}>
           {project.name}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-theme-muted truncate mb-2" title={project.full_path}>
+        <p className="text-xs text-gray-500 dark:text-theme-muted truncate" title={project.full_path}>
           {project.full_path}
         </p>
         
