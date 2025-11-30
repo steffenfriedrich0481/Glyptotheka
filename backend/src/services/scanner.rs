@@ -145,6 +145,16 @@ impl ScannerService {
             );
         }
 
+        // Migrate projects that became category folders due to keyword changes
+        if !self.ignored_keywords.is_empty() {
+            info!("Checking for projects that should become category folders");
+            if let Err(e) = self.migrate_category_folder_projects(root, &project_folders) {
+                let error_msg = format!("Error migrating category folder projects: {}", e);
+                error!("{}", error_msg);
+                errors.push(error_msg);
+            }
+        }
+
         // Build project hierarchy
         let mut path_to_id = HashMap::new();
         let mut processed_paths = HashSet::new();
@@ -934,5 +944,137 @@ impl ScannerService {
             generated, queued
         );
         Ok((generated, queued))
+    }
+
+    /// Migrate projects that became category folders due to keyword changes
+    /// This handles the case where a folder like "STL/" was a project, but should now be treated as a category
+    fn migrate_category_folder_projects(
+        &self,
+        root: &Path,
+        project_folders: &HashMap<PathBuf, Vec<PathBuf>>,
+    ) -> Result<(), AppError> {
+        let conn = self.file_repo.pool.get()?;
+
+        // Get all existing projects from database
+        let mut stmt = conn
+            .prepare("SELECT id, full_path FROM projects WHERE is_leaf = 1 ORDER BY full_path")?;
+        let existing_projects: Vec<(i64, String)> = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        for (old_project_id, db_path) in existing_projects {
+            // Convert database path ("/projects/X") to filesystem path
+            let fs_path = if db_path.starts_with("/projects/") {
+                PathBuf::from(root).join(&db_path[10..])
+            } else if db_path == "/projects" {
+                PathBuf::from(root)
+            } else {
+                continue;
+            };
+
+            // Check if this path is still considered a project folder
+            let is_still_project = project_folders.contains_key(&fs_path);
+
+            if !is_still_project {
+                // This folder is no longer a project (probably became a category folder)
+                // Check if the folder name matches an ignored keyword
+                if let Some(folder_name) = fs_path.file_name().and_then(|n| n.to_str()) {
+                    if self.is_stl_category_folder(folder_name) {
+                        info!(
+                            "Migrating project '{}' - now a category folder due to keyword changes",
+                            db_path
+                        );
+
+                        // Find the new correct project folder (parent)
+                        if let Some(parent) = fs_path.parent() {
+                            let new_project_folder = self.find_project_folder(parent, root);
+
+                            // Check if new project folder is in our project_folders map
+                            if project_folders.contains_key(&new_project_folder) {
+                                // Get or create the new parent project
+                                let new_project_path = if new_project_folder == root {
+                                    "/projects".to_string()
+                                } else {
+                                    format!(
+                                        "/projects/{}",
+                                        new_project_folder
+                                            .strip_prefix(root)
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    )
+                                };
+
+                                // Check if new parent project exists
+                                let new_project_id = if let Some(existing) =
+                                    self.project_repo.get_by_path(&new_project_path)?
+                                {
+                                    existing.id
+                                } else {
+                                    // Create new parent project
+                                    let name = new_project_folder
+                                        .file_name()
+                                        .unwrap_or_default()
+                                        .to_str()
+                                        .unwrap_or("Unknown")
+                                        .to_string();
+
+                                    let parent_id = if new_project_folder != root {
+                                        new_project_folder.parent().and_then(|p| {
+                                            if p >= root {
+                                                let p_path = format!(
+                                                    "/projects/{}",
+                                                    p.strip_prefix(root).unwrap().to_str().unwrap()
+                                                );
+                                                self.project_repo
+                                                    .get_by_path(&p_path)
+                                                    .ok()?
+                                                    .map(|proj| proj.id)
+                                            } else {
+                                                None
+                                            }
+                                        })
+                                    } else {
+                                        None
+                                    };
+
+                                    let create_project = CreateProject {
+                                        name,
+                                        full_path: new_project_path.clone(),
+                                        parent_id,
+                                        is_leaf: true,
+                                    };
+
+                                    self.project_repo.create(&create_project)?
+                                };
+
+                                // Migrate all STL files from old project to new project
+                                // Update their categories to reflect the old folder name
+                                conn.execute(
+                                    "UPDATE stl_files SET project_id = ?1, category = ?2 WHERE project_id = ?3",
+                                    rusqlite::params![new_project_id, folder_name, old_project_id],
+                                )?;
+
+                                // Migrate image files
+                                conn.execute(
+                                    "UPDATE image_files SET project_id = ?1 WHERE project_id = ?2",
+                                    rusqlite::params![new_project_id, old_project_id],
+                                )?;
+
+                                // Mark old project as non-leaf (it's now just a category folder)
+                                self.project_repo.update_is_leaf(old_project_id, false)?;
+
+                                info!(
+                                    "Migrated project {} -> {} (category: {})",
+                                    db_path, new_project_path, folder_name
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(())
     }
 }
