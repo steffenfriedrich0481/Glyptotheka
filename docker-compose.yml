@@ -20,6 +20,20 @@ services:
       - RUST_LOG=info,glyptotheka_backend=debug
       - IGNORED_KEYWORDS=${IGNORED_KEYWORDS:-PRESUPPORTED_STL,STL,UNSUPPORTED_STL,Unsupported,Pre-Supported,inch,Inches,32,32mm,ReadyToSlice}
     restart: unless-stopped
+    # CPU and memory limits
+    cpus: 2.0                    # Limit to 2 CPU cores (adjust based on your NAS)
+    mem_limit: 2g                # Limit to 2GB RAM
+    mem_reservation: 512m        # Reserve at least 512MB
+    # CPU pinning (optional - uncomment and adjust core IDs)
+    # cpuset: "0,1"              # Pin to CPU cores 0 and 1
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   frontend:
     build:
@@ -31,6 +45,18 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    # CPU and memory limits
+    cpus: 0.5                    # Limit to 0.5 CPU cores (frontend is lightweight)
+    mem_limit: 256m              # Limit to 256MB RAM
+    mem_reservation: 64m         # Reserve at least 64MB
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
 
 networks:
   default:
