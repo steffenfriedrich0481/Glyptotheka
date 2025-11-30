@@ -3,8 +3,9 @@ use crate::services::image_cache::ImageCacheService;
 use crate::utils::error::AppError;
 use rusqlite::params;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use stl_thumb::config::Config as StlConfig;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Semaphore};
 use tokio::time::{timeout, Duration};
 use tracing::{info, warn};
 
@@ -20,6 +21,7 @@ pub enum PreviewResult {
 pub struct StlPreviewService {
     image_cache: ImageCacheService,
     pool: DbPool,
+    render_semaphore: Arc<Semaphore>,
 }
 
 impl StlPreviewService {
@@ -28,7 +30,13 @@ impl StlPreviewService {
         if let Err(e) = Self::check_stl_thumb_available() {
             warn!("STL preview generation may not work: {}", e);
         }
-        Self { image_cache, pool }
+        // Limit concurrent renders to prevent resource exhaustion (max 4 threads)
+        let render_semaphore = Arc::new(Semaphore::new(4));
+        Self {
+            image_cache,
+            pool,
+            render_semaphore,
+        }
     }
 
     // T046, T047: Check if stl-thumb is available
@@ -174,6 +182,10 @@ impl StlPreviewService {
     async fn render_stl_preview(&self, stl_path: &Path) -> Result<Vec<u8>, AppError> {
         let stl_path = stl_path.to_path_buf();
         let stl_path_str = stl_path.to_string_lossy().to_string();
+
+        // Acquire semaphore permit to limit concurrent renders
+        let _permit = self.render_semaphore.acquire().await
+            .map_err(|e| AppError::InternalServer(format!("Failed to acquire render permit: {}", e)))?;
 
         // Use a channel to communicate between threads
         let (tx, mut rx) = mpsc::channel::<Result<Vec<u8>, String>>(1);

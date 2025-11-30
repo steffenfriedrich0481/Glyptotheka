@@ -6,6 +6,8 @@ use crate::utils::error::AppError;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use tokio::sync::Semaphore;
 use tracing::{error, info, warn};
 use walkdir::WalkDir;
 
@@ -26,10 +28,13 @@ pub struct ScannerService {
     stl_preview_service: Option<crate::services::stl_preview::StlPreviewService>,
     preview_queue: Option<std::sync::Arc<crate::services::stl_preview::PreviewQueue>>,
     ignored_keywords: Vec<String>,
+    preview_semaphore: Arc<Semaphore>,
 }
 
 impl ScannerService {
     pub fn new(pool: DbPool) -> Self {
+        // Limit concurrent preview operations to prevent resource exhaustion (max 10)
+        let preview_semaphore = Arc::new(Semaphore::new(10));
         Self {
             project_repo: ProjectRepository::new(pool.clone()),
             file_repo: FileRepository::new(pool.clone()),
@@ -38,6 +43,7 @@ impl ScannerService {
             stl_preview_service: None,
             preview_queue: None,
             ignored_keywords: Vec::new(),
+            preview_semaphore,
         }
     }
 
@@ -663,9 +669,19 @@ impl ScannerService {
             let service_clone = service.clone();
             let stl_file_clone = stl_file.to_path_buf();
             let file_repo_clone = self.file_repo.clone();
+            let semaphore = self.preview_semaphore.clone();
 
-            // Spawn async task without blocking
+            // Spawn async task without blocking, but limit concurrency
             tokio::spawn(async move {
+                // Acquire permit to limit concurrent preview operations
+                let _permit = match semaphore.acquire().await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        warn!("Failed to acquire preview semaphore: {}", e);
+                        return;
+                    }
+                };
+
                 match service_clone
                     .generate_preview_with_smart_cache(&stl_path)
                     .await
@@ -726,9 +742,19 @@ impl ScannerService {
             let stl_file_clone = stl_file.to_path_buf();
             let file_repo_clone = self.file_repo.clone();
             let service_clone = self.stl_preview_service.as_ref().unwrap().clone();
+            let semaphore = self.preview_semaphore.clone();
 
-            // Spawn async task to queue the preview
+            // Spawn async task to queue the preview, but limit concurrency
             tokio::spawn(async move {
+                // Acquire permit to limit concurrent operations
+                let _permit = match semaphore.acquire().await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        warn!("Failed to acquire preview semaphore: {}", e);
+                        return;
+                    }
+                };
+
                 if let Err(e) = queue_clone.queue_preview(stl_path.clone()).await {
                     warn!("Failed to queue preview for {}: {}", stl_path, e);
                 } else {

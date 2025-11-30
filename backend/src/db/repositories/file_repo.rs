@@ -22,13 +22,24 @@ impl FileRepository {
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs() as i64;
 
-        conn.execute(
-            "INSERT INTO stl_files (project_id, filename, file_path, file_size, category, created_at, updated_at)
+        // Use INSERT OR IGNORE to handle duplicate file_path gracefully
+        match conn.execute(
+            "INSERT OR IGNORE INTO stl_files (project_id, filename, file_path, file_size, category, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![file.project_id, file.filename, file.file_path, file.file_size, file.category, now, now],
-        )?;
-
-        Ok(conn.last_insert_rowid())
+        ) {
+            Ok(0) => {
+                // File already exists, get its ID
+                let id: i64 = conn.query_row(
+                    "SELECT id FROM stl_files WHERE file_path = ?1",
+                    params![file.file_path],
+                    |row| row.get(0),
+                )?;
+                Ok(id)
+            }
+            Ok(_) => Ok(conn.last_insert_rowid()),
+            Err(e) => Err(AppError::from(e)),
+        }
     }
 
     pub fn get_stl_files_by_project(&self, project_id: i64) -> Result<Vec<StlFile>, AppError> {
