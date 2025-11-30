@@ -145,10 +145,10 @@ export const SearchTileCarousel: React.FC<SearchTileCarouselProps> = React.memo(
       {/* Badges */}
       <div className="absolute top-2 right-2 flex gap-1">
         {currentImage.image_source === 'stl_preview' && (
-          <span className="bg-blue-500 text-theme text-xs px-2 py-1 rounded shadow">STL</span>
+          <span className="bg-theme-accent text-white text-xs px-2 py-1 rounded shadow">STL</span>
         )}
         {currentImage.source_type === 'inherited' && (
-          <span className="bg-purple-500 text-theme text-xs px-2 py-1 rounded shadow">Inherited</span>
+          <span className="bg-theme-accent text-white text-xs px-2 py-1 rounded shadow">Inherited</span>
         )}
       </div>
 

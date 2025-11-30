@@ -123,7 +123,7 @@ const ProjectPage: React.FC = () => {
     <div className="container mx-auto p-8">
       <button
         onClick={() => navigate(-1)}
-        className="text-blue-500 hover:text-blue-700 mb-4"
+        className="text-theme-accent hover:text-theme-accent-dark mb-4"
       >
         ← Back
       </button>
@@ -137,7 +137,7 @@ const ProjectPage: React.FC = () => {
           <button
             onClick={handleDownloadAll}
             disabled={downloading}
-            className="px-6 py-2 bg-green-500 text-theme rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-theme-success text-white rounded hover:bg-theme-success-dark disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {downloading ? 'Preparing Download...' : 'Download All as ZIP'}
           </button>
