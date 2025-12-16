@@ -206,4 +206,31 @@ impl ImageCacheService {
 
         Ok(removed)
     }
+
+    /// Clear all cached files (images and previews)
+    pub fn clear_all(&self) -> Result<usize, AppError> {
+        let conn = self.pool.get()?;
+
+        // Get all cache paths before clearing
+        let mut stmt = conn.prepare("SELECT cache_path FROM cached_files")?;
+        let cache_paths: Vec<String> = stmt
+            .query_map([], |row| row.get(0))?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Delete all cache files
+        let mut removed = 0;
+        for cache_path in &cache_paths {
+            let path = Path::new(cache_path);
+            if path.exists() && fs::remove_file(path).is_ok() {
+                removed += 1;
+            }
+        }
+
+        // Clear the database entries
+        conn.execute("DELETE FROM cached_files", [])?;
+
+        tracing::info!("Cleared {} cached files", removed);
+
+        Ok(removed)
+    }
 }

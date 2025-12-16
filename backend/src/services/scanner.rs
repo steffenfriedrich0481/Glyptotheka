@@ -964,8 +964,8 @@ impl ScannerService {
 
         for (old_project_id, db_path) in existing_projects {
             // Convert database path ("/projects/X") to filesystem path
-            let fs_path = if db_path.starts_with("/projects/") {
-                PathBuf::from(root).join(&db_path[10..])
+            let fs_path = if let Some(stripped) = db_path.strip_prefix("/projects/") {
+                PathBuf::from(root).join(stripped)
             } else if db_path == "/projects" {
                 PathBuf::from(root)
             } else {

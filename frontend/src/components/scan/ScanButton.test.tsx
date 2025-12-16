@@ -23,7 +23,7 @@ describe('ScanButton', () => {
   it('has proper title attribute', () => {
     render(<ScanButton />);
     const button = screen.getByRole('button');
-    expect(button).toHaveAttribute('title', 'Rescan library for new projects');
+    expect(button).toHaveAttribute('title', 'Quick incremental rescan');
   });
 
   it('is clickable when not scanning', () => {
@@ -32,19 +32,26 @@ describe('ScanButton', () => {
     expect(button).not.toBeDisabled();
   });
 
-  it('shows spinner icon when scanning', async () => {
+  it('shows force rescan and clean rescan checkboxes', () => {
+    render(<ScanButton />);
+    expect(screen.getByText('Force full rescan')).toBeInTheDocument();
+    expect(screen.getByText('Clean rescan (clear all data)')).toBeInTheDocument();
+  });
+
+  it('calls startScan with clean=true when clean rescan is checked', async () => {
     const { scanAPI } = await import('../../api/scan');
-    (scanAPI.getScanStatus as any).mockResolvedValue({
-      is_scanning: true,
-      projects_found: 5,
-      files_processed: 10,
-    });
     
     render(<ScanButton />);
+    
+    // Check the clean rescan checkbox
+    const cleanCheckbox = screen.getByLabelText(/Clean rescan/i);
+    fireEvent.click(cleanCheckbox);
+    
+    // Click the scan button
     const button = screen.getByRole('button');
     fireEvent.click(button);
     
-    // Check for scanning state (wait a bit for state update)
-    await screen.findByText('Scanning...', {}, { timeout: 2000 });
+    // Verify startScan was called with clean=true
+    expect(scanAPI.startScan).toHaveBeenCalledWith(true, true);
   });
 });

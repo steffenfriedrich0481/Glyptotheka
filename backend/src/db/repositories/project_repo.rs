@@ -310,4 +310,26 @@ impl ProjectRepository {
 
         Ok(projects)
     }
+
+    /// Clear all projects and related data from the database
+    pub fn clear_all(&self) -> Result<(), AppError> {
+        let conn = self.pool.get()?;
+
+        // Disable foreign keys temporarily to allow clearing in any order
+        conn.execute("PRAGMA foreign_keys = OFF", [])?;
+
+        // Clear all related tables first, then projects
+        conn.execute("DELETE FROM image_inheritance", [])?;
+        conn.execute("DELETE FROM project_tags", [])?;
+        conn.execute("DELETE FROM project_previews", [])?;
+        conn.execute("DELETE FROM files", [])?;
+        conn.execute("DELETE FROM projects", [])?;
+
+        // Re-enable foreign keys
+        conn.execute("PRAGMA foreign_keys = ON", [])?;
+
+        tracing::info!("Cleared all projects and related data from database");
+
+        Ok(())
+    }
 }

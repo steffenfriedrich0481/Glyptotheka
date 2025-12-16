@@ -15,11 +15,12 @@ export interface ScanStatus {
 
 export interface StartScanRequest {
   force?: boolean;
+  clean?: boolean;
 }
 
 export const scanAPI = {
-  startScan: async (force?: boolean): Promise<ScanStatus> => {
-    const response = await axios.post('/api/scan', { force });
+  startScan: async (force?: boolean, clean?: boolean): Promise<ScanStatus> => {
+    const response = await axios.post('/api/scan', { force, clean });
     return response.data;
   },
 

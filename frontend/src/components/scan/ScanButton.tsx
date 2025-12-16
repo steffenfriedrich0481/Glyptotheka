@@ -12,6 +12,7 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
   const [progress, setProgress] = useState<ScanStatus | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [forceRescan, setForceRescan] = useState(false);
+  const [cleanRescan, setCleanRescan] = useState(false);
 
   useEffect(() => {
     if (isScanning) {
@@ -36,12 +37,20 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
     setProgress(null);
     setShowLogs(true);
     try {
-      await scanAPI.startScan(forceRescan);
+      await scanAPI.startScan(forceRescan || cleanRescan, cleanRescan);
       setIsScanning(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to start scan');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start scan';
+      setError(errorMessage);
       setShowLogs(false);
     }
+  };
+
+  const getScanTitle = () => {
+    if (isScanning) return 'Scanning in progress...';
+    if (cleanRescan) return 'Clean rescan: Clears all database entries and cache before scanning';
+    if (forceRescan) return 'Force full rescan (applies keyword changes)';
+    return 'Quick incremental rescan';
   };
 
   return (
@@ -51,7 +60,7 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
           onClick={handleScan}
           disabled={isScanning}
           className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={isScanning ? 'Scanning in progress...' : forceRescan ? 'Force full rescan (applies keyword changes)' : 'Quick incremental rescan'}
+          title={getScanTitle()}
         >
           {isScanning ? (
             <>
@@ -72,15 +81,26 @@ export const ScanButton: React.FC<ScanButtonProps> = ({ className = '' }) => {
         </button>
         
         {!isScanning && (
-          <label className="flex items-center gap-2 text-sm text-theme cursor-pointer" title="Force full rescan to apply keyword changes and migrate projects">
-            <input
-              type="checkbox"
-              checked={forceRescan}
-              onChange={(e) => setForceRescan(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span>Force full rescan</span>
-          </label>
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center gap-2 text-sm text-theme cursor-pointer" title="Force full rescan to apply keyword changes and migrate projects">
+              <input
+                type="checkbox"
+                checked={forceRescan}
+                onChange={(e) => setForceRescan(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>Force full rescan</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-red-400 cursor-pointer" title="Clean rescan: Clears all database entries and cache before scanning (starts fresh)">
+              <input
+                type="checkbox"
+                checked={cleanRescan}
+                onChange={(e) => setCleanRescan(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+              />
+              <span>Clean rescan (clear all data)</span>
+            </label>
+          </div>
         )}
         
         {error && (

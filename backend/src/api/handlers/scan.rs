@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanRequest {
     pub force: Option<bool>,
+    pub clean: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,7 +61,17 @@ pub async fn start_scan(
         .ok_or_else(|| AppError::ValidationError("Root path not configured".to_string()))?;
 
     let force = req.force.unwrap_or(false);
+    let clean = req.clean.unwrap_or(false);
     let has_been_scanned = config.last_scan_at.is_some();
+
+    // If clean is requested, clear all database entries and cache before scanning
+    if clean {
+        tracing::info!("Clean rescan requested - clearing all data");
+        state.project_repo.clear_all()?;
+        if let Err(e) = state.image_cache_service.clear_all() {
+            tracing::warn!("Failed to clear image cache: {}", e);
+        }
+    }
 
     scan_state.is_scanning = true;
     scan_state.result = None;
@@ -72,7 +83,8 @@ pub async fn start_scan(
     let config_service = state.config_service.clone();
 
     tokio::spawn(async move {
-        let result = if force || !has_been_scanned {
+        // If clean was requested, always do a full scan
+        let result = if clean || force || !has_been_scanned {
             // Initial scan or forced full rescan
             scanner.scan(&root_path).map(ScanResult::Initial)
         } else {
