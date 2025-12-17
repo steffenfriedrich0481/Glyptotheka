@@ -38,9 +38,12 @@ pub async fn start_scan(
     State(state): State<AppState>,
     Json(req): Json<ScanRequest>,
 ) -> Result<Json<ScanStatus>, AppError> {
+    tracing::info!("Scan request received: force={:?}, clean={:?}", req.force, req.clean);
+    
     let mut scan_state = state.scan_state.lock().await;
 
     if scan_state.is_scanning {
+        tracing::info!("Scan already in progress, returning current status");
         return Ok(Json(ScanStatus {
             is_scanning: true,
             projects_found: None,
@@ -55,22 +58,42 @@ pub async fn start_scan(
         }));
     }
 
-    let config = state.config_service.get_config()?;
+    tracing::info!("Getting config...");
+    let config = state.config_service.get_config().map_err(|e| {
+        tracing::error!("Failed to get config: {:?}", e);
+        e
+    })?;
+    
     let root_path = config
         .root_path
-        .ok_or_else(|| AppError::ValidationError("Root path not configured".to_string()))?;
+        .ok_or_else(|| {
+            tracing::error!("Root path not configured");
+            AppError::ValidationError("Root path not configured".to_string())
+        })?;
+    
+    tracing::info!("Root path: {}", root_path);
 
     let force = req.force.unwrap_or(false);
     let clean = req.clean.unwrap_or(false);
     let has_been_scanned = config.last_scan_at.is_some();
+    
+    tracing::info!("Scan settings: force={}, clean={}, has_been_scanned={}", force, clean, has_been_scanned);
 
     // If clean is requested, clear all database entries and cache before scanning
     if clean {
         tracing::info!("Clean rescan requested - clearing all data");
-        state.project_repo.clear_all()?;
+        tracing::info!("Clearing project repository...");
+        if let Err(e) = state.project_repo.clear_all() {
+            tracing::error!("Failed to clear project repository: {:?}", e);
+            return Err(e);
+        }
+        tracing::info!("Project repository cleared successfully");
+        
+        tracing::info!("Clearing image cache...");
         if let Err(e) = state.image_cache_service.clear_all() {
             tracing::warn!("Failed to clear image cache: {}", e);
         }
+        tracing::info!("Image cache cleared");
     }
 
     scan_state.is_scanning = true;
