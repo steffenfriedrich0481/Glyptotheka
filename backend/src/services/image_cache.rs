@@ -209,25 +209,36 @@ impl ImageCacheService {
 
     /// Clear all cached files (images and previews)
     pub fn clear_all(&self) -> Result<usize, AppError> {
-        let conn = self.pool.get()?;
-
-        // Get all cache paths before clearing
-        let mut stmt = conn.prepare("SELECT cache_path FROM cached_files")?;
-        let cache_paths: Vec<String> = stmt
-            .query_map([], |row| row.get(0))?
-            .collect::<Result<Vec<_>, _>>()?;
-
-        // Delete all cache files
         let mut removed = 0;
-        for cache_path in &cache_paths {
-            let path = Path::new(cache_path);
-            if path.exists() && fs::remove_file(path).is_ok() {
-                removed += 1;
+
+        // Clear images directory
+        let images_dir = self.cache_dir.join("images");
+        if images_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&images_dir) {
+                for entry in entries.flatten() {
+                    if fs::remove_file(entry.path()).is_ok() {
+                        removed += 1;
+                    }
+                }
             }
         }
 
-        // Clear the database entries
-        conn.execute("DELETE FROM cached_files", [])?;
+        // Clear previews directory
+        let previews_dir = self.cache_dir.join("previews");
+        if previews_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&previews_dir) {
+                for entry in entries.flatten() {
+                    if fs::remove_file(entry.path()).is_ok() {
+                        removed += 1;
+                    }
+                }
+            }
+        }
+
+        // Also clear the database entries if the table exists
+        if let Ok(conn) = self.pool.get() {
+            let _ = conn.execute("DELETE FROM cached_files", []);
+        }
 
         tracing::info!("Cleared {} cached files", removed);
 
