@@ -319,11 +319,17 @@ impl ProjectRepository {
         conn.execute("PRAGMA foreign_keys = OFF", [])?;
 
         // Clear all related tables first, then projects
-        conn.execute("DELETE FROM image_inheritance", [])?;
-        conn.execute("DELETE FROM project_tags", [])?;
-        conn.execute("DELETE FROM project_previews", [])?;
-        conn.execute("DELETE FROM files", [])?;
-        conn.execute("DELETE FROM projects", [])?;
+        // Note: Tables may not exist on first run, so we ignore errors
+        let _ = conn.execute("DELETE FROM image_inheritance", []);
+        let _ = conn.execute("DELETE FROM project_tags", []);
+        let _ = conn.execute("DELETE FROM project_previews", []);
+        let _ = conn.execute("DELETE FROM stl_files", []);
+        let _ = conn.execute("DELETE FROM image_files", []);
+        let _ = conn.execute("DELETE FROM cached_files", []);
+        let _ = conn.execute("DELETE FROM projects", []);
+
+        // Also clear FTS index
+        let _ = conn.execute("DELETE FROM projects_fts", []);
 
         // Re-enable foreign keys
         conn.execute("PRAGMA foreign_keys = ON", [])?;
