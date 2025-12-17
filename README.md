@@ -1,5 +1,7 @@
 # Glyptotheka - 3D Print Model Library
 
+> 🤖 **AI-Powered Development**: This project was entirely developed using [GitHub Copilot CLI](https://github.com/features/copilot/cli) with support from [GitHub Spec-Kit](https://github.com/github/spec-kit). Models used: **Claude Sonnet 4.5** and **Claude Opus 4.5**.
+
 A modern web-based application for managing and browsing your 3D print model collection. Features a tile-based UI, hierarchical organization, automatic STL preview generation with smart caching, search & tagging, and easy file downloads.
 
 ## Features
